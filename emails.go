@@ -6,20 +6,21 @@ import (
 	json "encoding/json"
 	fmt "fmt"
 	internal "github.com/mailmus/mailmus-go/internal"
+	time "time"
 )
 
-type TransactionalEmailsControllerLogsRequest struct {
+type TransactionalEmailsLogsRequest struct {
 	Status string `json:"-" url:"status"`
 	Q      string `json:"-" url:"q"`
 }
 
-type TransactionalEmailsControllerSendRequest struct {
-	// Replay-safe: a retry with the same key returns the original result instead of sending again.
+type TransactionalEmailsSendRequest struct {
+	// Replay-safe for 24 hours: a retry with the same key returns the original result instead of sending again. Past that, the key is forgotten and the same request sends a new email. If a request with the same key is still being processed, you get a 409 — retry shortly instead of assuming it failed.
 	IdempotencyKey *string                    `json:"-" url:"-"`
 	Body           *SendTransactionalEmailDto `json:"-" url:"-"`
 }
 
-func (t *TransactionalEmailsControllerSendRequest) UnmarshalJSON(data []byte) error {
+func (t *TransactionalEmailsSendRequest) UnmarshalJSON(data []byte) error {
 	body := new(SendTransactionalEmailDto)
 	if err := json.Unmarshal(data, &body); err != nil {
 		return err
@@ -28,13 +29,153 @@ func (t *TransactionalEmailsControllerSendRequest) UnmarshalJSON(data []byte) er
 	return nil
 }
 
-func (t *TransactionalEmailsControllerSendRequest) MarshalJSON() ([]byte, error) {
+func (t *TransactionalEmailsSendRequest) MarshalJSON() ([]byte, error) {
 	return json.Marshal(t.Body)
 }
 
 type SendBatchEmailsDto struct {
+	// Replay-safe for 24 hours: a retry with the same key returns the original batch result instead of resending it. Past that, the key is forgotten and the same request sends the batch again. If a request with the same key is still being processed, you get a 409 — retry shortly instead of assuming it failed.
+	IdempotencyKey *string `json:"-" url:"-"`
 	// Max 100 emails per batch.
 	Emails []*SendTransactionalEmailDto `json:"emails,omitempty" url:"-"`
+}
+
+type BatchSendItemResultDto struct {
+	// Présent si cet email a été accepté.
+	ID        *string                       `json:"id,omitempty" url:"id,omitempty"`
+	MessageID *string                       `json:"messageId,omitempty" url:"messageId,omitempty"`
+	Status    *BatchSendItemResultDtoStatus `json:"status,omitempty" url:"status,omitempty"`
+	// Présent à la place des trois champs ci-dessus si cet email a été refusé.
+	Error *string `json:"error,omitempty" url:"error,omitempty"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (b *BatchSendItemResultDto) GetID() *string {
+	if b == nil {
+		return nil
+	}
+	return b.ID
+}
+
+func (b *BatchSendItemResultDto) GetMessageID() *string {
+	if b == nil {
+		return nil
+	}
+	return b.MessageID
+}
+
+func (b *BatchSendItemResultDto) GetStatus() *BatchSendItemResultDtoStatus {
+	if b == nil {
+		return nil
+	}
+	return b.Status
+}
+
+func (b *BatchSendItemResultDto) GetError() *string {
+	if b == nil {
+		return nil
+	}
+	return b.Error
+}
+
+func (b *BatchSendItemResultDto) GetExtraProperties() map[string]interface{} {
+	return b.extraProperties
+}
+
+func (b *BatchSendItemResultDto) UnmarshalJSON(data []byte) error {
+	type unmarshaler BatchSendItemResultDto
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*b = BatchSendItemResultDto(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *b)
+	if err != nil {
+		return err
+	}
+	b.extraProperties = extraProperties
+	b.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (b *BatchSendItemResultDto) String() string {
+	if len(b.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(b.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(b); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", b)
+}
+
+type BatchSendItemResultDtoStatus string
+
+const (
+	BatchSendItemResultDtoStatusSent BatchSendItemResultDtoStatus = "SENT"
+)
+
+func NewBatchSendItemResultDtoStatusFromString(s string) (BatchSendItemResultDtoStatus, error) {
+	switch s {
+	case "SENT":
+		return BatchSendItemResultDtoStatusSent, nil
+	}
+	var t BatchSendItemResultDtoStatus
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (b BatchSendItemResultDtoStatus) Ptr() *BatchSendItemResultDtoStatus {
+	return &b
+}
+
+type BatchSendResponseDto struct {
+	// Un résultat par email demandé, dans l’ordre de la requête.
+	Data []*BatchSendItemResultDto `json:"data,omitempty" url:"data,omitempty"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (b *BatchSendResponseDto) GetData() []*BatchSendItemResultDto {
+	if b == nil {
+		return nil
+	}
+	return b.Data
+}
+
+func (b *BatchSendResponseDto) GetExtraProperties() map[string]interface{} {
+	return b.extraProperties
+}
+
+func (b *BatchSendResponseDto) UnmarshalJSON(data []byte) error {
+	type unmarshaler BatchSendResponseDto
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*b = BatchSendResponseDto(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *b)
+	if err != nil {
+		return err
+	}
+	b.extraProperties = extraProperties
+	b.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (b *BatchSendResponseDto) String() string {
+	if len(b.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(b.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(b); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", b)
 }
 
 type EmailAttachmentDto struct {
@@ -98,6 +239,554 @@ func (e *EmailAttachmentDto) String() string {
 		return value
 	}
 	return fmt.Sprintf("%#v", e)
+}
+
+type SendDetailResponseDto struct {
+	ID           string                      `json:"id" url:"id"`
+	Status       SendDetailResponseDtoStatus `json:"status" url:"status"`
+	MessageID    map[string]interface{}      `json:"messageId,omitempty" url:"messageId,omitempty"`
+	Subject      map[string]interface{}      `json:"subject,omitempty" url:"subject,omitempty"`
+	From         map[string]interface{}      `json:"from,omitempty" url:"from,omitempty"`
+	DeliveredAt  map[string]interface{}      `json:"deliveredAt,omitempty" url:"deliveredAt,omitempty"`
+	OpenedAt     map[string]interface{}      `json:"openedAt,omitempty" url:"openedAt,omitempty"`
+	ClickedAt    map[string]interface{}      `json:"clickedAt,omitempty" url:"clickedAt,omitempty"`
+	BouncedAt    map[string]interface{}      `json:"bouncedAt,omitempty" url:"bouncedAt,omitempty"`
+	ComplainedAt map[string]interface{}      `json:"complainedAt,omitempty" url:"complainedAt,omitempty"`
+	CreatedAt    time.Time                   `json:"createdAt" url:"createdAt"`
+	Contact      *SendContactSummaryDto      `json:"contact,omitempty" url:"contact,omitempty"`
+	// Événements du fournisseur, du plus ancien au plus récent.
+	WebhookEvents []*SendWebhookEventDto `json:"webhookEvents,omitempty" url:"webhookEvents,omitempty"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (s *SendDetailResponseDto) GetID() string {
+	if s == nil {
+		return ""
+	}
+	return s.ID
+}
+
+func (s *SendDetailResponseDto) GetStatus() SendDetailResponseDtoStatus {
+	if s == nil {
+		return ""
+	}
+	return s.Status
+}
+
+func (s *SendDetailResponseDto) GetMessageID() map[string]interface{} {
+	if s == nil {
+		return nil
+	}
+	return s.MessageID
+}
+
+func (s *SendDetailResponseDto) GetSubject() map[string]interface{} {
+	if s == nil {
+		return nil
+	}
+	return s.Subject
+}
+
+func (s *SendDetailResponseDto) GetFrom() map[string]interface{} {
+	if s == nil {
+		return nil
+	}
+	return s.From
+}
+
+func (s *SendDetailResponseDto) GetDeliveredAt() map[string]interface{} {
+	if s == nil {
+		return nil
+	}
+	return s.DeliveredAt
+}
+
+func (s *SendDetailResponseDto) GetOpenedAt() map[string]interface{} {
+	if s == nil {
+		return nil
+	}
+	return s.OpenedAt
+}
+
+func (s *SendDetailResponseDto) GetClickedAt() map[string]interface{} {
+	if s == nil {
+		return nil
+	}
+	return s.ClickedAt
+}
+
+func (s *SendDetailResponseDto) GetBouncedAt() map[string]interface{} {
+	if s == nil {
+		return nil
+	}
+	return s.BouncedAt
+}
+
+func (s *SendDetailResponseDto) GetComplainedAt() map[string]interface{} {
+	if s == nil {
+		return nil
+	}
+	return s.ComplainedAt
+}
+
+func (s *SendDetailResponseDto) GetCreatedAt() time.Time {
+	if s == nil {
+		return time.Time{}
+	}
+	return s.CreatedAt
+}
+
+func (s *SendDetailResponseDto) GetContact() *SendContactSummaryDto {
+	if s == nil {
+		return nil
+	}
+	return s.Contact
+}
+
+func (s *SendDetailResponseDto) GetWebhookEvents() []*SendWebhookEventDto {
+	if s == nil {
+		return nil
+	}
+	return s.WebhookEvents
+}
+
+func (s *SendDetailResponseDto) GetExtraProperties() map[string]interface{} {
+	return s.extraProperties
+}
+
+func (s *SendDetailResponseDto) UnmarshalJSON(data []byte) error {
+	type embed SendDetailResponseDto
+	var unmarshaler = struct {
+		embed
+		CreatedAt *internal.DateTime `json:"createdAt"`
+	}{
+		embed: embed(*s),
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
+		return err
+	}
+	*s = SendDetailResponseDto(unmarshaler.embed)
+	s.CreatedAt = unmarshaler.CreatedAt.Time()
+	extraProperties, err := internal.ExtractExtraProperties(data, *s)
+	if err != nil {
+		return err
+	}
+	s.extraProperties = extraProperties
+	s.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (s *SendDetailResponseDto) MarshalJSON() ([]byte, error) {
+	type embed SendDetailResponseDto
+	var marshaler = struct {
+		embed
+		CreatedAt *internal.DateTime `json:"createdAt"`
+	}{
+		embed:     embed(*s),
+		CreatedAt: internal.NewDateTime(s.CreatedAt),
+	}
+	return json.Marshal(marshaler)
+}
+
+func (s *SendDetailResponseDto) String() string {
+	if len(s.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(s.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(s); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", s)
+}
+
+type SendDetailResponseDtoStatus string
+
+const (
+	SendDetailResponseDtoStatusQueued     SendDetailResponseDtoStatus = "QUEUED"
+	SendDetailResponseDtoStatusSent       SendDetailResponseDtoStatus = "SENT"
+	SendDetailResponseDtoStatusDelivered  SendDetailResponseDtoStatus = "DELIVERED"
+	SendDetailResponseDtoStatusOpened     SendDetailResponseDtoStatus = "OPENED"
+	SendDetailResponseDtoStatusClicked    SendDetailResponseDtoStatus = "CLICKED"
+	SendDetailResponseDtoStatusBounced    SendDetailResponseDtoStatus = "BOUNCED"
+	SendDetailResponseDtoStatusComplained SendDetailResponseDtoStatus = "COMPLAINED"
+	SendDetailResponseDtoStatusFailed     SendDetailResponseDtoStatus = "FAILED"
+)
+
+func NewSendDetailResponseDtoStatusFromString(s string) (SendDetailResponseDtoStatus, error) {
+	switch s {
+	case "QUEUED":
+		return SendDetailResponseDtoStatusQueued, nil
+	case "SENT":
+		return SendDetailResponseDtoStatusSent, nil
+	case "DELIVERED":
+		return SendDetailResponseDtoStatusDelivered, nil
+	case "OPENED":
+		return SendDetailResponseDtoStatusOpened, nil
+	case "CLICKED":
+		return SendDetailResponseDtoStatusClicked, nil
+	case "BOUNCED":
+		return SendDetailResponseDtoStatusBounced, nil
+	case "COMPLAINED":
+		return SendDetailResponseDtoStatusComplained, nil
+	case "FAILED":
+		return SendDetailResponseDtoStatusFailed, nil
+	}
+	var t SendDetailResponseDtoStatus
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (s SendDetailResponseDtoStatus) Ptr() *SendDetailResponseDtoStatus {
+	return &s
+}
+
+type SendEmailResponseDto struct {
+	// Identifiant de l’envoi chez Mailmus. C’est lui qui sert à relire le détail et qui revient dans les webhooks.
+	ID string `json:"id" url:"id"`
+	// Identifiant attribué par le fournisseur d’envoi. Utile pour un échange avec le support d’un fournisseur de messagerie.
+	MessageID string `json:"messageId" url:"messageId"`
+	// Toujours SENT : le message a été accepté pour envoi. La remise effective se suit ensuite par webhook ou par la route de détail.
+	Status SendEmailResponseDtoStatus `json:"status" url:"status"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (s *SendEmailResponseDto) GetID() string {
+	if s == nil {
+		return ""
+	}
+	return s.ID
+}
+
+func (s *SendEmailResponseDto) GetMessageID() string {
+	if s == nil {
+		return ""
+	}
+	return s.MessageID
+}
+
+func (s *SendEmailResponseDto) GetStatus() SendEmailResponseDtoStatus {
+	if s == nil {
+		return ""
+	}
+	return s.Status
+}
+
+func (s *SendEmailResponseDto) GetExtraProperties() map[string]interface{} {
+	return s.extraProperties
+}
+
+func (s *SendEmailResponseDto) UnmarshalJSON(data []byte) error {
+	type unmarshaler SendEmailResponseDto
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*s = SendEmailResponseDto(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *s)
+	if err != nil {
+		return err
+	}
+	s.extraProperties = extraProperties
+	s.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (s *SendEmailResponseDto) String() string {
+	if len(s.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(s.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(s); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", s)
+}
+
+// Toujours SENT : le message a été accepté pour envoi. La remise effective se suit ensuite par webhook ou par la route de détail.
+type SendEmailResponseDtoStatus string
+
+const (
+	SendEmailResponseDtoStatusSent SendEmailResponseDtoStatus = "SENT"
+)
+
+func NewSendEmailResponseDtoStatusFromString(s string) (SendEmailResponseDtoStatus, error) {
+	switch s {
+	case "SENT":
+		return SendEmailResponseDtoStatusSent, nil
+	}
+	var t SendEmailResponseDtoStatus
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (s SendEmailResponseDtoStatus) Ptr() *SendEmailResponseDtoStatus {
+	return &s
+}
+
+type SendLogListResponseDto struct {
+	Data  []*SendLogResponseDto `json:"data,omitempty" url:"data,omitempty"`
+	Total float64               `json:"total" url:"total"`
+	Page  float64               `json:"page" url:"page"`
+	Pages float64               `json:"pages" url:"pages"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (s *SendLogListResponseDto) GetData() []*SendLogResponseDto {
+	if s == nil {
+		return nil
+	}
+	return s.Data
+}
+
+func (s *SendLogListResponseDto) GetTotal() float64 {
+	if s == nil {
+		return 0
+	}
+	return s.Total
+}
+
+func (s *SendLogListResponseDto) GetPage() float64 {
+	if s == nil {
+		return 0
+	}
+	return s.Page
+}
+
+func (s *SendLogListResponseDto) GetPages() float64 {
+	if s == nil {
+		return 0
+	}
+	return s.Pages
+}
+
+func (s *SendLogListResponseDto) GetExtraProperties() map[string]interface{} {
+	return s.extraProperties
+}
+
+func (s *SendLogListResponseDto) UnmarshalJSON(data []byte) error {
+	type unmarshaler SendLogListResponseDto
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*s = SendLogListResponseDto(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *s)
+	if err != nil {
+		return err
+	}
+	s.extraProperties = extraProperties
+	s.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (s *SendLogListResponseDto) String() string {
+	if len(s.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(s.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(s); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", s)
+}
+
+type SendLogResponseDto struct {
+	ID           string                   `json:"id" url:"id"`
+	Status       SendLogResponseDtoStatus `json:"status" url:"status"`
+	MessageID    map[string]interface{}   `json:"messageId,omitempty" url:"messageId,omitempty"`
+	Subject      map[string]interface{}   `json:"subject,omitempty" url:"subject,omitempty"`
+	From         map[string]interface{}   `json:"from,omitempty" url:"from,omitempty"`
+	DeliveredAt  map[string]interface{}   `json:"deliveredAt,omitempty" url:"deliveredAt,omitempty"`
+	OpenedAt     map[string]interface{}   `json:"openedAt,omitempty" url:"openedAt,omitempty"`
+	ClickedAt    map[string]interface{}   `json:"clickedAt,omitempty" url:"clickedAt,omitempty"`
+	BouncedAt    map[string]interface{}   `json:"bouncedAt,omitempty" url:"bouncedAt,omitempty"`
+	ComplainedAt map[string]interface{}   `json:"complainedAt,omitempty" url:"complainedAt,omitempty"`
+	CreatedAt    time.Time                `json:"createdAt" url:"createdAt"`
+	Contact      *SendContactSummaryDto   `json:"contact,omitempty" url:"contact,omitempty"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (s *SendLogResponseDto) GetID() string {
+	if s == nil {
+		return ""
+	}
+	return s.ID
+}
+
+func (s *SendLogResponseDto) GetStatus() SendLogResponseDtoStatus {
+	if s == nil {
+		return ""
+	}
+	return s.Status
+}
+
+func (s *SendLogResponseDto) GetMessageID() map[string]interface{} {
+	if s == nil {
+		return nil
+	}
+	return s.MessageID
+}
+
+func (s *SendLogResponseDto) GetSubject() map[string]interface{} {
+	if s == nil {
+		return nil
+	}
+	return s.Subject
+}
+
+func (s *SendLogResponseDto) GetFrom() map[string]interface{} {
+	if s == nil {
+		return nil
+	}
+	return s.From
+}
+
+func (s *SendLogResponseDto) GetDeliveredAt() map[string]interface{} {
+	if s == nil {
+		return nil
+	}
+	return s.DeliveredAt
+}
+
+func (s *SendLogResponseDto) GetOpenedAt() map[string]interface{} {
+	if s == nil {
+		return nil
+	}
+	return s.OpenedAt
+}
+
+func (s *SendLogResponseDto) GetClickedAt() map[string]interface{} {
+	if s == nil {
+		return nil
+	}
+	return s.ClickedAt
+}
+
+func (s *SendLogResponseDto) GetBouncedAt() map[string]interface{} {
+	if s == nil {
+		return nil
+	}
+	return s.BouncedAt
+}
+
+func (s *SendLogResponseDto) GetComplainedAt() map[string]interface{} {
+	if s == nil {
+		return nil
+	}
+	return s.ComplainedAt
+}
+
+func (s *SendLogResponseDto) GetCreatedAt() time.Time {
+	if s == nil {
+		return time.Time{}
+	}
+	return s.CreatedAt
+}
+
+func (s *SendLogResponseDto) GetContact() *SendContactSummaryDto {
+	if s == nil {
+		return nil
+	}
+	return s.Contact
+}
+
+func (s *SendLogResponseDto) GetExtraProperties() map[string]interface{} {
+	return s.extraProperties
+}
+
+func (s *SendLogResponseDto) UnmarshalJSON(data []byte) error {
+	type embed SendLogResponseDto
+	var unmarshaler = struct {
+		embed
+		CreatedAt *internal.DateTime `json:"createdAt"`
+	}{
+		embed: embed(*s),
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
+		return err
+	}
+	*s = SendLogResponseDto(unmarshaler.embed)
+	s.CreatedAt = unmarshaler.CreatedAt.Time()
+	extraProperties, err := internal.ExtractExtraProperties(data, *s)
+	if err != nil {
+		return err
+	}
+	s.extraProperties = extraProperties
+	s.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (s *SendLogResponseDto) MarshalJSON() ([]byte, error) {
+	type embed SendLogResponseDto
+	var marshaler = struct {
+		embed
+		CreatedAt *internal.DateTime `json:"createdAt"`
+	}{
+		embed:     embed(*s),
+		CreatedAt: internal.NewDateTime(s.CreatedAt),
+	}
+	return json.Marshal(marshaler)
+}
+
+func (s *SendLogResponseDto) String() string {
+	if len(s.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(s.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(s); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", s)
+}
+
+type SendLogResponseDtoStatus string
+
+const (
+	SendLogResponseDtoStatusQueued     SendLogResponseDtoStatus = "QUEUED"
+	SendLogResponseDtoStatusSent       SendLogResponseDtoStatus = "SENT"
+	SendLogResponseDtoStatusDelivered  SendLogResponseDtoStatus = "DELIVERED"
+	SendLogResponseDtoStatusOpened     SendLogResponseDtoStatus = "OPENED"
+	SendLogResponseDtoStatusClicked    SendLogResponseDtoStatus = "CLICKED"
+	SendLogResponseDtoStatusBounced    SendLogResponseDtoStatus = "BOUNCED"
+	SendLogResponseDtoStatusComplained SendLogResponseDtoStatus = "COMPLAINED"
+	SendLogResponseDtoStatusFailed     SendLogResponseDtoStatus = "FAILED"
+)
+
+func NewSendLogResponseDtoStatusFromString(s string) (SendLogResponseDtoStatus, error) {
+	switch s {
+	case "QUEUED":
+		return SendLogResponseDtoStatusQueued, nil
+	case "SENT":
+		return SendLogResponseDtoStatusSent, nil
+	case "DELIVERED":
+		return SendLogResponseDtoStatusDelivered, nil
+	case "OPENED":
+		return SendLogResponseDtoStatusOpened, nil
+	case "CLICKED":
+		return SendLogResponseDtoStatusClicked, nil
+	case "BOUNCED":
+		return SendLogResponseDtoStatusBounced, nil
+	case "COMPLAINED":
+		return SendLogResponseDtoStatusComplained, nil
+	case "FAILED":
+		return SendLogResponseDtoStatusFailed, nil
+	}
+	var t SendLogResponseDtoStatus
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (s SendLogResponseDtoStatus) Ptr() *SendLogResponseDtoStatus {
+	return &s
 }
 
 type SendTransactionalEmailDto struct {
@@ -220,6 +909,86 @@ func (s *SendTransactionalEmailDto) UnmarshalJSON(data []byte) error {
 }
 
 func (s *SendTransactionalEmailDto) String() string {
+	if len(s.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(s.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(s); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", s)
+}
+
+type SendWebhookEventDto struct {
+	ID        string    `json:"id" url:"id"`
+	Type      string    `json:"type" url:"type"`
+	CreatedAt time.Time `json:"createdAt" url:"createdAt"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (s *SendWebhookEventDto) GetID() string {
+	if s == nil {
+		return ""
+	}
+	return s.ID
+}
+
+func (s *SendWebhookEventDto) GetType() string {
+	if s == nil {
+		return ""
+	}
+	return s.Type
+}
+
+func (s *SendWebhookEventDto) GetCreatedAt() time.Time {
+	if s == nil {
+		return time.Time{}
+	}
+	return s.CreatedAt
+}
+
+func (s *SendWebhookEventDto) GetExtraProperties() map[string]interface{} {
+	return s.extraProperties
+}
+
+func (s *SendWebhookEventDto) UnmarshalJSON(data []byte) error {
+	type embed SendWebhookEventDto
+	var unmarshaler = struct {
+		embed
+		CreatedAt *internal.DateTime `json:"createdAt"`
+	}{
+		embed: embed(*s),
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
+		return err
+	}
+	*s = SendWebhookEventDto(unmarshaler.embed)
+	s.CreatedAt = unmarshaler.CreatedAt.Time()
+	extraProperties, err := internal.ExtractExtraProperties(data, *s)
+	if err != nil {
+		return err
+	}
+	s.extraProperties = extraProperties
+	s.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (s *SendWebhookEventDto) MarshalJSON() ([]byte, error) {
+	type embed SendWebhookEventDto
+	var marshaler = struct {
+		embed
+		CreatedAt *internal.DateTime `json:"createdAt"`
+	}{
+		embed:     embed(*s),
+		CreatedAt: internal.NewDateTime(s.CreatedAt),
+	}
+	return json.Marshal(marshaler)
+}
+
+func (s *SendWebhookEventDto) String() string {
 	if len(s.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(s.rawJSON); err == nil {
 			return value

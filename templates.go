@@ -2,10 +2,137 @@
 
 package mailmus
 
+import (
+	json "encoding/json"
+	fmt "fmt"
+	internal "github.com/mailmus/mailmus-go/internal"
+	time "time"
+)
+
 type CreateTemplateDto struct {
 	Name        string                 `json:"name" url:"-"`
 	BuilderJSON map[string]interface{} `json:"builderJson,omitempty" url:"-"`
 	HTML        string                 `json:"html" url:"-"`
+}
+
+type TemplateResponseDto struct {
+	ID string `json:"id" url:"id"`
+	// Nom interne, jamais visible par un destinataire.
+	Name string `json:"name" url:"name"`
+	// Représentation structurée de l'éditeur visuel. Passez-la telle quelle pour rouvrir un template dans l'éditeur ; le HTML ci-dessous en est le rendu.
+	BuilderJSON map[string]interface{} `json:"builderJson,omitempty" url:"builderJson,omitempty"`
+	// HTML final envoyé. Les variables de personnalisation y sont laissées telles quelles et interpolées au moment de l’envoi.
+	HTML string `json:"html" url:"html"`
+	// Projet auquel ce template appartient.
+	AppID     string    `json:"appId" url:"appId"`
+	CreatedAt time.Time `json:"createdAt" url:"createdAt"`
+	UpdatedAt time.Time `json:"updatedAt" url:"updatedAt"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (t *TemplateResponseDto) GetID() string {
+	if t == nil {
+		return ""
+	}
+	return t.ID
+}
+
+func (t *TemplateResponseDto) GetName() string {
+	if t == nil {
+		return ""
+	}
+	return t.Name
+}
+
+func (t *TemplateResponseDto) GetBuilderJSON() map[string]interface{} {
+	if t == nil {
+		return nil
+	}
+	return t.BuilderJSON
+}
+
+func (t *TemplateResponseDto) GetHTML() string {
+	if t == nil {
+		return ""
+	}
+	return t.HTML
+}
+
+func (t *TemplateResponseDto) GetAppID() string {
+	if t == nil {
+		return ""
+	}
+	return t.AppID
+}
+
+func (t *TemplateResponseDto) GetCreatedAt() time.Time {
+	if t == nil {
+		return time.Time{}
+	}
+	return t.CreatedAt
+}
+
+func (t *TemplateResponseDto) GetUpdatedAt() time.Time {
+	if t == nil {
+		return time.Time{}
+	}
+	return t.UpdatedAt
+}
+
+func (t *TemplateResponseDto) GetExtraProperties() map[string]interface{} {
+	return t.extraProperties
+}
+
+func (t *TemplateResponseDto) UnmarshalJSON(data []byte) error {
+	type embed TemplateResponseDto
+	var unmarshaler = struct {
+		embed
+		CreatedAt *internal.DateTime `json:"createdAt"`
+		UpdatedAt *internal.DateTime `json:"updatedAt"`
+	}{
+		embed: embed(*t),
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
+		return err
+	}
+	*t = TemplateResponseDto(unmarshaler.embed)
+	t.CreatedAt = unmarshaler.CreatedAt.Time()
+	t.UpdatedAt = unmarshaler.UpdatedAt.Time()
+	extraProperties, err := internal.ExtractExtraProperties(data, *t)
+	if err != nil {
+		return err
+	}
+	t.extraProperties = extraProperties
+	t.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (t *TemplateResponseDto) MarshalJSON() ([]byte, error) {
+	type embed TemplateResponseDto
+	var marshaler = struct {
+		embed
+		CreatedAt *internal.DateTime `json:"createdAt"`
+		UpdatedAt *internal.DateTime `json:"updatedAt"`
+	}{
+		embed:     embed(*t),
+		CreatedAt: internal.NewDateTime(t.CreatedAt),
+		UpdatedAt: internal.NewDateTime(t.UpdatedAt),
+	}
+	return json.Marshal(marshaler)
+}
+
+func (t *TemplateResponseDto) String() string {
+	if len(t.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(t.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(t); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", t)
 }
 
 type UpdateTemplateDto struct {

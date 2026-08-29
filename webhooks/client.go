@@ -4,11 +4,11 @@ package webhooks
 
 import (
 	context "context"
-	http "net/http"
-	sdk "github.com/mailmus/mailmus-go"
+	mailmusgo "github.com/mailmus/mailmus-go"
 	core "github.com/mailmus/mailmus-go/core"
 	internal "github.com/mailmus/mailmus-go/internal"
 	option "github.com/mailmus/mailmus-go/option"
+	http "net/http"
 )
 
 type Client struct {
@@ -31,11 +31,11 @@ func NewClient(opts ...option.RequestOption) *Client {
 	}
 }
 
-func (c *Client) WebhookSubscriptionsControllerList(
+func (c *Client) WebhookSubscriptionsList(
 	ctx context.Context,
-	appID string,
+	projectID string,
 	opts ...option.RequestOption,
-) error {
+) ([]*mailmusgo.WebhookSubscriptionResponseDto, error) {
 	options := core.NewRequestOptions(opts...)
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
@@ -43,14 +43,15 @@ func (c *Client) WebhookSubscriptionsControllerList(
 		"",
 	)
 	endpointURL := internal.EncodeURL(
-		baseURL+"/apps/%v/webhooks",
-		appID,
+		baseURL+"/projects/%v/webhooks",
+		projectID,
 	)
 	headers := internal.MergeHeaders(
 		c.header.Clone(),
 		options.ToHeader(),
 	)
 
+	var response []*mailmusgo.WebhookSubscriptionResponseDto
 	if err := c.caller.Call(
 		ctx,
 		&internal.CallParams{
@@ -61,19 +62,20 @@ func (c *Client) WebhookSubscriptionsControllerList(
 			BodyProperties:  options.BodyProperties,
 			QueryParameters: options.QueryParameters,
 			Client:          options.HTTPClient,
+			Response:        &response,
 		},
 	); err != nil {
-		return err
+		return nil, err
 	}
-	return nil
+	return response, nil
 }
 
-func (c *Client) WebhookSubscriptionsControllerCreate(
+func (c *Client) WebhookSubscriptionsCreate(
 	ctx context.Context,
-	appID string,
-	request *sdk.CreateWebhookDto,
+	projectID string,
+	request *mailmusgo.CreateWebhookDto,
 	opts ...option.RequestOption,
-) error {
+) (*mailmusgo.WebhookSubscriptionWithSecretResponseDto, error) {
 	options := core.NewRequestOptions(opts...)
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
@@ -81,8 +83,8 @@ func (c *Client) WebhookSubscriptionsControllerCreate(
 		"",
 	)
 	endpointURL := internal.EncodeURL(
-		baseURL+"/apps/%v/webhooks",
-		appID,
+		baseURL+"/projects/%v/webhooks",
+		projectID,
 	)
 	headers := internal.MergeHeaders(
 		c.header.Clone(),
@@ -90,6 +92,7 @@ func (c *Client) WebhookSubscriptionsControllerCreate(
 	)
 	headers.Set("Content-Type", "application/json")
 
+	var response *mailmusgo.WebhookSubscriptionWithSecretResponseDto
 	if err := c.caller.Call(
 		ctx,
 		&internal.CallParams{
@@ -101,19 +104,20 @@ func (c *Client) WebhookSubscriptionsControllerCreate(
 			QueryParameters: options.QueryParameters,
 			Client:          options.HTTPClient,
 			Request:         request,
+			Response:        &response,
 		},
 	); err != nil {
-		return err
+		return nil, err
 	}
-	return nil
+	return response, nil
 }
 
-func (c *Client) WebhookSubscriptionsControllerRemove(
+func (c *Client) WebhookSubscriptionsRemove(
 	ctx context.Context,
-	appID string,
+	projectID string,
 	id string,
 	opts ...option.RequestOption,
-) error {
+) (*mailmusgo.WebhookSubscriptionResponseDto, error) {
 	options := core.NewRequestOptions(opts...)
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
@@ -121,8 +125,8 @@ func (c *Client) WebhookSubscriptionsControllerRemove(
 		"",
 	)
 	endpointURL := internal.EncodeURL(
-		baseURL+"/apps/%v/webhooks/%v",
-		appID,
+		baseURL+"/projects/%v/webhooks/%v",
+		projectID,
 		id,
 	)
 	headers := internal.MergeHeaders(
@@ -130,6 +134,7 @@ func (c *Client) WebhookSubscriptionsControllerRemove(
 		options.ToHeader(),
 	)
 
+	var response *mailmusgo.WebhookSubscriptionResponseDto
 	if err := c.caller.Call(
 		ctx,
 		&internal.CallParams{
@@ -140,20 +145,21 @@ func (c *Client) WebhookSubscriptionsControllerRemove(
 			BodyProperties:  options.BodyProperties,
 			QueryParameters: options.QueryParameters,
 			Client:          options.HTTPClient,
+			Response:        &response,
 		},
 	); err != nil {
-		return err
+		return nil, err
 	}
-	return nil
+	return response, nil
 }
 
-func (c *Client) WebhookSubscriptionsControllerUpdate(
+func (c *Client) WebhookSubscriptionsUpdate(
 	ctx context.Context,
-	appID string,
+	projectID string,
 	id string,
-	request *sdk.UpdateWebhookDto,
+	request *mailmusgo.UpdateWebhookDto,
 	opts ...option.RequestOption,
-) error {
+) (*mailmusgo.WebhookSubscriptionResponseDto, error) {
 	options := core.NewRequestOptions(opts...)
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
@@ -161,8 +167,8 @@ func (c *Client) WebhookSubscriptionsControllerUpdate(
 		"",
 	)
 	endpointURL := internal.EncodeURL(
-		baseURL+"/apps/%v/webhooks/%v",
-		appID,
+		baseURL+"/projects/%v/webhooks/%v",
+		projectID,
 		id,
 	)
 	headers := internal.MergeHeaders(
@@ -171,6 +177,7 @@ func (c *Client) WebhookSubscriptionsControllerUpdate(
 	)
 	headers.Set("Content-Type", "application/json")
 
+	var response *mailmusgo.WebhookSubscriptionResponseDto
 	if err := c.caller.Call(
 		ctx,
 		&internal.CallParams{
@@ -182,19 +189,20 @@ func (c *Client) WebhookSubscriptionsControllerUpdate(
 			QueryParameters: options.QueryParameters,
 			Client:          options.HTTPClient,
 			Request:         request,
+			Response:        &response,
 		},
 	); err != nil {
-		return err
+		return nil, err
 	}
-	return nil
+	return response, nil
 }
 
-func (c *Client) WebhookSubscriptionsControllerListDeliveries(
+func (c *Client) WebhookSubscriptionsRotateSecret(
 	ctx context.Context,
-	appID string,
+	projectID string,
 	id string,
 	opts ...option.RequestOption,
-) error {
+) (*mailmusgo.WebhookSubscriptionWithSecretResponseDto, error) {
 	options := core.NewRequestOptions(opts...)
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
@@ -202,8 +210,8 @@ func (c *Client) WebhookSubscriptionsControllerListDeliveries(
 		"",
 	)
 	endpointURL := internal.EncodeURL(
-		baseURL+"/apps/%v/webhooks/%v/deliveries",
-		appID,
+		baseURL+"/projects/%v/webhooks/%v/rotate-secret",
+		projectID,
 		id,
 	)
 	headers := internal.MergeHeaders(
@@ -211,6 +219,48 @@ func (c *Client) WebhookSubscriptionsControllerListDeliveries(
 		options.ToHeader(),
 	)
 
+	var response *mailmusgo.WebhookSubscriptionWithSecretResponseDto
+	if err := c.caller.Call(
+		ctx,
+		&internal.CallParams{
+			URL:             endpointURL,
+			Method:          http.MethodPost,
+			Headers:         headers,
+			MaxAttempts:     options.MaxAttempts,
+			BodyProperties:  options.BodyProperties,
+			QueryParameters: options.QueryParameters,
+			Client:          options.HTTPClient,
+			Response:        &response,
+		},
+	); err != nil {
+		return nil, err
+	}
+	return response, nil
+}
+
+func (c *Client) WebhookSubscriptionsListDeliveries(
+	ctx context.Context,
+	projectID string,
+	id string,
+	opts ...option.RequestOption,
+) ([]*mailmusgo.WebhookDeliveryResponseDto, error) {
+	options := core.NewRequestOptions(opts...)
+	baseURL := internal.ResolveBaseURL(
+		options.BaseURL,
+		c.baseURL,
+		"",
+	)
+	endpointURL := internal.EncodeURL(
+		baseURL+"/projects/%v/webhooks/%v/deliveries",
+		projectID,
+		id,
+	)
+	headers := internal.MergeHeaders(
+		c.header.Clone(),
+		options.ToHeader(),
+	)
+
+	var response []*mailmusgo.WebhookDeliveryResponseDto
 	if err := c.caller.Call(
 		ctx,
 		&internal.CallParams{
@@ -221,16 +271,17 @@ func (c *Client) WebhookSubscriptionsControllerListDeliveries(
 			BodyProperties:  options.BodyProperties,
 			QueryParameters: options.QueryParameters,
 			Client:          options.HTTPClient,
+			Response:        &response,
 		},
 	); err != nil {
-		return err
+		return nil, err
 	}
-	return nil
+	return response, nil
 }
 
-func (c *Client) WebhookSubscriptionsControllerReplayDelivery(
+func (c *Client) WebhookSubscriptionsReplayDelivery(
 	ctx context.Context,
-	appID string,
+	projectID string,
 	id string,
 	deliveryID string,
 	opts ...option.RequestOption,
@@ -242,8 +293,8 @@ func (c *Client) WebhookSubscriptionsControllerReplayDelivery(
 		"",
 	)
 	endpointURL := internal.EncodeURL(
-		baseURL+"/apps/%v/webhooks/%v/deliveries/%v/replay",
-		appID,
+		baseURL+"/projects/%v/webhooks/%v/deliveries/%v/replay",
+		projectID,
 		id,
 		deliveryID,
 	)
@@ -269,12 +320,12 @@ func (c *Client) WebhookSubscriptionsControllerReplayDelivery(
 	return nil
 }
 
-func (c *Client) WebhookSubscriptionsControllerTest(
+func (c *Client) WebhookSubscriptionsTest(
 	ctx context.Context,
-	appID string,
+	projectID string,
 	id string,
 	opts ...option.RequestOption,
-) error {
+) (*mailmusgo.WebhookTestResultDto, error) {
 	options := core.NewRequestOptions(opts...)
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
@@ -282,8 +333,8 @@ func (c *Client) WebhookSubscriptionsControllerTest(
 		"",
 	)
 	endpointURL := internal.EncodeURL(
-		baseURL+"/apps/%v/webhooks/%v/test",
-		appID,
+		baseURL+"/projects/%v/webhooks/%v/test",
+		projectID,
 		id,
 	)
 	headers := internal.MergeHeaders(
@@ -291,6 +342,7 @@ func (c *Client) WebhookSubscriptionsControllerTest(
 		options.ToHeader(),
 	)
 
+	var response *mailmusgo.WebhookTestResultDto
 	if err := c.caller.Call(
 		ctx,
 		&internal.CallParams{
@@ -301,9 +353,10 @@ func (c *Client) WebhookSubscriptionsControllerTest(
 			BodyProperties:  options.BodyProperties,
 			QueryParameters: options.QueryParameters,
 			Client:          options.HTTPClient,
+			Response:        &response,
 		},
 	); err != nil {
-		return err
+		return nil, err
 	}
-	return nil
+	return response, nil
 }

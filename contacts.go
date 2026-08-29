@@ -2,6 +2,12 @@
 
 package mailmus
 
+import (
+	json "encoding/json"
+	fmt "fmt"
+	internal "github.com/mailmus/mailmus-go/internal"
+)
+
 type BatchImportContactsDto struct {
 }
 
@@ -10,11 +16,186 @@ type CreateContactDto struct {
 	Attributes map[string]interface{} `json:"attributes,omitempty" url:"-"`
 }
 
-type ContactsControllerListRequest struct {
+type ContactsListRequest struct {
 	Status    string `json:"-" url:"status"`
 	Q         string `json:"-" url:"q"`
 	AttrKey   string `json:"-" url:"attrKey"`
 	AttrValue string `json:"-" url:"attrValue"`
+}
+
+type ContactDeletedResponseDto struct {
+	Deleted bool `json:"deleted" url:"deleted"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (c *ContactDeletedResponseDto) GetDeleted() bool {
+	if c == nil {
+		return false
+	}
+	return c.Deleted
+}
+
+func (c *ContactDeletedResponseDto) GetExtraProperties() map[string]interface{} {
+	return c.extraProperties
+}
+
+func (c *ContactDeletedResponseDto) UnmarshalJSON(data []byte) error {
+	type unmarshaler ContactDeletedResponseDto
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*c = ContactDeletedResponseDto(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *c)
+	if err != nil {
+		return err
+	}
+	c.extraProperties = extraProperties
+	c.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (c *ContactDeletedResponseDto) String() string {
+	if len(c.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(c.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(c); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", c)
+}
+
+type ContactImportResultDto struct {
+	// Contacts créés ou mis à jour.
+	Imported float64 `json:"imported" url:"imported"`
+	// Lignes écartées : adresse invalide ou doublon.
+	Skipped float64 `json:"skipped" url:"skipped"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (c *ContactImportResultDto) GetImported() float64 {
+	if c == nil {
+		return 0
+	}
+	return c.Imported
+}
+
+func (c *ContactImportResultDto) GetSkipped() float64 {
+	if c == nil {
+		return 0
+	}
+	return c.Skipped
+}
+
+func (c *ContactImportResultDto) GetExtraProperties() map[string]interface{} {
+	return c.extraProperties
+}
+
+func (c *ContactImportResultDto) UnmarshalJSON(data []byte) error {
+	type unmarshaler ContactImportResultDto
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*c = ContactImportResultDto(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *c)
+	if err != nil {
+		return err
+	}
+	c.extraProperties = extraProperties
+	c.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (c *ContactImportResultDto) String() string {
+	if len(c.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(c.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(c); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", c)
+}
+
+type ContactListResponseDto struct {
+	Data []*ContactResponseDto `json:"data,omitempty" url:"data,omitempty"`
+	// Nombre total de contacts correspondant au filtre.
+	Total float64 `json:"total" url:"total"`
+	// Page demandée, à partir de 1.
+	Page float64 `json:"page" url:"page"`
+	// Nombre de pages disponibles.
+	Pages float64 `json:"pages" url:"pages"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (c *ContactListResponseDto) GetData() []*ContactResponseDto {
+	if c == nil {
+		return nil
+	}
+	return c.Data
+}
+
+func (c *ContactListResponseDto) GetTotal() float64 {
+	if c == nil {
+		return 0
+	}
+	return c.Total
+}
+
+func (c *ContactListResponseDto) GetPage() float64 {
+	if c == nil {
+		return 0
+	}
+	return c.Page
+}
+
+func (c *ContactListResponseDto) GetPages() float64 {
+	if c == nil {
+		return 0
+	}
+	return c.Pages
+}
+
+func (c *ContactListResponseDto) GetExtraProperties() map[string]interface{} {
+	return c.extraProperties
+}
+
+func (c *ContactListResponseDto) UnmarshalJSON(data []byte) error {
+	type unmarshaler ContactListResponseDto
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*c = ContactListResponseDto(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *c)
+	if err != nil {
+		return err
+	}
+	c.extraProperties = extraProperties
+	c.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (c *ContactListResponseDto) String() string {
+	if len(c.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(c.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(c); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", c)
 }
 
 type UpdateContactDto struct {

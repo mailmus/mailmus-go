@@ -5,11 +5,11 @@ package emails
 import (
 	context "context"
 	fmt "fmt"
-	http "net/http"
-	sdk "github.com/mailmus/mailmus-go"
+	mailmusgo "github.com/mailmus/mailmus-go"
 	core "github.com/mailmus/mailmus-go/core"
 	internal "github.com/mailmus/mailmus-go/internal"
 	option "github.com/mailmus/mailmus-go/option"
+	http "net/http"
 )
 
 type Client struct {
@@ -32,12 +32,12 @@ func NewClient(opts ...option.RequestOption) *Client {
 	}
 }
 
-func (c *Client) TransactionalEmailsControllerSend(
+func (c *Client) TransactionalEmailsSend(
 	ctx context.Context,
-	appID string,
-	request *sdk.TransactionalEmailsControllerSendRequest,
+	projectID string,
+	request *mailmusgo.TransactionalEmailsSendRequest,
 	opts ...option.RequestOption,
-) error {
+) (*mailmusgo.SendEmailResponseDto, error) {
 	options := core.NewRequestOptions(opts...)
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
@@ -45,8 +45,8 @@ func (c *Client) TransactionalEmailsControllerSend(
 		"",
 	)
 	endpointURL := internal.EncodeURL(
-		baseURL+"/apps/%v/emails",
-		appID,
+		baseURL+"/projects/%v/emails",
+		projectID,
 	)
 	headers := internal.MergeHeaders(
 		c.header.Clone(),
@@ -57,6 +57,7 @@ func (c *Client) TransactionalEmailsControllerSend(
 	}
 	headers.Set("Content-Type", "application/json")
 
+	var response *mailmusgo.SendEmailResponseDto
 	if err := c.caller.Call(
 		ctx,
 		&internal.CallParams{
@@ -68,19 +69,20 @@ func (c *Client) TransactionalEmailsControllerSend(
 			QueryParameters: options.QueryParameters,
 			Client:          options.HTTPClient,
 			Request:         request,
+			Response:        &response,
 		},
 	); err != nil {
-		return err
+		return nil, err
 	}
-	return nil
+	return response, nil
 }
 
-func (c *Client) TransactionalEmailsControllerSendBatch(
+func (c *Client) TransactionalEmailsSendBatch(
 	ctx context.Context,
-	appID string,
-	request *sdk.SendBatchEmailsDto,
+	projectID string,
+	request *mailmusgo.SendBatchEmailsDto,
 	opts ...option.RequestOption,
-) error {
+) (*mailmusgo.BatchSendResponseDto, error) {
 	options := core.NewRequestOptions(opts...)
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
@@ -88,15 +90,19 @@ func (c *Client) TransactionalEmailsControllerSendBatch(
 		"",
 	)
 	endpointURL := internal.EncodeURL(
-		baseURL+"/apps/%v/emails/batch",
-		appID,
+		baseURL+"/projects/%v/emails/batch",
+		projectID,
 	)
 	headers := internal.MergeHeaders(
 		c.header.Clone(),
 		options.ToHeader(),
 	)
+	if request.IdempotencyKey != nil {
+		headers.Add("Idempotency-Key", fmt.Sprintf("%v", *request.IdempotencyKey))
+	}
 	headers.Set("Content-Type", "application/json")
 
+	var response *mailmusgo.BatchSendResponseDto
 	if err := c.caller.Call(
 		ctx,
 		&internal.CallParams{
@@ -108,19 +114,20 @@ func (c *Client) TransactionalEmailsControllerSendBatch(
 			QueryParameters: options.QueryParameters,
 			Client:          options.HTTPClient,
 			Request:         request,
+			Response:        &response,
 		},
 	); err != nil {
-		return err
+		return nil, err
 	}
-	return nil
+	return response, nil
 }
 
-func (c *Client) TransactionalEmailsControllerGetSendDetail(
+func (c *Client) TransactionalEmailsGetSendDetail(
 	ctx context.Context,
-	appID string,
+	projectID string,
 	sendID string,
 	opts ...option.RequestOption,
-) error {
+) (*mailmusgo.SendDetailResponseDto, error) {
 	options := core.NewRequestOptions(opts...)
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
@@ -128,8 +135,8 @@ func (c *Client) TransactionalEmailsControllerGetSendDetail(
 		"",
 	)
 	endpointURL := internal.EncodeURL(
-		baseURL+"/apps/%v/emails/logs/%v",
-		appID,
+		baseURL+"/projects/%v/emails/logs/%v",
+		projectID,
 		sendID,
 	)
 	headers := internal.MergeHeaders(
@@ -137,6 +144,7 @@ func (c *Client) TransactionalEmailsControllerGetSendDetail(
 		options.ToHeader(),
 	)
 
+	var response *mailmusgo.SendDetailResponseDto
 	if err := c.caller.Call(
 		ctx,
 		&internal.CallParams{
@@ -147,19 +155,20 @@ func (c *Client) TransactionalEmailsControllerGetSendDetail(
 			BodyProperties:  options.BodyProperties,
 			QueryParameters: options.QueryParameters,
 			Client:          options.HTTPClient,
+			Response:        &response,
 		},
 	); err != nil {
-		return err
+		return nil, err
 	}
-	return nil
+	return response, nil
 }
 
-func (c *Client) TransactionalEmailsControllerLogs(
+func (c *Client) TransactionalEmailsLogs(
 	ctx context.Context,
-	appID string,
-	request *sdk.TransactionalEmailsControllerLogsRequest,
+	projectID string,
+	request *mailmusgo.TransactionalEmailsLogsRequest,
 	opts ...option.RequestOption,
-) error {
+) (*mailmusgo.SendLogListResponseDto, error) {
 	options := core.NewRequestOptions(opts...)
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
@@ -167,12 +176,12 @@ func (c *Client) TransactionalEmailsControllerLogs(
 		"",
 	)
 	endpointURL := internal.EncodeURL(
-		baseURL+"/apps/%v/emails/logs",
-		appID,
+		baseURL+"/projects/%v/emails/logs",
+		projectID,
 	)
 	queryParams, err := internal.QueryValues(request)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	if len(queryParams) > 0 {
 		endpointURL += "?" + queryParams.Encode()
@@ -182,6 +191,7 @@ func (c *Client) TransactionalEmailsControllerLogs(
 		options.ToHeader(),
 	)
 
+	var response *mailmusgo.SendLogListResponseDto
 	if err := c.caller.Call(
 		ctx,
 		&internal.CallParams{
@@ -192,9 +202,10 @@ func (c *Client) TransactionalEmailsControllerLogs(
 			BodyProperties:  options.BodyProperties,
 			QueryParameters: options.QueryParameters,
 			Client:          options.HTTPClient,
+			Response:        &response,
 		},
 	); err != nil {
-		return err
+		return nil, err
 	}
-	return nil
+	return response, nil
 }

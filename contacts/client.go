@@ -3,12 +3,14 @@
 package contacts
 
 import (
+	bytes "bytes"
 	context "context"
-	http "net/http"
-	sdk "github.com/mailmus/mailmus-go"
+	mailmusgo "github.com/mailmus/mailmus-go"
 	core "github.com/mailmus/mailmus-go/core"
 	internal "github.com/mailmus/mailmus-go/internal"
 	option "github.com/mailmus/mailmus-go/option"
+	io "io"
+	http "net/http"
 )
 
 type Client struct {
@@ -31,12 +33,12 @@ func NewClient(opts ...option.RequestOption) *Client {
 	}
 }
 
-func (c *Client) ContactsControllerList(
+func (c *Client) List(
 	ctx context.Context,
-	appID string,
-	request *sdk.ContactsControllerListRequest,
+	projectID string,
+	request *mailmusgo.ContactsListRequest,
 	opts ...option.RequestOption,
-) error {
+) (*mailmusgo.ContactListResponseDto, error) {
 	options := core.NewRequestOptions(opts...)
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
@@ -44,12 +46,12 @@ func (c *Client) ContactsControllerList(
 		"",
 	)
 	endpointURL := internal.EncodeURL(
-		baseURL+"/apps/%v/contacts",
-		appID,
+		baseURL+"/projects/%v/contacts",
+		projectID,
 	)
 	queryParams, err := internal.QueryValues(request)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	if len(queryParams) > 0 {
 		endpointURL += "?" + queryParams.Encode()
@@ -59,6 +61,7 @@ func (c *Client) ContactsControllerList(
 		options.ToHeader(),
 	)
 
+	var response *mailmusgo.ContactListResponseDto
 	if err := c.caller.Call(
 		ctx,
 		&internal.CallParams{
@@ -69,19 +72,20 @@ func (c *Client) ContactsControllerList(
 			BodyProperties:  options.BodyProperties,
 			QueryParameters: options.QueryParameters,
 			Client:          options.HTTPClient,
+			Response:        &response,
 		},
 	); err != nil {
-		return err
+		return nil, err
 	}
-	return nil
+	return response, nil
 }
 
-func (c *Client) ContactsControllerCreate(
+func (c *Client) Create(
 	ctx context.Context,
-	appID string,
-	request *sdk.CreateContactDto,
+	projectID string,
+	request *mailmusgo.CreateContactDto,
 	opts ...option.RequestOption,
-) error {
+) (*mailmusgo.ContactResponseDto, error) {
 	options := core.NewRequestOptions(opts...)
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
@@ -89,8 +93,8 @@ func (c *Client) ContactsControllerCreate(
 		"",
 	)
 	endpointURL := internal.EncodeURL(
-		baseURL+"/apps/%v/contacts",
-		appID,
+		baseURL+"/projects/%v/contacts",
+		projectID,
 	)
 	headers := internal.MergeHeaders(
 		c.header.Clone(),
@@ -98,6 +102,7 @@ func (c *Client) ContactsControllerCreate(
 	)
 	headers.Set("Content-Type", "application/json")
 
+	var response *mailmusgo.ContactResponseDto
 	if err := c.caller.Call(
 		ctx,
 		&internal.CallParams{
@@ -109,18 +114,19 @@ func (c *Client) ContactsControllerCreate(
 			QueryParameters: options.QueryParameters,
 			Client:          options.HTTPClient,
 			Request:         request,
+			Response:        &response,
 		},
 	); err != nil {
-		return err
+		return nil, err
 	}
-	return nil
+	return response, nil
 }
 
-func (c *Client) ContactsControllerExportCsv(
+func (c *Client) Exportcsv(
 	ctx context.Context,
-	appID string,
+	projectID string,
 	opts ...option.RequestOption,
-) error {
+) (io.Reader, error) {
 	options := core.NewRequestOptions(opts...)
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
@@ -128,14 +134,15 @@ func (c *Client) ContactsControllerExportCsv(
 		"",
 	)
 	endpointURL := internal.EncodeURL(
-		baseURL+"/apps/%v/contacts/export",
-		appID,
+		baseURL+"/projects/%v/contacts/export",
+		projectID,
 	)
 	headers := internal.MergeHeaders(
 		c.header.Clone(),
 		options.ToHeader(),
 	)
 
+	response := bytes.NewBuffer(nil)
 	if err := c.caller.Call(
 		ctx,
 		&internal.CallParams{
@@ -146,18 +153,19 @@ func (c *Client) ContactsControllerExportCsv(
 			BodyProperties:  options.BodyProperties,
 			QueryParameters: options.QueryParameters,
 			Client:          options.HTTPClient,
+			Response:        response,
 		},
 	); err != nil {
-		return err
+		return nil, err
 	}
-	return nil
+	return response, nil
 }
 
-func (c *Client) ContactsControllerImportCsv(
+func (c *Client) Importcsv(
 	ctx context.Context,
-	appID string,
+	projectID string,
 	opts ...option.RequestOption,
-) error {
+) (*mailmusgo.ContactImportResultDto, error) {
 	options := core.NewRequestOptions(opts...)
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
@@ -165,14 +173,15 @@ func (c *Client) ContactsControllerImportCsv(
 		"",
 	)
 	endpointURL := internal.EncodeURL(
-		baseURL+"/apps/%v/contacts/import",
-		appID,
+		baseURL+"/projects/%v/contacts/import",
+		projectID,
 	)
 	headers := internal.MergeHeaders(
 		c.header.Clone(),
 		options.ToHeader(),
 	)
 
+	var response *mailmusgo.ContactImportResultDto
 	if err := c.caller.Call(
 		ctx,
 		&internal.CallParams{
@@ -183,19 +192,20 @@ func (c *Client) ContactsControllerImportCsv(
 			BodyProperties:  options.BodyProperties,
 			QueryParameters: options.QueryParameters,
 			Client:          options.HTTPClient,
+			Response:        &response,
 		},
 	); err != nil {
-		return err
+		return nil, err
 	}
-	return nil
+	return response, nil
 }
 
-func (c *Client) ContactsControllerBatchImport(
+func (c *Client) Batchimport(
 	ctx context.Context,
-	appID string,
-	request *sdk.BatchImportContactsDto,
+	projectID string,
+	request *mailmusgo.BatchImportContactsDto,
 	opts ...option.RequestOption,
-) error {
+) (*mailmusgo.ContactImportResultDto, error) {
 	options := core.NewRequestOptions(opts...)
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
@@ -203,8 +213,8 @@ func (c *Client) ContactsControllerBatchImport(
 		"",
 	)
 	endpointURL := internal.EncodeURL(
-		baseURL+"/apps/%v/contacts/batch",
-		appID,
+		baseURL+"/projects/%v/contacts/batch",
+		projectID,
 	)
 	headers := internal.MergeHeaders(
 		c.header.Clone(),
@@ -212,6 +222,7 @@ func (c *Client) ContactsControllerBatchImport(
 	)
 	headers.Set("Content-Type", "application/json")
 
+	var response *mailmusgo.ContactImportResultDto
 	if err := c.caller.Call(
 		ctx,
 		&internal.CallParams{
@@ -223,19 +234,20 @@ func (c *Client) ContactsControllerBatchImport(
 			QueryParameters: options.QueryParameters,
 			Client:          options.HTTPClient,
 			Request:         request,
+			Response:        &response,
 		},
 	); err != nil {
-		return err
+		return nil, err
 	}
-	return nil
+	return response, nil
 }
 
-func (c *Client) ContactsControllerFindOne(
+func (c *Client) Findone(
 	ctx context.Context,
-	appID string,
+	projectID string,
 	id string,
 	opts ...option.RequestOption,
-) error {
+) (*mailmusgo.ContactResponseDto, error) {
 	options := core.NewRequestOptions(opts...)
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
@@ -243,8 +255,8 @@ func (c *Client) ContactsControllerFindOne(
 		"",
 	)
 	endpointURL := internal.EncodeURL(
-		baseURL+"/apps/%v/contacts/%v",
-		appID,
+		baseURL+"/projects/%v/contacts/%v",
+		projectID,
 		id,
 	)
 	headers := internal.MergeHeaders(
@@ -252,6 +264,7 @@ func (c *Client) ContactsControllerFindOne(
 		options.ToHeader(),
 	)
 
+	var response *mailmusgo.ContactResponseDto
 	if err := c.caller.Call(
 		ctx,
 		&internal.CallParams{
@@ -262,19 +275,20 @@ func (c *Client) ContactsControllerFindOne(
 			BodyProperties:  options.BodyProperties,
 			QueryParameters: options.QueryParameters,
 			Client:          options.HTTPClient,
+			Response:        &response,
 		},
 	); err != nil {
-		return err
+		return nil, err
 	}
-	return nil
+	return response, nil
 }
 
-func (c *Client) ContactsControllerRemove(
+func (c *Client) Remove(
 	ctx context.Context,
-	appID string,
+	projectID string,
 	id string,
 	opts ...option.RequestOption,
-) error {
+) (*mailmusgo.ContactDeletedResponseDto, error) {
 	options := core.NewRequestOptions(opts...)
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
@@ -282,8 +296,8 @@ func (c *Client) ContactsControllerRemove(
 		"",
 	)
 	endpointURL := internal.EncodeURL(
-		baseURL+"/apps/%v/contacts/%v",
-		appID,
+		baseURL+"/projects/%v/contacts/%v",
+		projectID,
 		id,
 	)
 	headers := internal.MergeHeaders(
@@ -291,6 +305,7 @@ func (c *Client) ContactsControllerRemove(
 		options.ToHeader(),
 	)
 
+	var response *mailmusgo.ContactDeletedResponseDto
 	if err := c.caller.Call(
 		ctx,
 		&internal.CallParams{
@@ -301,20 +316,21 @@ func (c *Client) ContactsControllerRemove(
 			BodyProperties:  options.BodyProperties,
 			QueryParameters: options.QueryParameters,
 			Client:          options.HTTPClient,
+			Response:        &response,
 		},
 	); err != nil {
-		return err
+		return nil, err
 	}
-	return nil
+	return response, nil
 }
 
-func (c *Client) ContactsControllerUpdateAttributes(
+func (c *Client) Updateattributes(
 	ctx context.Context,
-	appID string,
+	projectID string,
 	id string,
-	request *sdk.UpdateContactDto,
+	request *mailmusgo.UpdateContactDto,
 	opts ...option.RequestOption,
-) error {
+) (*mailmusgo.ContactResponseDto, error) {
 	options := core.NewRequestOptions(opts...)
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
@@ -322,8 +338,8 @@ func (c *Client) ContactsControllerUpdateAttributes(
 		"",
 	)
 	endpointURL := internal.EncodeURL(
-		baseURL+"/apps/%v/contacts/%v",
-		appID,
+		baseURL+"/projects/%v/contacts/%v",
+		projectID,
 		id,
 	)
 	headers := internal.MergeHeaders(
@@ -332,6 +348,7 @@ func (c *Client) ContactsControllerUpdateAttributes(
 	)
 	headers.Set("Content-Type", "application/json")
 
+	var response *mailmusgo.ContactResponseDto
 	if err := c.caller.Call(
 		ctx,
 		&internal.CallParams{
@@ -343,19 +360,20 @@ func (c *Client) ContactsControllerUpdateAttributes(
 			QueryParameters: options.QueryParameters,
 			Client:          options.HTTPClient,
 			Request:         request,
+			Response:        &response,
 		},
 	); err != nil {
-		return err
+		return nil, err
 	}
-	return nil
+	return response, nil
 }
 
-func (c *Client) ContactsControllerUnsubscribe(
+func (c *Client) Unsubscribe(
 	ctx context.Context,
-	appID string,
+	projectID string,
 	id string,
 	opts ...option.RequestOption,
-) error {
+) (*mailmusgo.ContactResponseDto, error) {
 	options := core.NewRequestOptions(opts...)
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
@@ -363,8 +381,8 @@ func (c *Client) ContactsControllerUnsubscribe(
 		"",
 	)
 	endpointURL := internal.EncodeURL(
-		baseURL+"/apps/%v/contacts/%v/unsubscribe",
-		appID,
+		baseURL+"/projects/%v/contacts/%v/unsubscribe",
+		projectID,
 		id,
 	)
 	headers := internal.MergeHeaders(
@@ -372,6 +390,7 @@ func (c *Client) ContactsControllerUnsubscribe(
 		options.ToHeader(),
 	)
 
+	var response *mailmusgo.ContactResponseDto
 	if err := c.caller.Call(
 		ctx,
 		&internal.CallParams{
@@ -382,19 +401,20 @@ func (c *Client) ContactsControllerUnsubscribe(
 			BodyProperties:  options.BodyProperties,
 			QueryParameters: options.QueryParameters,
 			Client:          options.HTTPClient,
+			Response:        &response,
 		},
 	); err != nil {
-		return err
+		return nil, err
 	}
-	return nil
+	return response, nil
 }
 
-func (c *Client) ContactsControllerResubscribe(
+func (c *Client) Resubscribe(
 	ctx context.Context,
-	appID string,
+	projectID string,
 	id string,
 	opts ...option.RequestOption,
-) error {
+) (*mailmusgo.ContactResponseDto, error) {
 	options := core.NewRequestOptions(opts...)
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
@@ -402,8 +422,8 @@ func (c *Client) ContactsControllerResubscribe(
 		"",
 	)
 	endpointURL := internal.EncodeURL(
-		baseURL+"/apps/%v/contacts/%v/resubscribe",
-		appID,
+		baseURL+"/projects/%v/contacts/%v/resubscribe",
+		projectID,
 		id,
 	)
 	headers := internal.MergeHeaders(
@@ -411,6 +431,7 @@ func (c *Client) ContactsControllerResubscribe(
 		options.ToHeader(),
 	)
 
+	var response *mailmusgo.ContactResponseDto
 	if err := c.caller.Call(
 		ctx,
 		&internal.CallParams{
@@ -421,9 +442,10 @@ func (c *Client) ContactsControllerResubscribe(
 			BodyProperties:  options.BodyProperties,
 			QueryParameters: options.QueryParameters,
 			Client:          options.HTTPClient,
+			Response:        &response,
 		},
 	); err != nil {
-		return err
+		return nil, err
 	}
-	return nil
+	return response, nil
 }

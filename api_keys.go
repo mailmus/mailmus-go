@@ -3,12 +3,355 @@
 package mailmus
 
 import (
+	json "encoding/json"
 	fmt "fmt"
+	internal "github.com/mailmus/mailmus-go/internal"
+	time "time"
 )
 
 type CreateAPIKeyDto struct {
-	Name string              `json:"name" url:"-"`
-	Type CreateAPIKeyDtoType `json:"type" url:"-"`
+	Name        string                      `json:"name" url:"-"`
+	Type        CreateAPIKeyDtoType         `json:"type" url:"-"`
+	Environment *CreateAPIKeyDtoEnvironment `json:"environment,omitempty" url:"-"`
+}
+
+type APIKeyResponseDto struct {
+	ID string `json:"id" url:"id"`
+	// Nom que vous lui avez donné.
+	Name string `json:"name" url:"name"`
+	// SECRET reste sur votre serveur. PUBLISHABLE peut vivre dans un navigateur ou une application mobile : elle n’ouvre que les routes d’authentification des Customers.
+	Type APIKeyResponseDtoType `json:"type" url:"type"`
+	// Une clé TEST n’envoie rien pour de vrai.
+	Environment APIKeyResponseDtoEnvironment `json:"environment" url:"environment"`
+	// Dernier usage constaté. Nul si la clé n’a jamais servi.
+	LastUsedAt map[string]interface{} `json:"lastUsedAt,omitempty" url:"lastUsedAt,omitempty"`
+	CreatedAt  time.Time              `json:"createdAt" url:"createdAt"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (a *APIKeyResponseDto) GetID() string {
+	if a == nil {
+		return ""
+	}
+	return a.ID
+}
+
+func (a *APIKeyResponseDto) GetName() string {
+	if a == nil {
+		return ""
+	}
+	return a.Name
+}
+
+func (a *APIKeyResponseDto) GetType() APIKeyResponseDtoType {
+	if a == nil {
+		return ""
+	}
+	return a.Type
+}
+
+func (a *APIKeyResponseDto) GetEnvironment() APIKeyResponseDtoEnvironment {
+	if a == nil {
+		return ""
+	}
+	return a.Environment
+}
+
+func (a *APIKeyResponseDto) GetLastUsedAt() map[string]interface{} {
+	if a == nil {
+		return nil
+	}
+	return a.LastUsedAt
+}
+
+func (a *APIKeyResponseDto) GetCreatedAt() time.Time {
+	if a == nil {
+		return time.Time{}
+	}
+	return a.CreatedAt
+}
+
+func (a *APIKeyResponseDto) GetExtraProperties() map[string]interface{} {
+	return a.extraProperties
+}
+
+func (a *APIKeyResponseDto) UnmarshalJSON(data []byte) error {
+	type embed APIKeyResponseDto
+	var unmarshaler = struct {
+		embed
+		CreatedAt *internal.DateTime `json:"createdAt"`
+	}{
+		embed: embed(*a),
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
+		return err
+	}
+	*a = APIKeyResponseDto(unmarshaler.embed)
+	a.CreatedAt = unmarshaler.CreatedAt.Time()
+	extraProperties, err := internal.ExtractExtraProperties(data, *a)
+	if err != nil {
+		return err
+	}
+	a.extraProperties = extraProperties
+	a.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (a *APIKeyResponseDto) MarshalJSON() ([]byte, error) {
+	type embed APIKeyResponseDto
+	var marshaler = struct {
+		embed
+		CreatedAt *internal.DateTime `json:"createdAt"`
+	}{
+		embed:     embed(*a),
+		CreatedAt: internal.NewDateTime(a.CreatedAt),
+	}
+	return json.Marshal(marshaler)
+}
+
+func (a *APIKeyResponseDto) String() string {
+	if len(a.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(a.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(a); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", a)
+}
+
+// Une clé TEST n’envoie rien pour de vrai.
+type APIKeyResponseDtoEnvironment string
+
+const (
+	APIKeyResponseDtoEnvironmentLive APIKeyResponseDtoEnvironment = "LIVE"
+	APIKeyResponseDtoEnvironmentTest APIKeyResponseDtoEnvironment = "TEST"
+)
+
+func NewAPIKeyResponseDtoEnvironmentFromString(s string) (APIKeyResponseDtoEnvironment, error) {
+	switch s {
+	case "LIVE":
+		return APIKeyResponseDtoEnvironmentLive, nil
+	case "TEST":
+		return APIKeyResponseDtoEnvironmentTest, nil
+	}
+	var t APIKeyResponseDtoEnvironment
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (a APIKeyResponseDtoEnvironment) Ptr() *APIKeyResponseDtoEnvironment {
+	return &a
+}
+
+// SECRET reste sur votre serveur. PUBLISHABLE peut vivre dans un navigateur ou une application mobile : elle n’ouvre que les routes d’authentification des Customers.
+type APIKeyResponseDtoType string
+
+const (
+	APIKeyResponseDtoTypeSecret      APIKeyResponseDtoType = "SECRET"
+	APIKeyResponseDtoTypePublishable APIKeyResponseDtoType = "PUBLISHABLE"
+)
+
+func NewAPIKeyResponseDtoTypeFromString(s string) (APIKeyResponseDtoType, error) {
+	switch s {
+	case "SECRET":
+		return APIKeyResponseDtoTypeSecret, nil
+	case "PUBLISHABLE":
+		return APIKeyResponseDtoTypePublishable, nil
+	}
+	var t APIKeyResponseDtoType
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (a APIKeyResponseDtoType) Ptr() *APIKeyResponseDtoType {
+	return &a
+}
+
+type APIKeyWithValueResponseDto struct {
+	ID string `json:"id" url:"id"`
+	// Nom que vous lui avez donné.
+	Name string `json:"name" url:"name"`
+	// SECRET reste sur votre serveur. PUBLISHABLE peut vivre dans un navigateur ou une application mobile : elle n’ouvre que les routes d’authentification des Customers.
+	Type APIKeyWithValueResponseDtoType `json:"type" url:"type"`
+	// Une clé TEST n’envoie rien pour de vrai.
+	Environment APIKeyWithValueResponseDtoEnvironment `json:"environment" url:"environment"`
+	// Dernier usage constaté. Nul si la clé n’a jamais servi.
+	LastUsedAt map[string]interface{} `json:"lastUsedAt,omitempty" url:"lastUsedAt,omitempty"`
+	CreatedAt  time.Time              `json:"createdAt" url:"createdAt"`
+	// Visible ici et nulle part ailleurs.
+	Key string `json:"key" url:"key"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (a *APIKeyWithValueResponseDto) GetID() string {
+	if a == nil {
+		return ""
+	}
+	return a.ID
+}
+
+func (a *APIKeyWithValueResponseDto) GetName() string {
+	if a == nil {
+		return ""
+	}
+	return a.Name
+}
+
+func (a *APIKeyWithValueResponseDto) GetType() APIKeyWithValueResponseDtoType {
+	if a == nil {
+		return ""
+	}
+	return a.Type
+}
+
+func (a *APIKeyWithValueResponseDto) GetEnvironment() APIKeyWithValueResponseDtoEnvironment {
+	if a == nil {
+		return ""
+	}
+	return a.Environment
+}
+
+func (a *APIKeyWithValueResponseDto) GetLastUsedAt() map[string]interface{} {
+	if a == nil {
+		return nil
+	}
+	return a.LastUsedAt
+}
+
+func (a *APIKeyWithValueResponseDto) GetCreatedAt() time.Time {
+	if a == nil {
+		return time.Time{}
+	}
+	return a.CreatedAt
+}
+
+func (a *APIKeyWithValueResponseDto) GetKey() string {
+	if a == nil {
+		return ""
+	}
+	return a.Key
+}
+
+func (a *APIKeyWithValueResponseDto) GetExtraProperties() map[string]interface{} {
+	return a.extraProperties
+}
+
+func (a *APIKeyWithValueResponseDto) UnmarshalJSON(data []byte) error {
+	type embed APIKeyWithValueResponseDto
+	var unmarshaler = struct {
+		embed
+		CreatedAt *internal.DateTime `json:"createdAt"`
+	}{
+		embed: embed(*a),
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
+		return err
+	}
+	*a = APIKeyWithValueResponseDto(unmarshaler.embed)
+	a.CreatedAt = unmarshaler.CreatedAt.Time()
+	extraProperties, err := internal.ExtractExtraProperties(data, *a)
+	if err != nil {
+		return err
+	}
+	a.extraProperties = extraProperties
+	a.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (a *APIKeyWithValueResponseDto) MarshalJSON() ([]byte, error) {
+	type embed APIKeyWithValueResponseDto
+	var marshaler = struct {
+		embed
+		CreatedAt *internal.DateTime `json:"createdAt"`
+	}{
+		embed:     embed(*a),
+		CreatedAt: internal.NewDateTime(a.CreatedAt),
+	}
+	return json.Marshal(marshaler)
+}
+
+func (a *APIKeyWithValueResponseDto) String() string {
+	if len(a.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(a.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(a); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", a)
+}
+
+// Une clé TEST n’envoie rien pour de vrai.
+type APIKeyWithValueResponseDtoEnvironment string
+
+const (
+	APIKeyWithValueResponseDtoEnvironmentLive APIKeyWithValueResponseDtoEnvironment = "LIVE"
+	APIKeyWithValueResponseDtoEnvironmentTest APIKeyWithValueResponseDtoEnvironment = "TEST"
+)
+
+func NewAPIKeyWithValueResponseDtoEnvironmentFromString(s string) (APIKeyWithValueResponseDtoEnvironment, error) {
+	switch s {
+	case "LIVE":
+		return APIKeyWithValueResponseDtoEnvironmentLive, nil
+	case "TEST":
+		return APIKeyWithValueResponseDtoEnvironmentTest, nil
+	}
+	var t APIKeyWithValueResponseDtoEnvironment
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (a APIKeyWithValueResponseDtoEnvironment) Ptr() *APIKeyWithValueResponseDtoEnvironment {
+	return &a
+}
+
+// SECRET reste sur votre serveur. PUBLISHABLE peut vivre dans un navigateur ou une application mobile : elle n’ouvre que les routes d’authentification des Customers.
+type APIKeyWithValueResponseDtoType string
+
+const (
+	APIKeyWithValueResponseDtoTypeSecret      APIKeyWithValueResponseDtoType = "SECRET"
+	APIKeyWithValueResponseDtoTypePublishable APIKeyWithValueResponseDtoType = "PUBLISHABLE"
+)
+
+func NewAPIKeyWithValueResponseDtoTypeFromString(s string) (APIKeyWithValueResponseDtoType, error) {
+	switch s {
+	case "SECRET":
+		return APIKeyWithValueResponseDtoTypeSecret, nil
+	case "PUBLISHABLE":
+		return APIKeyWithValueResponseDtoTypePublishable, nil
+	}
+	var t APIKeyWithValueResponseDtoType
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (a APIKeyWithValueResponseDtoType) Ptr() *APIKeyWithValueResponseDtoType {
+	return &a
+}
+
+type CreateAPIKeyDtoEnvironment string
+
+const (
+	CreateAPIKeyDtoEnvironmentTest CreateAPIKeyDtoEnvironment = "TEST"
+	CreateAPIKeyDtoEnvironmentLive CreateAPIKeyDtoEnvironment = "LIVE"
+)
+
+func NewCreateAPIKeyDtoEnvironmentFromString(s string) (CreateAPIKeyDtoEnvironment, error) {
+	switch s {
+	case "TEST":
+		return CreateAPIKeyDtoEnvironmentTest, nil
+	case "LIVE":
+		return CreateAPIKeyDtoEnvironmentLive, nil
+	}
+	var t CreateAPIKeyDtoEnvironment
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (c CreateAPIKeyDtoEnvironment) Ptr() *CreateAPIKeyDtoEnvironment {
+	return &c
 }
 
 type CreateAPIKeyDtoType string

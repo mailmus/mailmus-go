@@ -4,11 +4,11 @@ package auth
 
 import (
 	context "context"
-	http "net/http"
-	sdk "github.com/mailmus/mailmus-go"
+	mailmusgo "github.com/mailmus/mailmus-go"
 	core "github.com/mailmus/mailmus-go/core"
 	internal "github.com/mailmus/mailmus-go/internal"
 	option "github.com/mailmus/mailmus-go/option"
+	http "net/http"
 )
 
 type Client struct {
@@ -31,9 +31,175 @@ func NewClient(opts ...option.RequestOption) *Client {
 	}
 }
 
-func (c *Client) AuthControllerRegister(
+func (c *Client) CustomerAuthGetHostedConfig(
 	ctx context.Context,
-	request *sdk.RegisterDto,
+	projectID string,
+	opts ...option.RequestOption,
+) (*mailmusgo.HostedAuthConfigResponseDto, error) {
+	options := core.NewRequestOptions(opts...)
+	baseURL := internal.ResolveBaseURL(
+		options.BaseURL,
+		c.baseURL,
+		"",
+	)
+	endpointURL := internal.EncodeURL(
+		baseURL+"/projects/%v/auth/hosted-config",
+		projectID,
+	)
+	headers := internal.MergeHeaders(
+		c.header.Clone(),
+		options.ToHeader(),
+	)
+
+	var response *mailmusgo.HostedAuthConfigResponseDto
+	if err := c.caller.Call(
+		ctx,
+		&internal.CallParams{
+			URL:             endpointURL,
+			Method:          http.MethodGet,
+			Headers:         headers,
+			MaxAttempts:     options.MaxAttempts,
+			BodyProperties:  options.BodyProperties,
+			QueryParameters: options.QueryParameters,
+			Client:          options.HTTPClient,
+			Response:        &response,
+		},
+	); err != nil {
+		return nil, err
+	}
+	return response, nil
+}
+
+func (c *Client) CustomerAuthSignUp(
+	ctx context.Context,
+	projectID string,
+	request *mailmusgo.SignUpDto,
+	opts ...option.RequestOption,
+) (*mailmusgo.CustomerAuthSignUpResponse, error) {
+	options := core.NewRequestOptions(opts...)
+	baseURL := internal.ResolveBaseURL(
+		options.BaseURL,
+		c.baseURL,
+		"",
+	)
+	endpointURL := internal.EncodeURL(
+		baseURL+"/projects/%v/auth/sign-up",
+		projectID,
+	)
+	headers := internal.MergeHeaders(
+		c.header.Clone(),
+		options.ToHeader(),
+	)
+	headers.Set("Content-Type", "application/json")
+
+	var response *mailmusgo.CustomerAuthSignUpResponse
+	if err := c.caller.Call(
+		ctx,
+		&internal.CallParams{
+			URL:             endpointURL,
+			Method:          http.MethodPost,
+			Headers:         headers,
+			MaxAttempts:     options.MaxAttempts,
+			BodyProperties:  options.BodyProperties,
+			QueryParameters: options.QueryParameters,
+			Client:          options.HTTPClient,
+			Request:         request,
+			Response:        &response,
+		},
+	); err != nil {
+		return nil, err
+	}
+	return response, nil
+}
+
+func (c *Client) CustomerAuthSignIn(
+	ctx context.Context,
+	projectID string,
+	request *mailmusgo.SignInDto,
+	opts ...option.RequestOption,
+) (*mailmusgo.CustomerAuthSignInResponse, error) {
+	options := core.NewRequestOptions(opts...)
+	baseURL := internal.ResolveBaseURL(
+		options.BaseURL,
+		c.baseURL,
+		"",
+	)
+	endpointURL := internal.EncodeURL(
+		baseURL+"/projects/%v/auth/sign-in",
+		projectID,
+	)
+	headers := internal.MergeHeaders(
+		c.header.Clone(),
+		options.ToHeader(),
+	)
+	headers.Set("Content-Type", "application/json")
+
+	var response *mailmusgo.CustomerAuthSignInResponse
+	if err := c.caller.Call(
+		ctx,
+		&internal.CallParams{
+			URL:             endpointURL,
+			Method:          http.MethodPost,
+			Headers:         headers,
+			MaxAttempts:     options.MaxAttempts,
+			BodyProperties:  options.BodyProperties,
+			QueryParameters: options.QueryParameters,
+			Client:          options.HTTPClient,
+			Request:         request,
+			Response:        &response,
+		},
+	); err != nil {
+		return nil, err
+	}
+	return response, nil
+}
+
+func (c *Client) CustomerAuthRefresh(
+	ctx context.Context,
+	projectID string,
+	request *mailmusgo.CustomerAuthRefreshRequest,
+	opts ...option.RequestOption,
+) (*mailmusgo.CustomerTokensResponseDto, error) {
+	options := core.NewRequestOptions(opts...)
+	baseURL := internal.ResolveBaseURL(
+		options.BaseURL,
+		c.baseURL,
+		"",
+	)
+	endpointURL := internal.EncodeURL(
+		baseURL+"/projects/%v/auth/refresh",
+		projectID,
+	)
+	headers := internal.MergeHeaders(
+		c.header.Clone(),
+		options.ToHeader(),
+	)
+	headers.Set("Content-Type", "application/json")
+
+	var response *mailmusgo.CustomerTokensResponseDto
+	if err := c.caller.Call(
+		ctx,
+		&internal.CallParams{
+			URL:             endpointURL,
+			Method:          http.MethodPost,
+			Headers:         headers,
+			MaxAttempts:     options.MaxAttempts,
+			BodyProperties:  options.BodyProperties,
+			QueryParameters: options.QueryParameters,
+			Client:          options.HTTPClient,
+			Request:         request,
+			Response:        &response,
+		},
+	); err != nil {
+		return nil, err
+	}
+	return response, nil
+}
+
+func (c *Client) CustomerAuthSignOut(
+	ctx context.Context,
+	projectID string,
+	request *mailmusgo.CustomerAuthSignOutRequest,
 	opts ...option.RequestOption,
 ) error {
 	options := core.NewRequestOptions(opts...)
@@ -42,7 +208,10 @@ func (c *Client) AuthControllerRegister(
 		c.baseURL,
 		"",
 	)
-	endpointURL := baseURL + "/auth/register"
+	endpointURL := internal.EncodeURL(
+		baseURL+"/projects/%v/auth/sign-out",
+		projectID,
+	)
 	headers := internal.MergeHeaders(
 		c.header.Clone(),
 		options.ToHeader(),
@@ -67,9 +236,10 @@ func (c *Client) AuthControllerRegister(
 	return nil
 }
 
-func (c *Client) AuthControllerLogin(
+func (c *Client) CustomerAuthRequestMagicLink(
 	ctx context.Context,
-	request *sdk.LoginDto,
+	projectID string,
+	request *mailmusgo.CustomerAuthRequestMagicLinkRequest,
 	opts ...option.RequestOption,
 ) error {
 	options := core.NewRequestOptions(opts...)
@@ -78,7 +248,10 @@ func (c *Client) AuthControllerLogin(
 		c.baseURL,
 		"",
 	)
-	endpointURL := baseURL + "/auth/login"
+	endpointURL := internal.EncodeURL(
+		baseURL+"/projects/%v/auth/magic-link",
+		projectID,
+	)
 	headers := internal.MergeHeaders(
 		c.header.Clone(),
 		options.ToHeader(),
@@ -103,9 +276,52 @@ func (c *Client) AuthControllerLogin(
 	return nil
 }
 
-func (c *Client) AuthControllerGenerateInvite(
+func (c *Client) CustomerAuthVerifyMagicLink(
 	ctx context.Context,
-	request *sdk.GenerateInviteDto,
+	projectID string,
+	request *mailmusgo.MagicLinkVerifyDto,
+	opts ...option.RequestOption,
+) (*mailmusgo.CustomerAuthVerifyMagicLinkResponse, error) {
+	options := core.NewRequestOptions(opts...)
+	baseURL := internal.ResolveBaseURL(
+		options.BaseURL,
+		c.baseURL,
+		"",
+	)
+	endpointURL := internal.EncodeURL(
+		baseURL+"/projects/%v/auth/magic-link/verify",
+		projectID,
+	)
+	headers := internal.MergeHeaders(
+		c.header.Clone(),
+		options.ToHeader(),
+	)
+	headers.Set("Content-Type", "application/json")
+
+	var response *mailmusgo.CustomerAuthVerifyMagicLinkResponse
+	if err := c.caller.Call(
+		ctx,
+		&internal.CallParams{
+			URL:             endpointURL,
+			Method:          http.MethodPost,
+			Headers:         headers,
+			MaxAttempts:     options.MaxAttempts,
+			BodyProperties:  options.BodyProperties,
+			QueryParameters: options.QueryParameters,
+			Client:          options.HTTPClient,
+			Request:         request,
+			Response:        &response,
+		},
+	); err != nil {
+		return nil, err
+	}
+	return response, nil
+}
+
+func (c *Client) CustomerAuthRequestOtp(
+	ctx context.Context,
+	projectID string,
+	request *mailmusgo.CustomerAuthRequestOtpRequest,
 	opts ...option.RequestOption,
 ) error {
 	options := core.NewRequestOptions(opts...)
@@ -114,7 +330,10 @@ func (c *Client) AuthControllerGenerateInvite(
 		c.baseURL,
 		"",
 	)
-	endpointURL := baseURL + "/auth/invite"
+	endpointURL := internal.EncodeURL(
+		baseURL+"/projects/%v/auth/otp",
+		projectID,
+	)
 	headers := internal.MergeHeaders(
 		c.header.Clone(),
 		options.ToHeader(),
@@ -139,9 +358,52 @@ func (c *Client) AuthControllerGenerateInvite(
 	return nil
 }
 
-func (c *Client) AuthControllerJoinAccount(
+func (c *Client) CustomerAuthVerifyOtp(
 	ctx context.Context,
-	request *sdk.JoinAccountDto,
+	projectID string,
+	request *mailmusgo.OtpVerifyDto,
+	opts ...option.RequestOption,
+) (*mailmusgo.CustomerAuthVerifyOtpResponse, error) {
+	options := core.NewRequestOptions(opts...)
+	baseURL := internal.ResolveBaseURL(
+		options.BaseURL,
+		c.baseURL,
+		"",
+	)
+	endpointURL := internal.EncodeURL(
+		baseURL+"/projects/%v/auth/otp/verify",
+		projectID,
+	)
+	headers := internal.MergeHeaders(
+		c.header.Clone(),
+		options.ToHeader(),
+	)
+	headers.Set("Content-Type", "application/json")
+
+	var response *mailmusgo.CustomerAuthVerifyOtpResponse
+	if err := c.caller.Call(
+		ctx,
+		&internal.CallParams{
+			URL:             endpointURL,
+			Method:          http.MethodPost,
+			Headers:         headers,
+			MaxAttempts:     options.MaxAttempts,
+			BodyProperties:  options.BodyProperties,
+			QueryParameters: options.QueryParameters,
+			Client:          options.HTTPClient,
+			Request:         request,
+			Response:        &response,
+		},
+	); err != nil {
+		return nil, err
+	}
+	return response, nil
+}
+
+func (c *Client) CustomerAuthRequestPhoneOtp(
+	ctx context.Context,
+	projectID string,
+	request *mailmusgo.PhoneOtpRequestDto,
 	opts ...option.RequestOption,
 ) error {
 	options := core.NewRequestOptions(opts...)
@@ -150,7 +412,10 @@ func (c *Client) AuthControllerJoinAccount(
 		c.baseURL,
 		"",
 	)
-	endpointURL := baseURL + "/auth/join"
+	endpointURL := internal.EncodeURL(
+		baseURL+"/projects/%v/auth/phone-otp",
+		projectID,
+	)
 	headers := internal.MergeHeaders(
 		c.header.Clone(),
 		options.ToHeader(),
@@ -175,9 +440,178 @@ func (c *Client) AuthControllerJoinAccount(
 	return nil
 }
 
-func (c *Client) AuthControllerForgotPassword(
+func (c *Client) CustomerAuthVerifyPhoneOtp(
 	ctx context.Context,
-	request *sdk.ForgotPasswordDto,
+	projectID string,
+	request *mailmusgo.PhoneOtpVerifyDto,
+	opts ...option.RequestOption,
+) (*mailmusgo.CustomerAuthVerifyPhoneOtpResponse, error) {
+	options := core.NewRequestOptions(opts...)
+	baseURL := internal.ResolveBaseURL(
+		options.BaseURL,
+		c.baseURL,
+		"",
+	)
+	endpointURL := internal.EncodeURL(
+		baseURL+"/projects/%v/auth/phone-otp/verify",
+		projectID,
+	)
+	headers := internal.MergeHeaders(
+		c.header.Clone(),
+		options.ToHeader(),
+	)
+	headers.Set("Content-Type", "application/json")
+
+	var response *mailmusgo.CustomerAuthVerifyPhoneOtpResponse
+	if err := c.caller.Call(
+		ctx,
+		&internal.CallParams{
+			URL:             endpointURL,
+			Method:          http.MethodPost,
+			Headers:         headers,
+			MaxAttempts:     options.MaxAttempts,
+			BodyProperties:  options.BodyProperties,
+			QueryParameters: options.QueryParameters,
+			Client:          options.HTTPClient,
+			Request:         request,
+			Response:        &response,
+		},
+	); err != nil {
+		return nil, err
+	}
+	return response, nil
+}
+
+func (c *Client) CustomerAuthGoogleCallback(
+	ctx context.Context,
+	projectID string,
+	request *mailmusgo.GoogleCallbackDto,
+	opts ...option.RequestOption,
+) (*mailmusgo.CustomerAuthGoogleCallbackResponse, error) {
+	options := core.NewRequestOptions(opts...)
+	baseURL := internal.ResolveBaseURL(
+		options.BaseURL,
+		c.baseURL,
+		"",
+	)
+	endpointURL := internal.EncodeURL(
+		baseURL+"/projects/%v/auth/google/callback",
+		projectID,
+	)
+	headers := internal.MergeHeaders(
+		c.header.Clone(),
+		options.ToHeader(),
+	)
+	headers.Set("Content-Type", "application/json")
+
+	var response *mailmusgo.CustomerAuthGoogleCallbackResponse
+	if err := c.caller.Call(
+		ctx,
+		&internal.CallParams{
+			URL:             endpointURL,
+			Method:          http.MethodPost,
+			Headers:         headers,
+			MaxAttempts:     options.MaxAttempts,
+			BodyProperties:  options.BodyProperties,
+			QueryParameters: options.QueryParameters,
+			Client:          options.HTTPClient,
+			Request:         request,
+			Response:        &response,
+		},
+	); err != nil {
+		return nil, err
+	}
+	return response, nil
+}
+
+func (c *Client) CustomerAuthGithubCallback(
+	ctx context.Context,
+	projectID string,
+	request *mailmusgo.CustomerAuthGithubCallbackRequest,
+	opts ...option.RequestOption,
+) (*mailmusgo.CustomerAuthGithubCallbackResponse, error) {
+	options := core.NewRequestOptions(opts...)
+	baseURL := internal.ResolveBaseURL(
+		options.BaseURL,
+		c.baseURL,
+		"",
+	)
+	endpointURL := internal.EncodeURL(
+		baseURL+"/projects/%v/auth/github/callback",
+		projectID,
+	)
+	headers := internal.MergeHeaders(
+		c.header.Clone(),
+		options.ToHeader(),
+	)
+	headers.Set("Content-Type", "application/json")
+
+	var response *mailmusgo.CustomerAuthGithubCallbackResponse
+	if err := c.caller.Call(
+		ctx,
+		&internal.CallParams{
+			URL:             endpointURL,
+			Method:          http.MethodPost,
+			Headers:         headers,
+			MaxAttempts:     options.MaxAttempts,
+			BodyProperties:  options.BodyProperties,
+			QueryParameters: options.QueryParameters,
+			Client:          options.HTTPClient,
+			Request:         request,
+			Response:        &response,
+		},
+	); err != nil {
+		return nil, err
+	}
+	return response, nil
+}
+
+func (c *Client) CustomerAuthAppleCallback(
+	ctx context.Context,
+	projectID string,
+	request *mailmusgo.CustomerAuthAppleCallbackRequest,
+	opts ...option.RequestOption,
+) (*mailmusgo.CustomerAuthAppleCallbackResponse, error) {
+	options := core.NewRequestOptions(opts...)
+	baseURL := internal.ResolveBaseURL(
+		options.BaseURL,
+		c.baseURL,
+		"",
+	)
+	endpointURL := internal.EncodeURL(
+		baseURL+"/projects/%v/auth/apple/callback",
+		projectID,
+	)
+	headers := internal.MergeHeaders(
+		c.header.Clone(),
+		options.ToHeader(),
+	)
+	headers.Set("Content-Type", "application/json")
+
+	var response *mailmusgo.CustomerAuthAppleCallbackResponse
+	if err := c.caller.Call(
+		ctx,
+		&internal.CallParams{
+			URL:             endpointURL,
+			Method:          http.MethodPost,
+			Headers:         headers,
+			MaxAttempts:     options.MaxAttempts,
+			BodyProperties:  options.BodyProperties,
+			QueryParameters: options.QueryParameters,
+			Client:          options.HTTPClient,
+			Request:         request,
+			Response:        &response,
+		},
+	); err != nil {
+		return nil, err
+	}
+	return response, nil
+}
+
+func (c *Client) CustomerAuthForgotPassword(
+	ctx context.Context,
+	projectID string,
+	request *mailmusgo.ForgotPasswordDto,
 	opts ...option.RequestOption,
 ) error {
 	options := core.NewRequestOptions(opts...)
@@ -186,7 +620,10 @@ func (c *Client) AuthControllerForgotPassword(
 		c.baseURL,
 		"",
 	)
-	endpointURL := baseURL + "/auth/forgot-password"
+	endpointURL := internal.EncodeURL(
+		baseURL+"/projects/%v/auth/forgot-password",
+		projectID,
+	)
 	headers := internal.MergeHeaders(
 		c.header.Clone(),
 		options.ToHeader(),
@@ -211,9 +648,10 @@ func (c *Client) AuthControllerForgotPassword(
 	return nil
 }
 
-func (c *Client) AuthControllerResetPassword(
+func (c *Client) CustomerAuthResetPassword(
 	ctx context.Context,
-	request *sdk.ResetPasswordDto,
+	projectID string,
+	request *mailmusgo.ResetPasswordDto,
 	opts ...option.RequestOption,
 ) error {
 	options := core.NewRequestOptions(opts...)
@@ -222,7 +660,10 @@ func (c *Client) AuthControllerResetPassword(
 		c.baseURL,
 		"",
 	)
-	endpointURL := baseURL + "/auth/reset-password"
+	endpointURL := internal.EncodeURL(
+		baseURL+"/projects/%v/auth/reset-password",
+		projectID,
+	)
 	headers := internal.MergeHeaders(
 		c.header.Clone(),
 		options.ToHeader(),
@@ -245,4 +686,931 @@ func (c *Client) AuthControllerResetPassword(
 		return err
 	}
 	return nil
+}
+
+func (c *Client) CustomerAuthVerifyEmail(
+	ctx context.Context,
+	projectID string,
+	request *mailmusgo.VerifyEmailDto,
+	opts ...option.RequestOption,
+) error {
+	options := core.NewRequestOptions(opts...)
+	baseURL := internal.ResolveBaseURL(
+		options.BaseURL,
+		c.baseURL,
+		"",
+	)
+	endpointURL := internal.EncodeURL(
+		baseURL+"/projects/%v/auth/verify-email",
+		projectID,
+	)
+	headers := internal.MergeHeaders(
+		c.header.Clone(),
+		options.ToHeader(),
+	)
+	headers.Set("Content-Type", "application/json")
+
+	if err := c.caller.Call(
+		ctx,
+		&internal.CallParams{
+			URL:             endpointURL,
+			Method:          http.MethodPost,
+			Headers:         headers,
+			MaxAttempts:     options.MaxAttempts,
+			BodyProperties:  options.BodyProperties,
+			QueryParameters: options.QueryParameters,
+			Client:          options.HTTPClient,
+			Request:         request,
+		},
+	); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (c *Client) CustomerAuthVerifyMfaChallenge(
+	ctx context.Context,
+	projectID string,
+	request *mailmusgo.MfaVerifyDto,
+	opts ...option.RequestOption,
+) (*mailmusgo.SignInSuccessResponseDto, error) {
+	options := core.NewRequestOptions(opts...)
+	baseURL := internal.ResolveBaseURL(
+		options.BaseURL,
+		c.baseURL,
+		"",
+	)
+	endpointURL := internal.EncodeURL(
+		baseURL+"/projects/%v/auth/mfa/verify",
+		projectID,
+	)
+	headers := internal.MergeHeaders(
+		c.header.Clone(),
+		options.ToHeader(),
+	)
+	headers.Set("Content-Type", "application/json")
+
+	var response *mailmusgo.SignInSuccessResponseDto
+	if err := c.caller.Call(
+		ctx,
+		&internal.CallParams{
+			URL:             endpointURL,
+			Method:          http.MethodPost,
+			Headers:         headers,
+			MaxAttempts:     options.MaxAttempts,
+			BodyProperties:  options.BodyProperties,
+			QueryParameters: options.QueryParameters,
+			Client:          options.HTTPClient,
+			Request:         request,
+			Response:        &response,
+		},
+	); err != nil {
+		return nil, err
+	}
+	return response, nil
+}
+
+func (c *Client) JwksGetJwks(
+	ctx context.Context,
+	projectID string,
+	opts ...option.RequestOption,
+) (*mailmusgo.JwksResponseDto, error) {
+	options := core.NewRequestOptions(opts...)
+	baseURL := internal.ResolveBaseURL(
+		options.BaseURL,
+		c.baseURL,
+		"",
+	)
+	endpointURL := internal.EncodeURL(
+		baseURL+"/projects/%v/.well-known/jwks.json",
+		projectID,
+	)
+	headers := internal.MergeHeaders(
+		c.header.Clone(),
+		options.ToHeader(),
+	)
+
+	var response *mailmusgo.JwksResponseDto
+	if err := c.caller.Call(
+		ctx,
+		&internal.CallParams{
+			URL:             endpointURL,
+			Method:          http.MethodGet,
+			Headers:         headers,
+			MaxAttempts:     options.MaxAttempts,
+			BodyProperties:  options.BodyProperties,
+			QueryParameters: options.QueryParameters,
+			Client:          options.HTTPClient,
+			Response:        &response,
+		},
+	); err != nil {
+		return nil, err
+	}
+	return response, nil
+}
+
+func (c *Client) CustomerMfaEnroll(
+	ctx context.Context,
+	projectID string,
+	request *mailmusgo.EnrollMfaDto,
+	opts ...option.RequestOption,
+) (*mailmusgo.MfaEnrollResponseDto, error) {
+	options := core.NewRequestOptions(opts...)
+	baseURL := internal.ResolveBaseURL(
+		options.BaseURL,
+		c.baseURL,
+		"",
+	)
+	endpointURL := internal.EncodeURL(
+		baseURL+"/projects/%v/auth/mfa/enroll",
+		projectID,
+	)
+	headers := internal.MergeHeaders(
+		c.header.Clone(),
+		options.ToHeader(),
+	)
+	headers.Set("Content-Type", "application/json")
+
+	var response *mailmusgo.MfaEnrollResponseDto
+	if err := c.caller.Call(
+		ctx,
+		&internal.CallParams{
+			URL:             endpointURL,
+			Method:          http.MethodPost,
+			Headers:         headers,
+			MaxAttempts:     options.MaxAttempts,
+			BodyProperties:  options.BodyProperties,
+			QueryParameters: options.QueryParameters,
+			Client:          options.HTTPClient,
+			Request:         request,
+			Response:        &response,
+		},
+	); err != nil {
+		return nil, err
+	}
+	return response, nil
+}
+
+func (c *Client) CustomerMfaConfirm(
+	ctx context.Context,
+	projectID string,
+	request *mailmusgo.CustomerMfaConfirmRequest,
+	opts ...option.RequestOption,
+) (*mailmusgo.MfaConfirmResponseDto, error) {
+	options := core.NewRequestOptions(opts...)
+	baseURL := internal.ResolveBaseURL(
+		options.BaseURL,
+		c.baseURL,
+		"",
+	)
+	endpointURL := internal.EncodeURL(
+		baseURL+"/projects/%v/auth/mfa/confirm",
+		projectID,
+	)
+	headers := internal.MergeHeaders(
+		c.header.Clone(),
+		options.ToHeader(),
+	)
+	headers.Set("Content-Type", "application/json")
+
+	var response *mailmusgo.MfaConfirmResponseDto
+	if err := c.caller.Call(
+		ctx,
+		&internal.CallParams{
+			URL:             endpointURL,
+			Method:          http.MethodPost,
+			Headers:         headers,
+			MaxAttempts:     options.MaxAttempts,
+			BodyProperties:  options.BodyProperties,
+			QueryParameters: options.QueryParameters,
+			Client:          options.HTTPClient,
+			Request:         request,
+			Response:        &response,
+		},
+	); err != nil {
+		return nil, err
+	}
+	return response, nil
+}
+
+func (c *Client) CustomerMfaDisable(
+	ctx context.Context,
+	projectID string,
+	request *mailmusgo.CustomerMfaDisableRequest,
+	opts ...option.RequestOption,
+) error {
+	options := core.NewRequestOptions(opts...)
+	baseURL := internal.ResolveBaseURL(
+		options.BaseURL,
+		c.baseURL,
+		"",
+	)
+	endpointURL := internal.EncodeURL(
+		baseURL+"/projects/%v/auth/mfa/disable",
+		projectID,
+	)
+	headers := internal.MergeHeaders(
+		c.header.Clone(),
+		options.ToHeader(),
+	)
+	headers.Set("Content-Type", "application/json")
+
+	if err := c.caller.Call(
+		ctx,
+		&internal.CallParams{
+			URL:             endpointURL,
+			Method:          http.MethodPost,
+			Headers:         headers,
+			MaxAttempts:     options.MaxAttempts,
+			BodyProperties:  options.BodyProperties,
+			QueryParameters: options.QueryParameters,
+			Client:          options.HTTPClient,
+			Request:         request,
+		},
+	); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (c *Client) AuthSettingsGet(
+	ctx context.Context,
+	projectID string,
+	opts ...option.RequestOption,
+) (*mailmusgo.AuthSettingsResponseDto, error) {
+	options := core.NewRequestOptions(opts...)
+	baseURL := internal.ResolveBaseURL(
+		options.BaseURL,
+		c.baseURL,
+		"",
+	)
+	endpointURL := internal.EncodeURL(
+		baseURL+"/projects/%v/auth-settings",
+		projectID,
+	)
+	headers := internal.MergeHeaders(
+		c.header.Clone(),
+		options.ToHeader(),
+	)
+
+	var response *mailmusgo.AuthSettingsResponseDto
+	if err := c.caller.Call(
+		ctx,
+		&internal.CallParams{
+			URL:             endpointURL,
+			Method:          http.MethodGet,
+			Headers:         headers,
+			MaxAttempts:     options.MaxAttempts,
+			BodyProperties:  options.BodyProperties,
+			QueryParameters: options.QueryParameters,
+			Client:          options.HTTPClient,
+			Response:        &response,
+		},
+	); err != nil {
+		return nil, err
+	}
+	return response, nil
+}
+
+func (c *Client) AuthSettingsUpdate(
+	ctx context.Context,
+	projectID string,
+	request *mailmusgo.UpdateAuthSettingsDto,
+	opts ...option.RequestOption,
+) (*mailmusgo.AuthSettingsResponseDto, error) {
+	options := core.NewRequestOptions(opts...)
+	baseURL := internal.ResolveBaseURL(
+		options.BaseURL,
+		c.baseURL,
+		"",
+	)
+	endpointURL := internal.EncodeURL(
+		baseURL+"/projects/%v/auth-settings",
+		projectID,
+	)
+	headers := internal.MergeHeaders(
+		c.header.Clone(),
+		options.ToHeader(),
+	)
+	headers.Set("Content-Type", "application/json")
+
+	var response *mailmusgo.AuthSettingsResponseDto
+	if err := c.caller.Call(
+		ctx,
+		&internal.CallParams{
+			URL:             endpointURL,
+			Method:          http.MethodPatch,
+			Headers:         headers,
+			MaxAttempts:     options.MaxAttempts,
+			BodyProperties:  options.BodyProperties,
+			QueryParameters: options.QueryParameters,
+			Client:          options.HTTPClient,
+			Request:         request,
+			Response:        &response,
+		},
+	); err != nil {
+		return nil, err
+	}
+	return response, nil
+}
+
+func (c *Client) AuthSettingsRotateSigningKey(
+	ctx context.Context,
+	projectID string,
+	opts ...option.RequestOption,
+) (*mailmusgo.SigningKeyRotationResponseDto, error) {
+	options := core.NewRequestOptions(opts...)
+	baseURL := internal.ResolveBaseURL(
+		options.BaseURL,
+		c.baseURL,
+		"",
+	)
+	endpointURL := internal.EncodeURL(
+		baseURL+"/projects/%v/auth-settings/rotate-signing-key",
+		projectID,
+	)
+	headers := internal.MergeHeaders(
+		c.header.Clone(),
+		options.ToHeader(),
+	)
+
+	var response *mailmusgo.SigningKeyRotationResponseDto
+	if err := c.caller.Call(
+		ctx,
+		&internal.CallParams{
+			URL:             endpointURL,
+			Method:          http.MethodPost,
+			Headers:         headers,
+			MaxAttempts:     options.MaxAttempts,
+			BodyProperties:  options.BodyProperties,
+			QueryParameters: options.QueryParameters,
+			Client:          options.HTTPClient,
+			Response:        &response,
+		},
+	); err != nil {
+		return nil, err
+	}
+	return response, nil
+}
+
+func (c *Client) AuthSettingsVerifyDomain(
+	ctx context.Context,
+	projectID string,
+	opts ...option.RequestOption,
+) (*mailmusgo.AuthSettingsResponseDto, error) {
+	options := core.NewRequestOptions(opts...)
+	baseURL := internal.ResolveBaseURL(
+		options.BaseURL,
+		c.baseURL,
+		"",
+	)
+	endpointURL := internal.EncodeURL(
+		baseURL+"/projects/%v/auth-settings/verify-domain",
+		projectID,
+	)
+	headers := internal.MergeHeaders(
+		c.header.Clone(),
+		options.ToHeader(),
+	)
+
+	var response *mailmusgo.AuthSettingsResponseDto
+	if err := c.caller.Call(
+		ctx,
+		&internal.CallParams{
+			URL:             endpointURL,
+			Method:          http.MethodPost,
+			Headers:         headers,
+			MaxAttempts:     options.MaxAttempts,
+			BodyProperties:  options.BodyProperties,
+			QueryParameters: options.QueryParameters,
+			Client:          options.HTTPClient,
+			Response:        &response,
+		},
+	); err != nil {
+		return nil, err
+	}
+	return response, nil
+}
+
+func (c *Client) AuthSettingsRequestTestPhone(
+	ctx context.Context,
+	projectID string,
+	request *mailmusgo.RequestTestPhoneDto,
+	opts ...option.RequestOption,
+) error {
+	options := core.NewRequestOptions(opts...)
+	baseURL := internal.ResolveBaseURL(
+		options.BaseURL,
+		c.baseURL,
+		"",
+	)
+	endpointURL := internal.EncodeURL(
+		baseURL+"/projects/%v/auth-settings/test-phone/request",
+		projectID,
+	)
+	headers := internal.MergeHeaders(
+		c.header.Clone(),
+		options.ToHeader(),
+	)
+	headers.Set("Content-Type", "application/json")
+
+	if err := c.caller.Call(
+		ctx,
+		&internal.CallParams{
+			URL:             endpointURL,
+			Method:          http.MethodPost,
+			Headers:         headers,
+			MaxAttempts:     options.MaxAttempts,
+			BodyProperties:  options.BodyProperties,
+			QueryParameters: options.QueryParameters,
+			Client:          options.HTTPClient,
+			Request:         request,
+		},
+	); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (c *Client) AuthSettingsVerifyTestPhone(
+	ctx context.Context,
+	projectID string,
+	request *mailmusgo.VerifyTestPhoneDto,
+	opts ...option.RequestOption,
+) (*mailmusgo.AuthSettingsResponseDto, error) {
+	options := core.NewRequestOptions(opts...)
+	baseURL := internal.ResolveBaseURL(
+		options.BaseURL,
+		c.baseURL,
+		"",
+	)
+	endpointURL := internal.EncodeURL(
+		baseURL+"/projects/%v/auth-settings/test-phone/verify",
+		projectID,
+	)
+	headers := internal.MergeHeaders(
+		c.header.Clone(),
+		options.ToHeader(),
+	)
+	headers.Set("Content-Type", "application/json")
+
+	var response *mailmusgo.AuthSettingsResponseDto
+	if err := c.caller.Call(
+		ctx,
+		&internal.CallParams{
+			URL:             endpointURL,
+			Method:          http.MethodPost,
+			Headers:         headers,
+			MaxAttempts:     options.MaxAttempts,
+			BodyProperties:  options.BodyProperties,
+			QueryParameters: options.QueryParameters,
+			Client:          options.HTTPClient,
+			Request:         request,
+			Response:        &response,
+		},
+	); err != nil {
+		return nil, err
+	}
+	return response, nil
+}
+
+func (c *Client) HostedDomainsResolve(
+	ctx context.Context,
+	host string,
+	opts ...option.RequestOption,
+) (*mailmusgo.HostedDomainResolveResponseDto, error) {
+	options := core.NewRequestOptions(opts...)
+	baseURL := internal.ResolveBaseURL(
+		options.BaseURL,
+		c.baseURL,
+		"",
+	)
+	endpointURL := internal.EncodeURL(
+		baseURL+"/hosted-domains/%v",
+		host,
+	)
+	headers := internal.MergeHeaders(
+		c.header.Clone(),
+		options.ToHeader(),
+	)
+
+	var response *mailmusgo.HostedDomainResolveResponseDto
+	if err := c.caller.Call(
+		ctx,
+		&internal.CallParams{
+			URL:             endpointURL,
+			Method:          http.MethodGet,
+			Headers:         headers,
+			MaxAttempts:     options.MaxAttempts,
+			BodyProperties:  options.BodyProperties,
+			QueryParameters: options.QueryParameters,
+			Client:          options.HTTPClient,
+			Response:        &response,
+		},
+	); err != nil {
+		return nil, err
+	}
+	return response, nil
+}
+
+func (c *Client) CustomerSessionsList(
+	ctx context.Context,
+	projectID string,
+	opts ...option.RequestOption,
+) ([]*mailmusgo.CustomerSessionSummaryDto, error) {
+	options := core.NewRequestOptions(opts...)
+	baseURL := internal.ResolveBaseURL(
+		options.BaseURL,
+		c.baseURL,
+		"",
+	)
+	endpointURL := internal.EncodeURL(
+		baseURL+"/projects/%v/auth/sessions",
+		projectID,
+	)
+	headers := internal.MergeHeaders(
+		c.header.Clone(),
+		options.ToHeader(),
+	)
+
+	var response []*mailmusgo.CustomerSessionSummaryDto
+	if err := c.caller.Call(
+		ctx,
+		&internal.CallParams{
+			URL:             endpointURL,
+			Method:          http.MethodGet,
+			Headers:         headers,
+			MaxAttempts:     options.MaxAttempts,
+			BodyProperties:  options.BodyProperties,
+			QueryParameters: options.QueryParameters,
+			Client:          options.HTTPClient,
+			Response:        &response,
+		},
+	); err != nil {
+		return nil, err
+	}
+	return response, nil
+}
+
+func (c *Client) CustomerSessionsRevoke(
+	ctx context.Context,
+	projectID string,
+	id string,
+	opts ...option.RequestOption,
+) error {
+	options := core.NewRequestOptions(opts...)
+	baseURL := internal.ResolveBaseURL(
+		options.BaseURL,
+		c.baseURL,
+		"",
+	)
+	endpointURL := internal.EncodeURL(
+		baseURL+"/projects/%v/auth/sessions/%v",
+		projectID,
+		id,
+	)
+	headers := internal.MergeHeaders(
+		c.header.Clone(),
+		options.ToHeader(),
+	)
+
+	if err := c.caller.Call(
+		ctx,
+		&internal.CallParams{
+			URL:             endpointURL,
+			Method:          http.MethodDelete,
+			Headers:         headers,
+			MaxAttempts:     options.MaxAttempts,
+			BodyProperties:  options.BodyProperties,
+			QueryParameters: options.QueryParameters,
+			Client:          options.HTTPClient,
+		},
+	); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (c *Client) CustomerOrganizationsListMine(
+	ctx context.Context,
+	projectID string,
+	opts ...option.RequestOption,
+) ([]*mailmusgo.CustomerOrganizationSummaryDto, error) {
+	options := core.NewRequestOptions(opts...)
+	baseURL := internal.ResolveBaseURL(
+		options.BaseURL,
+		c.baseURL,
+		"",
+	)
+	endpointURL := internal.EncodeURL(
+		baseURL+"/projects/%v/auth/organizations/mine",
+		projectID,
+	)
+	headers := internal.MergeHeaders(
+		c.header.Clone(),
+		options.ToHeader(),
+	)
+
+	var response []*mailmusgo.CustomerOrganizationSummaryDto
+	if err := c.caller.Call(
+		ctx,
+		&internal.CallParams{
+			URL:             endpointURL,
+			Method:          http.MethodGet,
+			Headers:         headers,
+			MaxAttempts:     options.MaxAttempts,
+			BodyProperties:  options.BodyProperties,
+			QueryParameters: options.QueryParameters,
+			Client:          options.HTTPClient,
+			Response:        &response,
+		},
+	); err != nil {
+		return nil, err
+	}
+	return response, nil
+}
+
+func (c *Client) CustomerOrganizationsSetActive(
+	ctx context.Context,
+	projectID string,
+	request *mailmusgo.ActivateOrganizationDto,
+	opts ...option.RequestOption,
+) error {
+	options := core.NewRequestOptions(opts...)
+	baseURL := internal.ResolveBaseURL(
+		options.BaseURL,
+		c.baseURL,
+		"",
+	)
+	endpointURL := internal.EncodeURL(
+		baseURL+"/projects/%v/auth/organizations/active",
+		projectID,
+	)
+	headers := internal.MergeHeaders(
+		c.header.Clone(),
+		options.ToHeader(),
+	)
+	headers.Set("Content-Type", "application/json")
+
+	if err := c.caller.Call(
+		ctx,
+		&internal.CallParams{
+			URL:             endpointURL,
+			Method:          http.MethodPost,
+			Headers:         headers,
+			MaxAttempts:     options.MaxAttempts,
+			BodyProperties:  options.BodyProperties,
+			QueryParameters: options.QueryParameters,
+			Client:          options.HTTPClient,
+			Request:         request,
+		},
+	); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (c *Client) CustomerOrganizationsClearActive(
+	ctx context.Context,
+	projectID string,
+	opts ...option.RequestOption,
+) error {
+	options := core.NewRequestOptions(opts...)
+	baseURL := internal.ResolveBaseURL(
+		options.BaseURL,
+		c.baseURL,
+		"",
+	)
+	endpointURL := internal.EncodeURL(
+		baseURL+"/projects/%v/auth/organizations/active",
+		projectID,
+	)
+	headers := internal.MergeHeaders(
+		c.header.Clone(),
+		options.ToHeader(),
+	)
+
+	if err := c.caller.Call(
+		ctx,
+		&internal.CallParams{
+			URL:             endpointURL,
+			Method:          http.MethodDelete,
+			Headers:         headers,
+			MaxAttempts:     options.MaxAttempts,
+			BodyProperties:  options.BodyProperties,
+			QueryParameters: options.QueryParameters,
+			Client:          options.HTTPClient,
+		},
+	); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (c *Client) CustomerOrganizationsLeave(
+	ctx context.Context,
+	projectID string,
+	organizationID string,
+	opts ...option.RequestOption,
+) error {
+	options := core.NewRequestOptions(opts...)
+	baseURL := internal.ResolveBaseURL(
+		options.BaseURL,
+		c.baseURL,
+		"",
+	)
+	endpointURL := internal.EncodeURL(
+		baseURL+"/projects/%v/auth/organizations/%v/members/me",
+		projectID,
+		organizationID,
+	)
+	headers := internal.MergeHeaders(
+		c.header.Clone(),
+		options.ToHeader(),
+	)
+
+	if err := c.caller.Call(
+		ctx,
+		&internal.CallParams{
+			URL:             endpointURL,
+			Method:          http.MethodDelete,
+			Headers:         headers,
+			MaxAttempts:     options.MaxAttempts,
+			BodyProperties:  options.BodyProperties,
+			QueryParameters: options.QueryParameters,
+			Client:          options.HTTPClient,
+		},
+	); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (c *Client) CustomerOrganizationsAcceptInvitation(
+	ctx context.Context,
+	projectID string,
+	request *mailmusgo.AcceptInvitationDto,
+	opts ...option.RequestOption,
+) (*mailmusgo.OrganizationMembershipResponseDto, error) {
+	options := core.NewRequestOptions(opts...)
+	baseURL := internal.ResolveBaseURL(
+		options.BaseURL,
+		c.baseURL,
+		"",
+	)
+	endpointURL := internal.EncodeURL(
+		baseURL+"/projects/%v/auth/organizations/invitations/accept",
+		projectID,
+	)
+	headers := internal.MergeHeaders(
+		c.header.Clone(),
+		options.ToHeader(),
+	)
+	headers.Set("Content-Type", "application/json")
+
+	var response *mailmusgo.OrganizationMembershipResponseDto
+	if err := c.caller.Call(
+		ctx,
+		&internal.CallParams{
+			URL:             endpointURL,
+			Method:          http.MethodPost,
+			Headers:         headers,
+			MaxAttempts:     options.MaxAttempts,
+			BodyProperties:  options.BodyProperties,
+			QueryParameters: options.QueryParameters,
+			Client:          options.HTTPClient,
+			Request:         request,
+			Response:        &response,
+		},
+	); err != nil {
+		return nil, err
+	}
+	return response, nil
+}
+
+func (c *Client) OrganizationInvitationPreviewPreview(
+	ctx context.Context,
+	projectID string,
+	token string,
+	opts ...option.RequestOption,
+) (*mailmusgo.OrganizationInvitationPreviewDto, error) {
+	options := core.NewRequestOptions(opts...)
+	baseURL := internal.ResolveBaseURL(
+		options.BaseURL,
+		c.baseURL,
+		"",
+	)
+	endpointURL := internal.EncodeURL(
+		baseURL+"/projects/%v/auth/organizations/invitations/%v",
+		projectID,
+		token,
+	)
+	headers := internal.MergeHeaders(
+		c.header.Clone(),
+		options.ToHeader(),
+	)
+
+	var response *mailmusgo.OrganizationInvitationPreviewDto
+	if err := c.caller.Call(
+		ctx,
+		&internal.CallParams{
+			URL:             endpointURL,
+			Method:          http.MethodGet,
+			Headers:         headers,
+			MaxAttempts:     options.MaxAttempts,
+			BodyProperties:  options.BodyProperties,
+			QueryParameters: options.QueryParameters,
+			Client:          options.HTTPClient,
+			Response:        &response,
+		},
+	); err != nil {
+		return nil, err
+	}
+	return response, nil
+}
+
+func (c *Client) SSOAuthStart(
+	ctx context.Context,
+	projectID string,
+	request *mailmusgo.SSOStartDto,
+	opts ...option.RequestOption,
+) (*mailmusgo.SSOStartResponseDto, error) {
+	options := core.NewRequestOptions(opts...)
+	baseURL := internal.ResolveBaseURL(
+		options.BaseURL,
+		c.baseURL,
+		"",
+	)
+	endpointURL := internal.EncodeURL(
+		baseURL+"/projects/%v/auth/sso/start",
+		projectID,
+	)
+	headers := internal.MergeHeaders(
+		c.header.Clone(),
+		options.ToHeader(),
+	)
+	headers.Set("Content-Type", "application/json")
+
+	var response *mailmusgo.SSOStartResponseDto
+	if err := c.caller.Call(
+		ctx,
+		&internal.CallParams{
+			URL:             endpointURL,
+			Method:          http.MethodPost,
+			Headers:         headers,
+			MaxAttempts:     options.MaxAttempts,
+			BodyProperties:  options.BodyProperties,
+			QueryParameters: options.QueryParameters,
+			Client:          options.HTTPClient,
+			Request:         request,
+			Response:        &response,
+		},
+	); err != nil {
+		return nil, err
+	}
+	return response, nil
+}
+
+func (c *Client) SSOAuthAcs(
+	ctx context.Context,
+	projectID string,
+	connectionID string,
+	request *mailmusgo.SSOAcsDto,
+	opts ...option.RequestOption,
+) (*mailmusgo.SSOAuthAcsResponse, error) {
+	options := core.NewRequestOptions(opts...)
+	baseURL := internal.ResolveBaseURL(
+		options.BaseURL,
+		c.baseURL,
+		"",
+	)
+	endpointURL := internal.EncodeURL(
+		baseURL+"/projects/%v/auth/sso/%v/acs",
+		projectID,
+		connectionID,
+	)
+	headers := internal.MergeHeaders(
+		c.header.Clone(),
+		options.ToHeader(),
+	)
+	headers.Set("Content-Type", "application/json")
+
+	var response *mailmusgo.SSOAuthAcsResponse
+	if err := c.caller.Call(
+		ctx,
+		&internal.CallParams{
+			URL:             endpointURL,
+			Method:          http.MethodPost,
+			Headers:         headers,
+			MaxAttempts:     options.MaxAttempts,
+			BodyProperties:  options.BodyProperties,
+			QueryParameters: options.QueryParameters,
+			Client:          options.HTTPClient,
+			Request:         request,
+			Response:        &response,
+		},
+	); err != nil {
+		return nil, err
+	}
+	return response, nil
 }

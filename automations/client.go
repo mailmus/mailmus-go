@@ -4,11 +4,11 @@ package automations
 
 import (
 	context "context"
-	http "net/http"
-	sdk "github.com/mailmus/mailmus-go"
+	mailmusgo "github.com/mailmus/mailmus-go"
 	core "github.com/mailmus/mailmus-go/core"
 	internal "github.com/mailmus/mailmus-go/internal"
 	option "github.com/mailmus/mailmus-go/option"
+	http "net/http"
 )
 
 type Client struct {
@@ -31,11 +31,11 @@ func NewClient(opts ...option.RequestOption) *Client {
 	}
 }
 
-func (c *Client) AutomationsControllerList(
+func (c *Client) List(
 	ctx context.Context,
-	appID string,
+	projectID string,
 	opts ...option.RequestOption,
-) error {
+) ([]*mailmusgo.AutomationResponseDto, error) {
 	options := core.NewRequestOptions(opts...)
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
@@ -43,14 +43,15 @@ func (c *Client) AutomationsControllerList(
 		"",
 	)
 	endpointURL := internal.EncodeURL(
-		baseURL+"/apps/%v/automations",
-		appID,
+		baseURL+"/projects/%v/automations",
+		projectID,
 	)
 	headers := internal.MergeHeaders(
 		c.header.Clone(),
 		options.ToHeader(),
 	)
 
+	var response []*mailmusgo.AutomationResponseDto
 	if err := c.caller.Call(
 		ctx,
 		&internal.CallParams{
@@ -61,19 +62,20 @@ func (c *Client) AutomationsControllerList(
 			BodyProperties:  options.BodyProperties,
 			QueryParameters: options.QueryParameters,
 			Client:          options.HTTPClient,
+			Response:        &response,
 		},
 	); err != nil {
-		return err
+		return nil, err
 	}
-	return nil
+	return response, nil
 }
 
-func (c *Client) AutomationsControllerCreate(
+func (c *Client) Create(
 	ctx context.Context,
-	appID string,
-	request *sdk.CreateAutomationDto,
+	projectID string,
+	request *mailmusgo.CreateAutomationDto,
 	opts ...option.RequestOption,
-) error {
+) (*mailmusgo.AutomationResponseDto, error) {
 	options := core.NewRequestOptions(opts...)
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
@@ -81,8 +83,8 @@ func (c *Client) AutomationsControllerCreate(
 		"",
 	)
 	endpointURL := internal.EncodeURL(
-		baseURL+"/apps/%v/automations",
-		appID,
+		baseURL+"/projects/%v/automations",
+		projectID,
 	)
 	headers := internal.MergeHeaders(
 		c.header.Clone(),
@@ -90,6 +92,7 @@ func (c *Client) AutomationsControllerCreate(
 	)
 	headers.Set("Content-Type", "application/json")
 
+	var response *mailmusgo.AutomationResponseDto
 	if err := c.caller.Call(
 		ctx,
 		&internal.CallParams{
@@ -101,19 +104,20 @@ func (c *Client) AutomationsControllerCreate(
 			QueryParameters: options.QueryParameters,
 			Client:          options.HTTPClient,
 			Request:         request,
+			Response:        &response,
 		},
 	); err != nil {
-		return err
+		return nil, err
 	}
-	return nil
+	return response, nil
 }
 
-func (c *Client) AutomationsControllerRemove(
+func (c *Client) Remove(
 	ctx context.Context,
-	appID string,
+	projectID string,
 	id string,
 	opts ...option.RequestOption,
-) error {
+) (*mailmusgo.DeletedResponseDto, error) {
 	options := core.NewRequestOptions(opts...)
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
@@ -121,8 +125,8 @@ func (c *Client) AutomationsControllerRemove(
 		"",
 	)
 	endpointURL := internal.EncodeURL(
-		baseURL+"/apps/%v/automations/%v",
-		appID,
+		baseURL+"/projects/%v/automations/%v",
+		projectID,
 		id,
 	)
 	headers := internal.MergeHeaders(
@@ -130,6 +134,7 @@ func (c *Client) AutomationsControllerRemove(
 		options.ToHeader(),
 	)
 
+	var response *mailmusgo.DeletedResponseDto
 	if err := c.caller.Call(
 		ctx,
 		&internal.CallParams{
@@ -140,20 +145,21 @@ func (c *Client) AutomationsControllerRemove(
 			BodyProperties:  options.BodyProperties,
 			QueryParameters: options.QueryParameters,
 			Client:          options.HTTPClient,
+			Response:        &response,
 		},
 	); err != nil {
-		return err
+		return nil, err
 	}
-	return nil
+	return response, nil
 }
 
-func (c *Client) AutomationsControllerRename(
+func (c *Client) Rename(
 	ctx context.Context,
-	appID string,
+	projectID string,
 	id string,
-	request *sdk.RenameAutomationDto,
+	request *mailmusgo.RenameAutomationDto,
 	opts ...option.RequestOption,
-) error {
+) (*mailmusgo.AutomationResponseDto, error) {
 	options := core.NewRequestOptions(opts...)
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
@@ -161,8 +167,8 @@ func (c *Client) AutomationsControllerRename(
 		"",
 	)
 	endpointURL := internal.EncodeURL(
-		baseURL+"/apps/%v/automations/%v",
-		appID,
+		baseURL+"/projects/%v/automations/%v",
+		projectID,
 		id,
 	)
 	headers := internal.MergeHeaders(
@@ -171,6 +177,7 @@ func (c *Client) AutomationsControllerRename(
 	)
 	headers.Set("Content-Type", "application/json")
 
+	var response *mailmusgo.AutomationResponseDto
 	if err := c.caller.Call(
 		ctx,
 		&internal.CallParams{
@@ -182,19 +189,20 @@ func (c *Client) AutomationsControllerRename(
 			QueryParameters: options.QueryParameters,
 			Client:          options.HTTPClient,
 			Request:         request,
+			Response:        &response,
 		},
 	); err != nil {
-		return err
+		return nil, err
 	}
-	return nil
+	return response, nil
 }
 
-func (c *Client) AutomationsControllerSetActive(
+func (c *Client) Setactive(
 	ctx context.Context,
-	appID string,
+	projectID string,
 	id string,
 	opts ...option.RequestOption,
-) error {
+) (*mailmusgo.AutomationResponseDto, error) {
 	options := core.NewRequestOptions(opts...)
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
@@ -202,8 +210,8 @@ func (c *Client) AutomationsControllerSetActive(
 		"",
 	)
 	endpointURL := internal.EncodeURL(
-		baseURL+"/apps/%v/automations/%v/active",
-		appID,
+		baseURL+"/projects/%v/automations/%v/active",
+		projectID,
 		id,
 	)
 	headers := internal.MergeHeaders(
@@ -211,6 +219,7 @@ func (c *Client) AutomationsControllerSetActive(
 		options.ToHeader(),
 	)
 
+	var response *mailmusgo.AutomationResponseDto
 	if err := c.caller.Call(
 		ctx,
 		&internal.CallParams{
@@ -221,19 +230,20 @@ func (c *Client) AutomationsControllerSetActive(
 			BodyProperties:  options.BodyProperties,
 			QueryParameters: options.QueryParameters,
 			Client:          options.HTTPClient,
+			Response:        &response,
 		},
 	); err != nil {
-		return err
+		return nil, err
 	}
-	return nil
+	return response, nil
 }
 
-func (c *Client) AutomationsControllerListRuns(
+func (c *Client) Listruns(
 	ctx context.Context,
-	appID string,
+	projectID string,
 	id string,
 	opts ...option.RequestOption,
-) error {
+) ([]*mailmusgo.AutomationRunResponseDto, error) {
 	options := core.NewRequestOptions(opts...)
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
@@ -241,8 +251,8 @@ func (c *Client) AutomationsControllerListRuns(
 		"",
 	)
 	endpointURL := internal.EncodeURL(
-		baseURL+"/apps/%v/automations/%v/runs",
-		appID,
+		baseURL+"/projects/%v/automations/%v/runs",
+		projectID,
 		id,
 	)
 	headers := internal.MergeHeaders(
@@ -250,6 +260,7 @@ func (c *Client) AutomationsControllerListRuns(
 		options.ToHeader(),
 	)
 
+	var response []*mailmusgo.AutomationRunResponseDto
 	if err := c.caller.Call(
 		ctx,
 		&internal.CallParams{
@@ -260,9 +271,10 @@ func (c *Client) AutomationsControllerListRuns(
 			BodyProperties:  options.BodyProperties,
 			QueryParameters: options.QueryParameters,
 			Client:          options.HTTPClient,
+			Response:        &response,
 		},
 	); err != nil {
-		return err
+		return nil, err
 	}
-	return nil
+	return response, nil
 }

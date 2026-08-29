@@ -3,32 +3,33 @@
 package client
 
 import (
-	http "net/http"
-	account "github.com/mailmus/mailmus-go/account"
-	accountanalytics "github.com/mailmus/mailmus-go/accountanalytics"
 	analytics "github.com/mailmus/mailmus-go/analytics"
 	apikeys "github.com/mailmus/mailmus-go/apikeys"
-	app "github.com/mailmus/mailmus-go/app"
-	apps "github.com/mailmus/mailmus-go/apps"
 	audiences "github.com/mailmus/mailmus-go/audiences"
 	auth "github.com/mailmus/mailmus-go/auth"
+	authanalytics "github.com/mailmus/mailmus-go/authanalytics"
 	automations "github.com/mailmus/mailmus-go/automations"
-	billing "github.com/mailmus/mailmus-go/billing"
-	billingwebhook "github.com/mailmus/mailmus-go/billingwebhook"
 	campaigns "github.com/mailmus/mailmus-go/campaigns"
 	contacts "github.com/mailmus/mailmus-go/contacts"
+	contentcheck "github.com/mailmus/mailmus-go/contentcheck"
 	core "github.com/mailmus/mailmus-go/core"
+	customers "github.com/mailmus/mailmus-go/customers"
+	customerverification "github.com/mailmus/mailmus-go/customerverification"
 	domains "github.com/mailmus/mailmus-go/domains"
 	emails "github.com/mailmus/mailmus-go/emails"
+	emailverification "github.com/mailmus/mailmus-go/emailverification"
+	inboundemails "github.com/mailmus/mailmus-go/inboundemails"
 	internal "github.com/mailmus/mailmus-go/internal"
 	option "github.com/mailmus/mailmus-go/option"
-	public "github.com/mailmus/mailmus-go/public"
-	seswebhook "github.com/mailmus/mailmus-go/seswebhook"
-	suppressions "github.com/mailmus/mailmus-go/suppressions"
+	organizationinvitations "github.com/mailmus/mailmus-go/organizationinvitations"
+	organizationmembers "github.com/mailmus/mailmus-go/organizationmembers"
+	organizations "github.com/mailmus/mailmus-go/organizations"
+	seedlist "github.com/mailmus/mailmus-go/seedlist"
+	ssoconnections "github.com/mailmus/mailmus-go/ssoconnections"
+	status "github.com/mailmus/mailmus-go/status"
 	templates "github.com/mailmus/mailmus-go/templates"
-	tracking "github.com/mailmus/mailmus-go/tracking"
-	usage "github.com/mailmus/mailmus-go/usage"
 	webhooks "github.com/mailmus/mailmus-go/webhooks"
+	http "net/http"
 )
 
 type Client struct {
@@ -36,28 +37,29 @@ type Client struct {
 	caller  *internal.Caller
 	header  http.Header
 
-	App              *app.Client
-	Suppressions     *suppressions.Client
-	Auth             *auth.Client
-	SesWebhook       *seswebhook.Client
-	Webhooks         *webhooks.Client
-	Domains          *domains.Client
-	Templates        *templates.Client
-	APIKeys          *apikeys.Client
-	Contacts         *contacts.Client
-	Automations      *automations.Client
-	Tracking         *tracking.Client
-	Campaigns        *campaigns.Client
-	Usage            *usage.Client
-	Billing          *billing.Client
-	BillingWebhook   *billingwebhook.Client
-	Emails           *emails.Client
-	Audiences        *audiences.Client
-	Account          *account.Client
-	Apps             *apps.Client
-	Public           *public.Client
-	Analytics        *analytics.Client
-	AccountAnalytics *accountanalytics.Client
+	APIKeys                 *apikeys.Client
+	Webhooks                *webhooks.Client
+	Customers               *customers.Client
+	Auth                    *auth.Client
+	CustomerVerification    *customerverification.Client
+	Status                  *status.Client
+	Domains                 *domains.Client
+	Templates               *templates.Client
+	Contacts                *contacts.Client
+	Automations             *automations.Client
+	Audiences               *audiences.Client
+	Campaigns               *campaigns.Client
+	SeedList                *seedlist.Client
+	ContentCheck            *contentcheck.Client
+	Emails                  *emails.Client
+	Analytics               *analytics.Client
+	AuthAnalytics           *authanalytics.Client
+	EmailVerification       *emailverification.Client
+	InboundEmails           *inboundemails.Client
+	Organizations           *organizations.Client
+	OrganizationMembers     *organizationmembers.Client
+	OrganizationInvitations *organizationinvitations.Client
+	SSOConnections          *ssoconnections.Client
 }
 
 func NewClient(opts ...option.RequestOption) *Client {
@@ -70,28 +72,29 @@ func NewClient(opts ...option.RequestOption) *Client {
 				MaxAttempts: options.MaxAttempts,
 			},
 		),
-		header:           options.ToHeader(),
-		App:              app.NewClient(opts...),
-		Suppressions:     suppressions.NewClient(opts...),
-		Auth:             auth.NewClient(opts...),
-		SesWebhook:       seswebhook.NewClient(opts...),
-		Webhooks:         webhooks.NewClient(opts...),
-		Domains:          domains.NewClient(opts...),
-		Templates:        templates.NewClient(opts...),
-		APIKeys:          apikeys.NewClient(opts...),
-		Contacts:         contacts.NewClient(opts...),
-		Automations:      automations.NewClient(opts...),
-		Tracking:         tracking.NewClient(opts...),
-		Campaigns:        campaigns.NewClient(opts...),
-		Usage:            usage.NewClient(opts...),
-		Billing:          billing.NewClient(opts...),
-		BillingWebhook:   billingwebhook.NewClient(opts...),
-		Emails:           emails.NewClient(opts...),
-		Audiences:        audiences.NewClient(opts...),
-		Account:          account.NewClient(opts...),
-		Apps:             apps.NewClient(opts...),
-		Public:           public.NewClient(opts...),
-		Analytics:        analytics.NewClient(opts...),
-		AccountAnalytics: accountanalytics.NewClient(opts...),
+		header:                  options.ToHeader(),
+		APIKeys:                 apikeys.NewClient(opts...),
+		Webhooks:                webhooks.NewClient(opts...),
+		Customers:               customers.NewClient(opts...),
+		Auth:                    auth.NewClient(opts...),
+		CustomerVerification:    customerverification.NewClient(opts...),
+		Status:                  status.NewClient(opts...),
+		Domains:                 domains.NewClient(opts...),
+		Templates:               templates.NewClient(opts...),
+		Contacts:                contacts.NewClient(opts...),
+		Automations:             automations.NewClient(opts...),
+		Audiences:               audiences.NewClient(opts...),
+		Campaigns:               campaigns.NewClient(opts...),
+		SeedList:                seedlist.NewClient(opts...),
+		ContentCheck:            contentcheck.NewClient(opts...),
+		Emails:                  emails.NewClient(opts...),
+		Analytics:               analytics.NewClient(opts...),
+		AuthAnalytics:           authanalytics.NewClient(opts...),
+		EmailVerification:       emailverification.NewClient(opts...),
+		InboundEmails:           inboundemails.NewClient(opts...),
+		Organizations:           organizations.NewClient(opts...),
+		OrganizationMembers:     organizationmembers.NewClient(opts...),
+		OrganizationInvitations: organizationinvitations.NewClient(opts...),
+		SSOConnections:          ssoconnections.NewClient(opts...),
 	}
 }

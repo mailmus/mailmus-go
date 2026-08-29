@@ -3,36 +3,527 @@
 package mailmus
 
 import (
+	json "encoding/json"
 	fmt "fmt"
+	internal "github.com/mailmus/mailmus-go/internal"
+	time "time"
 )
 
-type CreateWebhookDto struct {
-	URL    string                       `json:"url" url:"-"`
-	Events []CreateWebhookDtoEventsItem `json:"events,omitempty" url:"-"`
+type WebhookDeliveryResponseDto struct {
+	ID             string `json:"id" url:"id"`
+	SubscriptionID string `json:"subscriptionId" url:"subscriptionId"`
+	Event          string `json:"event" url:"event"`
+	// Corps envoyé, tel quel.
+	Payload map[string]interface{}           `json:"payload,omitempty" url:"payload,omitempty"`
+	Status  WebhookDeliveryResponseDtoStatus `json:"status" url:"status"`
+	// Tentatives effectuées, réessais compris.
+	Attempts float64 `json:"attempts" url:"attempts"`
+	// Code HTTP renvoyé par votre serveur à la dernière tentative.
+	ResponseStatus map[string]interface{} `json:"responseStatus,omitempty" url:"responseStatus,omitempty"`
+	ErrorMessage   map[string]interface{} `json:"errorMessage,omitempty" url:"errorMessage,omitempty"`
+	CreatedAt      time.Time              `json:"createdAt" url:"createdAt"`
+	DeliveredAt    map[string]interface{} `json:"deliveredAt,omitempty" url:"deliveredAt,omitempty"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
 }
 
-type UpdateWebhookDto struct {
-	URL    *string                      `json:"url,omitempty" url:"-"`
-	Events []UpdateWebhookDtoEventsItem `json:"events,omitempty" url:"-"`
-	Active *bool                        `json:"active,omitempty" url:"-"`
+func (w *WebhookDeliveryResponseDto) GetID() string {
+	if w == nil {
+		return ""
+	}
+	return w.ID
+}
+
+func (w *WebhookDeliveryResponseDto) GetSubscriptionID() string {
+	if w == nil {
+		return ""
+	}
+	return w.SubscriptionID
+}
+
+func (w *WebhookDeliveryResponseDto) GetEvent() string {
+	if w == nil {
+		return ""
+	}
+	return w.Event
+}
+
+func (w *WebhookDeliveryResponseDto) GetPayload() map[string]interface{} {
+	if w == nil {
+		return nil
+	}
+	return w.Payload
+}
+
+func (w *WebhookDeliveryResponseDto) GetStatus() WebhookDeliveryResponseDtoStatus {
+	if w == nil {
+		return ""
+	}
+	return w.Status
+}
+
+func (w *WebhookDeliveryResponseDto) GetAttempts() float64 {
+	if w == nil {
+		return 0
+	}
+	return w.Attempts
+}
+
+func (w *WebhookDeliveryResponseDto) GetResponseStatus() map[string]interface{} {
+	if w == nil {
+		return nil
+	}
+	return w.ResponseStatus
+}
+
+func (w *WebhookDeliveryResponseDto) GetErrorMessage() map[string]interface{} {
+	if w == nil {
+		return nil
+	}
+	return w.ErrorMessage
+}
+
+func (w *WebhookDeliveryResponseDto) GetCreatedAt() time.Time {
+	if w == nil {
+		return time.Time{}
+	}
+	return w.CreatedAt
+}
+
+func (w *WebhookDeliveryResponseDto) GetDeliveredAt() map[string]interface{} {
+	if w == nil {
+		return nil
+	}
+	return w.DeliveredAt
+}
+
+func (w *WebhookDeliveryResponseDto) GetExtraProperties() map[string]interface{} {
+	return w.extraProperties
+}
+
+func (w *WebhookDeliveryResponseDto) UnmarshalJSON(data []byte) error {
+	type embed WebhookDeliveryResponseDto
+	var unmarshaler = struct {
+		embed
+		CreatedAt *internal.DateTime `json:"createdAt"`
+	}{
+		embed: embed(*w),
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
+		return err
+	}
+	*w = WebhookDeliveryResponseDto(unmarshaler.embed)
+	w.CreatedAt = unmarshaler.CreatedAt.Time()
+	extraProperties, err := internal.ExtractExtraProperties(data, *w)
+	if err != nil {
+		return err
+	}
+	w.extraProperties = extraProperties
+	w.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (w *WebhookDeliveryResponseDto) MarshalJSON() ([]byte, error) {
+	type embed WebhookDeliveryResponseDto
+	var marshaler = struct {
+		embed
+		CreatedAt *internal.DateTime `json:"createdAt"`
+	}{
+		embed:     embed(*w),
+		CreatedAt: internal.NewDateTime(w.CreatedAt),
+	}
+	return json.Marshal(marshaler)
+}
+
+func (w *WebhookDeliveryResponseDto) String() string {
+	if len(w.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(w.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(w); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", w)
+}
+
+type WebhookDeliveryResponseDtoStatus string
+
+const (
+	WebhookDeliveryResponseDtoStatusPending WebhookDeliveryResponseDtoStatus = "PENDING"
+	WebhookDeliveryResponseDtoStatusSuccess WebhookDeliveryResponseDtoStatus = "SUCCESS"
+	WebhookDeliveryResponseDtoStatusFailed  WebhookDeliveryResponseDtoStatus = "FAILED"
+)
+
+func NewWebhookDeliveryResponseDtoStatusFromString(s string) (WebhookDeliveryResponseDtoStatus, error) {
+	switch s {
+	case "PENDING":
+		return WebhookDeliveryResponseDtoStatusPending, nil
+	case "SUCCESS":
+		return WebhookDeliveryResponseDtoStatusSuccess, nil
+	case "FAILED":
+		return WebhookDeliveryResponseDtoStatusFailed, nil
+	}
+	var t WebhookDeliveryResponseDtoStatus
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (w WebhookDeliveryResponseDtoStatus) Ptr() *WebhookDeliveryResponseDtoStatus {
+	return &w
+}
+
+type WebhookSubscriptionResponseDto struct {
+	ID string `json:"id" url:"id"`
+	// Adresse qui recevra les livraisons.
+	URL string `json:"url" url:"url"`
+	// Événements souscrits, par exemple email.delivered.
+	Events []string `json:"events,omitempty" url:"events,omitempty"`
+	// Un abonnement inactif est conservé mais ne reçoit plus rien.
+	Active    bool      `json:"active" url:"active"`
+	AppID     string    `json:"appId" url:"appId"`
+	CreatedAt time.Time `json:"createdAt" url:"createdAt"`
+	UpdatedAt time.Time `json:"updatedAt" url:"updatedAt"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (w *WebhookSubscriptionResponseDto) GetID() string {
+	if w == nil {
+		return ""
+	}
+	return w.ID
+}
+
+func (w *WebhookSubscriptionResponseDto) GetURL() string {
+	if w == nil {
+		return ""
+	}
+	return w.URL
+}
+
+func (w *WebhookSubscriptionResponseDto) GetEvents() []string {
+	if w == nil {
+		return nil
+	}
+	return w.Events
+}
+
+func (w *WebhookSubscriptionResponseDto) GetActive() bool {
+	if w == nil {
+		return false
+	}
+	return w.Active
+}
+
+func (w *WebhookSubscriptionResponseDto) GetAppID() string {
+	if w == nil {
+		return ""
+	}
+	return w.AppID
+}
+
+func (w *WebhookSubscriptionResponseDto) GetCreatedAt() time.Time {
+	if w == nil {
+		return time.Time{}
+	}
+	return w.CreatedAt
+}
+
+func (w *WebhookSubscriptionResponseDto) GetUpdatedAt() time.Time {
+	if w == nil {
+		return time.Time{}
+	}
+	return w.UpdatedAt
+}
+
+func (w *WebhookSubscriptionResponseDto) GetExtraProperties() map[string]interface{} {
+	return w.extraProperties
+}
+
+func (w *WebhookSubscriptionResponseDto) UnmarshalJSON(data []byte) error {
+	type embed WebhookSubscriptionResponseDto
+	var unmarshaler = struct {
+		embed
+		CreatedAt *internal.DateTime `json:"createdAt"`
+		UpdatedAt *internal.DateTime `json:"updatedAt"`
+	}{
+		embed: embed(*w),
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
+		return err
+	}
+	*w = WebhookSubscriptionResponseDto(unmarshaler.embed)
+	w.CreatedAt = unmarshaler.CreatedAt.Time()
+	w.UpdatedAt = unmarshaler.UpdatedAt.Time()
+	extraProperties, err := internal.ExtractExtraProperties(data, *w)
+	if err != nil {
+		return err
+	}
+	w.extraProperties = extraProperties
+	w.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (w *WebhookSubscriptionResponseDto) MarshalJSON() ([]byte, error) {
+	type embed WebhookSubscriptionResponseDto
+	var marshaler = struct {
+		embed
+		CreatedAt *internal.DateTime `json:"createdAt"`
+		UpdatedAt *internal.DateTime `json:"updatedAt"`
+	}{
+		embed:     embed(*w),
+		CreatedAt: internal.NewDateTime(w.CreatedAt),
+		UpdatedAt: internal.NewDateTime(w.UpdatedAt),
+	}
+	return json.Marshal(marshaler)
+}
+
+func (w *WebhookSubscriptionResponseDto) String() string {
+	if len(w.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(w.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(w); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", w)
+}
+
+type WebhookSubscriptionWithSecretResponseDto struct {
+	ID string `json:"id" url:"id"`
+	// Adresse qui recevra les livraisons.
+	URL string `json:"url" url:"url"`
+	// Événements souscrits, par exemple email.delivered.
+	Events []string `json:"events,omitempty" url:"events,omitempty"`
+	// Un abonnement inactif est conservé mais ne reçoit plus rien.
+	Active    bool      `json:"active" url:"active"`
+	AppID     string    `json:"appId" url:"appId"`
+	CreatedAt time.Time `json:"createdAt" url:"createdAt"`
+	UpdatedAt time.Time `json:"updatedAt" url:"updatedAt"`
+	// Clé servant à vérifier la signature de chaque livraison. Visible ici et nulle part ailleurs.
+	Secret string `json:"secret" url:"secret"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (w *WebhookSubscriptionWithSecretResponseDto) GetID() string {
+	if w == nil {
+		return ""
+	}
+	return w.ID
+}
+
+func (w *WebhookSubscriptionWithSecretResponseDto) GetURL() string {
+	if w == nil {
+		return ""
+	}
+	return w.URL
+}
+
+func (w *WebhookSubscriptionWithSecretResponseDto) GetEvents() []string {
+	if w == nil {
+		return nil
+	}
+	return w.Events
+}
+
+func (w *WebhookSubscriptionWithSecretResponseDto) GetActive() bool {
+	if w == nil {
+		return false
+	}
+	return w.Active
+}
+
+func (w *WebhookSubscriptionWithSecretResponseDto) GetAppID() string {
+	if w == nil {
+		return ""
+	}
+	return w.AppID
+}
+
+func (w *WebhookSubscriptionWithSecretResponseDto) GetCreatedAt() time.Time {
+	if w == nil {
+		return time.Time{}
+	}
+	return w.CreatedAt
+}
+
+func (w *WebhookSubscriptionWithSecretResponseDto) GetUpdatedAt() time.Time {
+	if w == nil {
+		return time.Time{}
+	}
+	return w.UpdatedAt
+}
+
+func (w *WebhookSubscriptionWithSecretResponseDto) GetSecret() string {
+	if w == nil {
+		return ""
+	}
+	return w.Secret
+}
+
+func (w *WebhookSubscriptionWithSecretResponseDto) GetExtraProperties() map[string]interface{} {
+	return w.extraProperties
+}
+
+func (w *WebhookSubscriptionWithSecretResponseDto) UnmarshalJSON(data []byte) error {
+	type embed WebhookSubscriptionWithSecretResponseDto
+	var unmarshaler = struct {
+		embed
+		CreatedAt *internal.DateTime `json:"createdAt"`
+		UpdatedAt *internal.DateTime `json:"updatedAt"`
+	}{
+		embed: embed(*w),
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
+		return err
+	}
+	*w = WebhookSubscriptionWithSecretResponseDto(unmarshaler.embed)
+	w.CreatedAt = unmarshaler.CreatedAt.Time()
+	w.UpdatedAt = unmarshaler.UpdatedAt.Time()
+	extraProperties, err := internal.ExtractExtraProperties(data, *w)
+	if err != nil {
+		return err
+	}
+	w.extraProperties = extraProperties
+	w.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (w *WebhookSubscriptionWithSecretResponseDto) MarshalJSON() ([]byte, error) {
+	type embed WebhookSubscriptionWithSecretResponseDto
+	var marshaler = struct {
+		embed
+		CreatedAt *internal.DateTime `json:"createdAt"`
+		UpdatedAt *internal.DateTime `json:"updatedAt"`
+	}{
+		embed:     embed(*w),
+		CreatedAt: internal.NewDateTime(w.CreatedAt),
+		UpdatedAt: internal.NewDateTime(w.UpdatedAt),
+	}
+	return json.Marshal(marshaler)
+}
+
+func (w *WebhookSubscriptionWithSecretResponseDto) String() string {
+	if len(w.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(w.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(w); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", w)
+}
+
+type WebhookTestResultDto struct {
+	// Code HTTP renvoyé, ou 0 si rien n’a répondu.
+	Status float64 `json:"status" url:"status"`
+	// Vrai si le code est un 2xx.
+	Ok bool `json:"ok" url:"ok"`
+	// Temps de réponse en millisecondes.
+	ResponseTime float64 `json:"responseTime" url:"responseTime"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (w *WebhookTestResultDto) GetStatus() float64 {
+	if w == nil {
+		return 0
+	}
+	return w.Status
+}
+
+func (w *WebhookTestResultDto) GetOk() bool {
+	if w == nil {
+		return false
+	}
+	return w.Ok
+}
+
+func (w *WebhookTestResultDto) GetResponseTime() float64 {
+	if w == nil {
+		return 0
+	}
+	return w.ResponseTime
+}
+
+func (w *WebhookTestResultDto) GetExtraProperties() map[string]interface{} {
+	return w.extraProperties
+}
+
+func (w *WebhookTestResultDto) UnmarshalJSON(data []byte) error {
+	type unmarshaler WebhookTestResultDto
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*w = WebhookTestResultDto(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *w)
+	if err != nil {
+		return err
+	}
+	w.extraProperties = extraProperties
+	w.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (w *WebhookTestResultDto) String() string {
+	if len(w.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(w.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(w); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", w)
 }
 
 type CreateWebhookDtoEventsItem string
 
 const (
-	CreateWebhookDtoEventsItemContactCreated      CreateWebhookDtoEventsItem = "contact.created"
-	CreateWebhookDtoEventsItemContactUnsubscribed CreateWebhookDtoEventsItem = "contact.unsubscribed"
-	CreateWebhookDtoEventsItemEmailSent           CreateWebhookDtoEventsItem = "email.sent"
-	CreateWebhookDtoEventsItemSendDelivered       CreateWebhookDtoEventsItem = "send.delivered"
-	CreateWebhookDtoEventsItemSendBounced         CreateWebhookDtoEventsItem = "send.bounced"
-	CreateWebhookDtoEventsItemSendComplained      CreateWebhookDtoEventsItem = "send.complained"
-	CreateWebhookDtoEventsItemSendOpened          CreateWebhookDtoEventsItem = "send.opened"
-	CreateWebhookDtoEventsItemSendClicked         CreateWebhookDtoEventsItem = "send.clicked"
-	CreateWebhookDtoEventsItemCampaignSent        CreateWebhookDtoEventsItem = "campaign.sent"
-	CreateWebhookDtoEventsItemDomainVerified      CreateWebhookDtoEventsItem = "domain.verified"
-	CreateWebhookDtoEventsItemDomainFailed        CreateWebhookDtoEventsItem = "domain.failed"
-	CreateWebhookDtoEventsItemAutomationCompleted CreateWebhookDtoEventsItem = "automation.completed"
-	CreateWebhookDtoEventsItemAutomationFailed    CreateWebhookDtoEventsItem = "automation.failed"
+	CreateWebhookDtoEventsItemContactCreated                 CreateWebhookDtoEventsItem = "contact.created"
+	CreateWebhookDtoEventsItemContactUnsubscribed            CreateWebhookDtoEventsItem = "contact.unsubscribed"
+	CreateWebhookDtoEventsItemEmailSent                      CreateWebhookDtoEventsItem = "email.sent"
+	CreateWebhookDtoEventsItemEmailReceived                  CreateWebhookDtoEventsItem = "email.received"
+	CreateWebhookDtoEventsItemSendDelivered                  CreateWebhookDtoEventsItem = "send.delivered"
+	CreateWebhookDtoEventsItemSendBounced                    CreateWebhookDtoEventsItem = "send.bounced"
+	CreateWebhookDtoEventsItemSendComplained                 CreateWebhookDtoEventsItem = "send.complained"
+	CreateWebhookDtoEventsItemSendOpened                     CreateWebhookDtoEventsItem = "send.opened"
+	CreateWebhookDtoEventsItemSendClicked                    CreateWebhookDtoEventsItem = "send.clicked"
+	CreateWebhookDtoEventsItemCampaignSent                   CreateWebhookDtoEventsItem = "campaign.sent"
+	CreateWebhookDtoEventsItemDomainVerified                 CreateWebhookDtoEventsItem = "domain.verified"
+	CreateWebhookDtoEventsItemDomainFailed                   CreateWebhookDtoEventsItem = "domain.failed"
+	CreateWebhookDtoEventsItemAutomationCompleted            CreateWebhookDtoEventsItem = "automation.completed"
+	CreateWebhookDtoEventsItemAutomationFailed               CreateWebhookDtoEventsItem = "automation.failed"
+	CreateWebhookDtoEventsItemCustomerCreated                CreateWebhookDtoEventsItem = "customer.created"
+	CreateWebhookDtoEventsItemCustomerSignedIn               CreateWebhookDtoEventsItem = "customer.signed_in"
+	CreateWebhookDtoEventsItemCustomerEmailVerified          CreateWebhookDtoEventsItem = "customer.email_verified"
+	CreateWebhookDtoEventsItemCustomerBanned                 CreateWebhookDtoEventsItem = "customer.banned"
+	CreateWebhookDtoEventsItemCustomerUnbanned               CreateWebhookDtoEventsItem = "customer.unbanned"
+	CreateWebhookDtoEventsItemCustomerDeleted                CreateWebhookDtoEventsItem = "customer.deleted"
+	CreateWebhookDtoEventsItemCustomerMfaReset               CreateWebhookDtoEventsItem = "customer.mfa_reset"
+	CreateWebhookDtoEventsItemCustomerSessionRevoked         CreateWebhookDtoEventsItem = "customer.session_revoked"
+	CreateWebhookDtoEventsItemOrganizationCreated            CreateWebhookDtoEventsItem = "organization.created"
+	CreateWebhookDtoEventsItemOrganizationUpdated            CreateWebhookDtoEventsItem = "organization.updated"
+	CreateWebhookDtoEventsItemOrganizationDeleted            CreateWebhookDtoEventsItem = "organization.deleted"
+	CreateWebhookDtoEventsItemOrganizationMemberAdded        CreateWebhookDtoEventsItem = "organization.member_added"
+	CreateWebhookDtoEventsItemOrganizationMemberRemoved      CreateWebhookDtoEventsItem = "organization.member_removed"
+	CreateWebhookDtoEventsItemOrganizationMemberRoleUpdated  CreateWebhookDtoEventsItem = "organization.member_role_updated"
+	CreateWebhookDtoEventsItemOrganizationInvitationCreated  CreateWebhookDtoEventsItem = "organization.invitation_created"
+	CreateWebhookDtoEventsItemOrganizationInvitationAccepted CreateWebhookDtoEventsItem = "organization.invitation_accepted"
+	CreateWebhookDtoEventsItemOrganizationInvitationRevoked  CreateWebhookDtoEventsItem = "organization.invitation_revoked"
+	CreateWebhookDtoEventsItemSSOConnectionCreated           CreateWebhookDtoEventsItem = "sso_connection.created"
+	CreateWebhookDtoEventsItemSSOConnectionUpdated           CreateWebhookDtoEventsItem = "sso_connection.updated"
+	CreateWebhookDtoEventsItemSSOConnectionActivated         CreateWebhookDtoEventsItem = "sso_connection.activated"
+	CreateWebhookDtoEventsItemSSOConnectionDisabled          CreateWebhookDtoEventsItem = "sso_connection.disabled"
+	CreateWebhookDtoEventsItemSSOConnectionDeleted           CreateWebhookDtoEventsItem = "sso_connection.deleted"
 )
 
 func NewCreateWebhookDtoEventsItemFromString(s string) (CreateWebhookDtoEventsItem, error) {
@@ -43,6 +534,8 @@ func NewCreateWebhookDtoEventsItemFromString(s string) (CreateWebhookDtoEventsIt
 		return CreateWebhookDtoEventsItemContactUnsubscribed, nil
 	case "email.sent":
 		return CreateWebhookDtoEventsItemEmailSent, nil
+	case "email.received":
+		return CreateWebhookDtoEventsItemEmailReceived, nil
 	case "send.delivered":
 		return CreateWebhookDtoEventsItemSendDelivered, nil
 	case "send.bounced":
@@ -63,6 +556,50 @@ func NewCreateWebhookDtoEventsItemFromString(s string) (CreateWebhookDtoEventsIt
 		return CreateWebhookDtoEventsItemAutomationCompleted, nil
 	case "automation.failed":
 		return CreateWebhookDtoEventsItemAutomationFailed, nil
+	case "customer.created":
+		return CreateWebhookDtoEventsItemCustomerCreated, nil
+	case "customer.signed_in":
+		return CreateWebhookDtoEventsItemCustomerSignedIn, nil
+	case "customer.email_verified":
+		return CreateWebhookDtoEventsItemCustomerEmailVerified, nil
+	case "customer.banned":
+		return CreateWebhookDtoEventsItemCustomerBanned, nil
+	case "customer.unbanned":
+		return CreateWebhookDtoEventsItemCustomerUnbanned, nil
+	case "customer.deleted":
+		return CreateWebhookDtoEventsItemCustomerDeleted, nil
+	case "customer.mfa_reset":
+		return CreateWebhookDtoEventsItemCustomerMfaReset, nil
+	case "customer.session_revoked":
+		return CreateWebhookDtoEventsItemCustomerSessionRevoked, nil
+	case "organization.created":
+		return CreateWebhookDtoEventsItemOrganizationCreated, nil
+	case "organization.updated":
+		return CreateWebhookDtoEventsItemOrganizationUpdated, nil
+	case "organization.deleted":
+		return CreateWebhookDtoEventsItemOrganizationDeleted, nil
+	case "organization.member_added":
+		return CreateWebhookDtoEventsItemOrganizationMemberAdded, nil
+	case "organization.member_removed":
+		return CreateWebhookDtoEventsItemOrganizationMemberRemoved, nil
+	case "organization.member_role_updated":
+		return CreateWebhookDtoEventsItemOrganizationMemberRoleUpdated, nil
+	case "organization.invitation_created":
+		return CreateWebhookDtoEventsItemOrganizationInvitationCreated, nil
+	case "organization.invitation_accepted":
+		return CreateWebhookDtoEventsItemOrganizationInvitationAccepted, nil
+	case "organization.invitation_revoked":
+		return CreateWebhookDtoEventsItemOrganizationInvitationRevoked, nil
+	case "sso_connection.created":
+		return CreateWebhookDtoEventsItemSSOConnectionCreated, nil
+	case "sso_connection.updated":
+		return CreateWebhookDtoEventsItemSSOConnectionUpdated, nil
+	case "sso_connection.activated":
+		return CreateWebhookDtoEventsItemSSOConnectionActivated, nil
+	case "sso_connection.disabled":
+		return CreateWebhookDtoEventsItemSSOConnectionDisabled, nil
+	case "sso_connection.deleted":
+		return CreateWebhookDtoEventsItemSSOConnectionDeleted, nil
 	}
 	var t CreateWebhookDtoEventsItem
 	return "", fmt.Errorf("%s is not a valid %T", s, t)
@@ -75,19 +612,42 @@ func (c CreateWebhookDtoEventsItem) Ptr() *CreateWebhookDtoEventsItem {
 type UpdateWebhookDtoEventsItem string
 
 const (
-	UpdateWebhookDtoEventsItemContactCreated      UpdateWebhookDtoEventsItem = "contact.created"
-	UpdateWebhookDtoEventsItemContactUnsubscribed UpdateWebhookDtoEventsItem = "contact.unsubscribed"
-	UpdateWebhookDtoEventsItemEmailSent           UpdateWebhookDtoEventsItem = "email.sent"
-	UpdateWebhookDtoEventsItemSendDelivered       UpdateWebhookDtoEventsItem = "send.delivered"
-	UpdateWebhookDtoEventsItemSendBounced         UpdateWebhookDtoEventsItem = "send.bounced"
-	UpdateWebhookDtoEventsItemSendComplained      UpdateWebhookDtoEventsItem = "send.complained"
-	UpdateWebhookDtoEventsItemSendOpened          UpdateWebhookDtoEventsItem = "send.opened"
-	UpdateWebhookDtoEventsItemSendClicked         UpdateWebhookDtoEventsItem = "send.clicked"
-	UpdateWebhookDtoEventsItemCampaignSent        UpdateWebhookDtoEventsItem = "campaign.sent"
-	UpdateWebhookDtoEventsItemDomainVerified      UpdateWebhookDtoEventsItem = "domain.verified"
-	UpdateWebhookDtoEventsItemDomainFailed        UpdateWebhookDtoEventsItem = "domain.failed"
-	UpdateWebhookDtoEventsItemAutomationCompleted UpdateWebhookDtoEventsItem = "automation.completed"
-	UpdateWebhookDtoEventsItemAutomationFailed    UpdateWebhookDtoEventsItem = "automation.failed"
+	UpdateWebhookDtoEventsItemContactCreated                 UpdateWebhookDtoEventsItem = "contact.created"
+	UpdateWebhookDtoEventsItemContactUnsubscribed            UpdateWebhookDtoEventsItem = "contact.unsubscribed"
+	UpdateWebhookDtoEventsItemEmailSent                      UpdateWebhookDtoEventsItem = "email.sent"
+	UpdateWebhookDtoEventsItemEmailReceived                  UpdateWebhookDtoEventsItem = "email.received"
+	UpdateWebhookDtoEventsItemSendDelivered                  UpdateWebhookDtoEventsItem = "send.delivered"
+	UpdateWebhookDtoEventsItemSendBounced                    UpdateWebhookDtoEventsItem = "send.bounced"
+	UpdateWebhookDtoEventsItemSendComplained                 UpdateWebhookDtoEventsItem = "send.complained"
+	UpdateWebhookDtoEventsItemSendOpened                     UpdateWebhookDtoEventsItem = "send.opened"
+	UpdateWebhookDtoEventsItemSendClicked                    UpdateWebhookDtoEventsItem = "send.clicked"
+	UpdateWebhookDtoEventsItemCampaignSent                   UpdateWebhookDtoEventsItem = "campaign.sent"
+	UpdateWebhookDtoEventsItemDomainVerified                 UpdateWebhookDtoEventsItem = "domain.verified"
+	UpdateWebhookDtoEventsItemDomainFailed                   UpdateWebhookDtoEventsItem = "domain.failed"
+	UpdateWebhookDtoEventsItemAutomationCompleted            UpdateWebhookDtoEventsItem = "automation.completed"
+	UpdateWebhookDtoEventsItemAutomationFailed               UpdateWebhookDtoEventsItem = "automation.failed"
+	UpdateWebhookDtoEventsItemCustomerCreated                UpdateWebhookDtoEventsItem = "customer.created"
+	UpdateWebhookDtoEventsItemCustomerSignedIn               UpdateWebhookDtoEventsItem = "customer.signed_in"
+	UpdateWebhookDtoEventsItemCustomerEmailVerified          UpdateWebhookDtoEventsItem = "customer.email_verified"
+	UpdateWebhookDtoEventsItemCustomerBanned                 UpdateWebhookDtoEventsItem = "customer.banned"
+	UpdateWebhookDtoEventsItemCustomerUnbanned               UpdateWebhookDtoEventsItem = "customer.unbanned"
+	UpdateWebhookDtoEventsItemCustomerDeleted                UpdateWebhookDtoEventsItem = "customer.deleted"
+	UpdateWebhookDtoEventsItemCustomerMfaReset               UpdateWebhookDtoEventsItem = "customer.mfa_reset"
+	UpdateWebhookDtoEventsItemCustomerSessionRevoked         UpdateWebhookDtoEventsItem = "customer.session_revoked"
+	UpdateWebhookDtoEventsItemOrganizationCreated            UpdateWebhookDtoEventsItem = "organization.created"
+	UpdateWebhookDtoEventsItemOrganizationUpdated            UpdateWebhookDtoEventsItem = "organization.updated"
+	UpdateWebhookDtoEventsItemOrganizationDeleted            UpdateWebhookDtoEventsItem = "organization.deleted"
+	UpdateWebhookDtoEventsItemOrganizationMemberAdded        UpdateWebhookDtoEventsItem = "organization.member_added"
+	UpdateWebhookDtoEventsItemOrganizationMemberRemoved      UpdateWebhookDtoEventsItem = "organization.member_removed"
+	UpdateWebhookDtoEventsItemOrganizationMemberRoleUpdated  UpdateWebhookDtoEventsItem = "organization.member_role_updated"
+	UpdateWebhookDtoEventsItemOrganizationInvitationCreated  UpdateWebhookDtoEventsItem = "organization.invitation_created"
+	UpdateWebhookDtoEventsItemOrganizationInvitationAccepted UpdateWebhookDtoEventsItem = "organization.invitation_accepted"
+	UpdateWebhookDtoEventsItemOrganizationInvitationRevoked  UpdateWebhookDtoEventsItem = "organization.invitation_revoked"
+	UpdateWebhookDtoEventsItemSSOConnectionCreated           UpdateWebhookDtoEventsItem = "sso_connection.created"
+	UpdateWebhookDtoEventsItemSSOConnectionUpdated           UpdateWebhookDtoEventsItem = "sso_connection.updated"
+	UpdateWebhookDtoEventsItemSSOConnectionActivated         UpdateWebhookDtoEventsItem = "sso_connection.activated"
+	UpdateWebhookDtoEventsItemSSOConnectionDisabled          UpdateWebhookDtoEventsItem = "sso_connection.disabled"
+	UpdateWebhookDtoEventsItemSSOConnectionDeleted           UpdateWebhookDtoEventsItem = "sso_connection.deleted"
 )
 
 func NewUpdateWebhookDtoEventsItemFromString(s string) (UpdateWebhookDtoEventsItem, error) {
@@ -98,6 +658,8 @@ func NewUpdateWebhookDtoEventsItemFromString(s string) (UpdateWebhookDtoEventsIt
 		return UpdateWebhookDtoEventsItemContactUnsubscribed, nil
 	case "email.sent":
 		return UpdateWebhookDtoEventsItemEmailSent, nil
+	case "email.received":
+		return UpdateWebhookDtoEventsItemEmailReceived, nil
 	case "send.delivered":
 		return UpdateWebhookDtoEventsItemSendDelivered, nil
 	case "send.bounced":
@@ -118,6 +680,50 @@ func NewUpdateWebhookDtoEventsItemFromString(s string) (UpdateWebhookDtoEventsIt
 		return UpdateWebhookDtoEventsItemAutomationCompleted, nil
 	case "automation.failed":
 		return UpdateWebhookDtoEventsItemAutomationFailed, nil
+	case "customer.created":
+		return UpdateWebhookDtoEventsItemCustomerCreated, nil
+	case "customer.signed_in":
+		return UpdateWebhookDtoEventsItemCustomerSignedIn, nil
+	case "customer.email_verified":
+		return UpdateWebhookDtoEventsItemCustomerEmailVerified, nil
+	case "customer.banned":
+		return UpdateWebhookDtoEventsItemCustomerBanned, nil
+	case "customer.unbanned":
+		return UpdateWebhookDtoEventsItemCustomerUnbanned, nil
+	case "customer.deleted":
+		return UpdateWebhookDtoEventsItemCustomerDeleted, nil
+	case "customer.mfa_reset":
+		return UpdateWebhookDtoEventsItemCustomerMfaReset, nil
+	case "customer.session_revoked":
+		return UpdateWebhookDtoEventsItemCustomerSessionRevoked, nil
+	case "organization.created":
+		return UpdateWebhookDtoEventsItemOrganizationCreated, nil
+	case "organization.updated":
+		return UpdateWebhookDtoEventsItemOrganizationUpdated, nil
+	case "organization.deleted":
+		return UpdateWebhookDtoEventsItemOrganizationDeleted, nil
+	case "organization.member_added":
+		return UpdateWebhookDtoEventsItemOrganizationMemberAdded, nil
+	case "organization.member_removed":
+		return UpdateWebhookDtoEventsItemOrganizationMemberRemoved, nil
+	case "organization.member_role_updated":
+		return UpdateWebhookDtoEventsItemOrganizationMemberRoleUpdated, nil
+	case "organization.invitation_created":
+		return UpdateWebhookDtoEventsItemOrganizationInvitationCreated, nil
+	case "organization.invitation_accepted":
+		return UpdateWebhookDtoEventsItemOrganizationInvitationAccepted, nil
+	case "organization.invitation_revoked":
+		return UpdateWebhookDtoEventsItemOrganizationInvitationRevoked, nil
+	case "sso_connection.created":
+		return UpdateWebhookDtoEventsItemSSOConnectionCreated, nil
+	case "sso_connection.updated":
+		return UpdateWebhookDtoEventsItemSSOConnectionUpdated, nil
+	case "sso_connection.activated":
+		return UpdateWebhookDtoEventsItemSSOConnectionActivated, nil
+	case "sso_connection.disabled":
+		return UpdateWebhookDtoEventsItemSSOConnectionDisabled, nil
+	case "sso_connection.deleted":
+		return UpdateWebhookDtoEventsItemSSOConnectionDeleted, nil
 	}
 	var t UpdateWebhookDtoEventsItem
 	return "", fmt.Errorf("%s is not a valid %T", s, t)
@@ -125,4 +731,15 @@ func NewUpdateWebhookDtoEventsItemFromString(s string) (UpdateWebhookDtoEventsIt
 
 func (u UpdateWebhookDtoEventsItem) Ptr() *UpdateWebhookDtoEventsItem {
 	return &u
+}
+
+type CreateWebhookDto struct {
+	URL    string                       `json:"url" url:"-"`
+	Events []CreateWebhookDtoEventsItem `json:"events,omitempty" url:"-"`
+}
+
+type UpdateWebhookDto struct {
+	URL    *string                      `json:"url,omitempty" url:"-"`
+	Events []UpdateWebhookDtoEventsItem `json:"events,omitempty" url:"-"`
+	Active *bool                        `json:"active,omitempty" url:"-"`
 }

@@ -3,9 +3,9 @@
 package client
 
 import (
+	option "github.com/mailmus/mailmus-go/option"
 	assert "github.com/stretchr/testify/assert"
 	http "net/http"
-	option "github.com/mailmus/mailmus-go/option"
 	testing "testing"
 	time "time"
 )

@@ -3,12 +3,14 @@
 package campaigns
 
 import (
+	bytes "bytes"
 	context "context"
-	http "net/http"
-	sdk "github.com/mailmus/mailmus-go"
+	mailmusgo "github.com/mailmus/mailmus-go"
 	core "github.com/mailmus/mailmus-go/core"
 	internal "github.com/mailmus/mailmus-go/internal"
 	option "github.com/mailmus/mailmus-go/option"
+	io "io"
+	http "net/http"
 )
 
 type Client struct {
@@ -31,11 +33,11 @@ func NewClient(opts ...option.RequestOption) *Client {
 	}
 }
 
-func (c *Client) CampaignsControllerList(
+func (c *Client) List(
 	ctx context.Context,
-	appID string,
+	projectID string,
 	opts ...option.RequestOption,
-) error {
+) ([]*mailmusgo.CampaignResponseDto, error) {
 	options := core.NewRequestOptions(opts...)
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
@@ -43,14 +45,15 @@ func (c *Client) CampaignsControllerList(
 		"",
 	)
 	endpointURL := internal.EncodeURL(
-		baseURL+"/apps/%v/campaigns",
-		appID,
+		baseURL+"/projects/%v/campaigns",
+		projectID,
 	)
 	headers := internal.MergeHeaders(
 		c.header.Clone(),
 		options.ToHeader(),
 	)
 
+	var response []*mailmusgo.CampaignResponseDto
 	if err := c.caller.Call(
 		ctx,
 		&internal.CallParams{
@@ -61,19 +64,20 @@ func (c *Client) CampaignsControllerList(
 			BodyProperties:  options.BodyProperties,
 			QueryParameters: options.QueryParameters,
 			Client:          options.HTTPClient,
+			Response:        &response,
 		},
 	); err != nil {
-		return err
+		return nil, err
 	}
-	return nil
+	return response, nil
 }
 
-func (c *Client) CampaignsControllerCreate(
+func (c *Client) Create(
 	ctx context.Context,
-	appID string,
-	request *sdk.CreateCampaignDto,
+	projectID string,
+	request *mailmusgo.CreateCampaignDto,
 	opts ...option.RequestOption,
-) error {
+) (*mailmusgo.CampaignResponseDto, error) {
 	options := core.NewRequestOptions(opts...)
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
@@ -81,8 +85,8 @@ func (c *Client) CampaignsControllerCreate(
 		"",
 	)
 	endpointURL := internal.EncodeURL(
-		baseURL+"/apps/%v/campaigns",
-		appID,
+		baseURL+"/projects/%v/campaigns",
+		projectID,
 	)
 	headers := internal.MergeHeaders(
 		c.header.Clone(),
@@ -90,6 +94,7 @@ func (c *Client) CampaignsControllerCreate(
 	)
 	headers.Set("Content-Type", "application/json")
 
+	var response *mailmusgo.CampaignResponseDto
 	if err := c.caller.Call(
 		ctx,
 		&internal.CallParams{
@@ -101,19 +106,20 @@ func (c *Client) CampaignsControllerCreate(
 			QueryParameters: options.QueryParameters,
 			Client:          options.HTTPClient,
 			Request:         request,
+			Response:        &response,
 		},
 	); err != nil {
-		return err
+		return nil, err
 	}
-	return nil
+	return response, nil
 }
 
-func (c *Client) CampaignsControllerFindOne(
+func (c *Client) Findone(
 	ctx context.Context,
-	appID string,
+	projectID string,
 	id string,
 	opts ...option.RequestOption,
-) error {
+) (*mailmusgo.CampaignDetailResponseDto, error) {
 	options := core.NewRequestOptions(opts...)
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
@@ -121,8 +127,8 @@ func (c *Client) CampaignsControllerFindOne(
 		"",
 	)
 	endpointURL := internal.EncodeURL(
-		baseURL+"/apps/%v/campaigns/%v",
-		appID,
+		baseURL+"/projects/%v/campaigns/%v",
+		projectID,
 		id,
 	)
 	headers := internal.MergeHeaders(
@@ -130,6 +136,7 @@ func (c *Client) CampaignsControllerFindOne(
 		options.ToHeader(),
 	)
 
+	var response *mailmusgo.CampaignDetailResponseDto
 	if err := c.caller.Call(
 		ctx,
 		&internal.CallParams{
@@ -140,19 +147,20 @@ func (c *Client) CampaignsControllerFindOne(
 			BodyProperties:  options.BodyProperties,
 			QueryParameters: options.QueryParameters,
 			Client:          options.HTTPClient,
+			Response:        &response,
 		},
 	); err != nil {
-		return err
+		return nil, err
 	}
-	return nil
+	return response, nil
 }
 
-func (c *Client) CampaignsControllerRemove(
+func (c *Client) Remove(
 	ctx context.Context,
-	appID string,
+	projectID string,
 	id string,
 	opts ...option.RequestOption,
-) error {
+) (*mailmusgo.DeletedResponseDto, error) {
 	options := core.NewRequestOptions(opts...)
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
@@ -160,8 +168,8 @@ func (c *Client) CampaignsControllerRemove(
 		"",
 	)
 	endpointURL := internal.EncodeURL(
-		baseURL+"/apps/%v/campaigns/%v",
-		appID,
+		baseURL+"/projects/%v/campaigns/%v",
+		projectID,
 		id,
 	)
 	headers := internal.MergeHeaders(
@@ -169,6 +177,7 @@ func (c *Client) CampaignsControllerRemove(
 		options.ToHeader(),
 	)
 
+	var response *mailmusgo.DeletedResponseDto
 	if err := c.caller.Call(
 		ctx,
 		&internal.CallParams{
@@ -179,20 +188,21 @@ func (c *Client) CampaignsControllerRemove(
 			BodyProperties:  options.BodyProperties,
 			QueryParameters: options.QueryParameters,
 			Client:          options.HTTPClient,
+			Response:        &response,
 		},
 	); err != nil {
-		return err
+		return nil, err
 	}
-	return nil
+	return response, nil
 }
 
-func (c *Client) CampaignsControllerUpdate(
+func (c *Client) Update(
 	ctx context.Context,
-	appID string,
+	projectID string,
 	id string,
-	request *sdk.UpdateCampaignDto,
+	request *mailmusgo.UpdateCampaignDto,
 	opts ...option.RequestOption,
-) error {
+) (*mailmusgo.CampaignResponseDto, error) {
 	options := core.NewRequestOptions(opts...)
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
@@ -200,8 +210,8 @@ func (c *Client) CampaignsControllerUpdate(
 		"",
 	)
 	endpointURL := internal.EncodeURL(
-		baseURL+"/apps/%v/campaigns/%v",
-		appID,
+		baseURL+"/projects/%v/campaigns/%v",
+		projectID,
 		id,
 	)
 	headers := internal.MergeHeaders(
@@ -210,6 +220,7 @@ func (c *Client) CampaignsControllerUpdate(
 	)
 	headers.Set("Content-Type", "application/json")
 
+	var response *mailmusgo.CampaignResponseDto
 	if err := c.caller.Call(
 		ctx,
 		&internal.CallParams{
@@ -221,19 +232,20 @@ func (c *Client) CampaignsControllerUpdate(
 			QueryParameters: options.QueryParameters,
 			Client:          options.HTTPClient,
 			Request:         request,
+			Response:        &response,
 		},
 	); err != nil {
-		return err
+		return nil, err
 	}
-	return nil
+	return response, nil
 }
 
-func (c *Client) CampaignsControllerCancel(
+func (c *Client) Cancel(
 	ctx context.Context,
-	appID string,
+	projectID string,
 	id string,
 	opts ...option.RequestOption,
-) error {
+) (*mailmusgo.CampaignResponseDto, error) {
 	options := core.NewRequestOptions(opts...)
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
@@ -241,8 +253,8 @@ func (c *Client) CampaignsControllerCancel(
 		"",
 	)
 	endpointURL := internal.EncodeURL(
-		baseURL+"/apps/%v/campaigns/%v/cancel",
-		appID,
+		baseURL+"/projects/%v/campaigns/%v/cancel",
+		projectID,
 		id,
 	)
 	headers := internal.MergeHeaders(
@@ -250,6 +262,7 @@ func (c *Client) CampaignsControllerCancel(
 		options.ToHeader(),
 	)
 
+	var response *mailmusgo.CampaignResponseDto
 	if err := c.caller.Call(
 		ctx,
 		&internal.CallParams{
@@ -260,19 +273,20 @@ func (c *Client) CampaignsControllerCancel(
 			BodyProperties:  options.BodyProperties,
 			QueryParameters: options.QueryParameters,
 			Client:          options.HTTPClient,
+			Response:        &response,
 		},
 	); err != nil {
-		return err
+		return nil, err
 	}
-	return nil
+	return response, nil
 }
 
-func (c *Client) CampaignsControllerSend(
+func (c *Client) Cancelabtest(
 	ctx context.Context,
-	appID string,
+	projectID string,
 	id string,
 	opts ...option.RequestOption,
-) error {
+) (*mailmusgo.CampaignResponseDto, error) {
 	options := core.NewRequestOptions(opts...)
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
@@ -280,8 +294,8 @@ func (c *Client) CampaignsControllerSend(
 		"",
 	)
 	endpointURL := internal.EncodeURL(
-		baseURL+"/apps/%v/campaigns/%v/send",
-		appID,
+		baseURL+"/projects/%v/campaigns/%v/ab-test/cancel",
+		projectID,
 		id,
 	)
 	headers := internal.MergeHeaders(
@@ -289,6 +303,7 @@ func (c *Client) CampaignsControllerSend(
 		options.ToHeader(),
 	)
 
+	var response *mailmusgo.CampaignResponseDto
 	if err := c.caller.Call(
 		ctx,
 		&internal.CallParams{
@@ -299,20 +314,21 @@ func (c *Client) CampaignsControllerSend(
 			BodyProperties:  options.BodyProperties,
 			QueryParameters: options.QueryParameters,
 			Client:          options.HTTPClient,
+			Response:        &response,
 		},
 	); err != nil {
-		return err
+		return nil, err
 	}
-	return nil
+	return response, nil
 }
 
-func (c *Client) CampaignsControllerTestSend(
+func (c *Client) Selectabtestwinner(
 	ctx context.Context,
-	appID string,
+	projectID string,
 	id string,
-	request *sdk.TestCampaignDto,
+	request *mailmusgo.SelectAbTestWinnerDto,
 	opts ...option.RequestOption,
-) error {
+) (*mailmusgo.CampaignResponseDto, error) {
 	options := core.NewRequestOptions(opts...)
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
@@ -320,8 +336,8 @@ func (c *Client) CampaignsControllerTestSend(
 		"",
 	)
 	endpointURL := internal.EncodeURL(
-		baseURL+"/apps/%v/campaigns/%v/test",
-		appID,
+		baseURL+"/projects/%v/campaigns/%v/ab-test/select-winner",
+		projectID,
 		id,
 	)
 	headers := internal.MergeHeaders(
@@ -330,6 +346,7 @@ func (c *Client) CampaignsControllerTestSend(
 	)
 	headers.Set("Content-Type", "application/json")
 
+	var response *mailmusgo.CampaignResponseDto
 	if err := c.caller.Call(
 		ctx,
 		&internal.CallParams{
@@ -341,19 +358,20 @@ func (c *Client) CampaignsControllerTestSend(
 			QueryParameters: options.QueryParameters,
 			Client:          options.HTTPClient,
 			Request:         request,
+			Response:        &response,
 		},
 	); err != nil {
-		return err
+		return nil, err
 	}
-	return nil
+	return response, nil
 }
 
-func (c *Client) CampaignsControllerDuplicate(
+func (c *Client) Send(
 	ctx context.Context,
-	appID string,
+	projectID string,
 	id string,
 	opts ...option.RequestOption,
-) error {
+) (*mailmusgo.CampaignActionResultDto, error) {
 	options := core.NewRequestOptions(opts...)
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
@@ -361,8 +379,8 @@ func (c *Client) CampaignsControllerDuplicate(
 		"",
 	)
 	endpointURL := internal.EncodeURL(
-		baseURL+"/apps/%v/campaigns/%v/duplicate",
-		appID,
+		baseURL+"/projects/%v/campaigns/%v/send",
+		projectID,
 		id,
 	)
 	headers := internal.MergeHeaders(
@@ -370,6 +388,7 @@ func (c *Client) CampaignsControllerDuplicate(
 		options.ToHeader(),
 	)
 
+	var response *mailmusgo.CampaignActionResultDto
 	if err := c.caller.Call(
 		ctx,
 		&internal.CallParams{
@@ -380,19 +399,21 @@ func (c *Client) CampaignsControllerDuplicate(
 			BodyProperties:  options.BodyProperties,
 			QueryParameters: options.QueryParameters,
 			Client:          options.HTTPClient,
+			Response:        &response,
 		},
 	); err != nil {
-		return err
+		return nil, err
 	}
-	return nil
+	return response, nil
 }
 
-func (c *Client) CampaignsControllerExportSends(
+func (c *Client) Testsend(
 	ctx context.Context,
-	appID string,
+	projectID string,
 	id string,
+	request *mailmusgo.TestCampaignDto,
 	opts ...option.RequestOption,
-) error {
+) (*mailmusgo.CampaignTestResultDto, error) {
 	options := core.NewRequestOptions(opts...)
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
@@ -400,8 +421,51 @@ func (c *Client) CampaignsControllerExportSends(
 		"",
 	)
 	endpointURL := internal.EncodeURL(
-		baseURL+"/apps/%v/campaigns/%v/sends/export",
-		appID,
+		baseURL+"/projects/%v/campaigns/%v/test",
+		projectID,
+		id,
+	)
+	headers := internal.MergeHeaders(
+		c.header.Clone(),
+		options.ToHeader(),
+	)
+	headers.Set("Content-Type", "application/json")
+
+	var response *mailmusgo.CampaignTestResultDto
+	if err := c.caller.Call(
+		ctx,
+		&internal.CallParams{
+			URL:             endpointURL,
+			Method:          http.MethodPost,
+			Headers:         headers,
+			MaxAttempts:     options.MaxAttempts,
+			BodyProperties:  options.BodyProperties,
+			QueryParameters: options.QueryParameters,
+			Client:          options.HTTPClient,
+			Request:         request,
+			Response:        &response,
+		},
+	); err != nil {
+		return nil, err
+	}
+	return response, nil
+}
+
+func (c *Client) Testsendtoseedlist(
+	ctx context.Context,
+	projectID string,
+	id string,
+	opts ...option.RequestOption,
+) (*mailmusgo.CampaignTestResultDto, error) {
+	options := core.NewRequestOptions(opts...)
+	baseURL := internal.ResolveBaseURL(
+		options.BaseURL,
+		c.baseURL,
+		"",
+	)
+	endpointURL := internal.EncodeURL(
+		baseURL+"/projects/%v/campaigns/%v/test-seed-list",
+		projectID,
 		id,
 	)
 	headers := internal.MergeHeaders(
@@ -409,6 +473,89 @@ func (c *Client) CampaignsControllerExportSends(
 		options.ToHeader(),
 	)
 
+	var response *mailmusgo.CampaignTestResultDto
+	if err := c.caller.Call(
+		ctx,
+		&internal.CallParams{
+			URL:             endpointURL,
+			Method:          http.MethodPost,
+			Headers:         headers,
+			MaxAttempts:     options.MaxAttempts,
+			BodyProperties:  options.BodyProperties,
+			QueryParameters: options.QueryParameters,
+			Client:          options.HTTPClient,
+			Response:        &response,
+		},
+	); err != nil {
+		return nil, err
+	}
+	return response, nil
+}
+
+func (c *Client) Duplicate(
+	ctx context.Context,
+	projectID string,
+	id string,
+	opts ...option.RequestOption,
+) (*mailmusgo.CampaignResponseDto, error) {
+	options := core.NewRequestOptions(opts...)
+	baseURL := internal.ResolveBaseURL(
+		options.BaseURL,
+		c.baseURL,
+		"",
+	)
+	endpointURL := internal.EncodeURL(
+		baseURL+"/projects/%v/campaigns/%v/duplicate",
+		projectID,
+		id,
+	)
+	headers := internal.MergeHeaders(
+		c.header.Clone(),
+		options.ToHeader(),
+	)
+
+	var response *mailmusgo.CampaignResponseDto
+	if err := c.caller.Call(
+		ctx,
+		&internal.CallParams{
+			URL:             endpointURL,
+			Method:          http.MethodPost,
+			Headers:         headers,
+			MaxAttempts:     options.MaxAttempts,
+			BodyProperties:  options.BodyProperties,
+			QueryParameters: options.QueryParameters,
+			Client:          options.HTTPClient,
+			Response:        &response,
+		},
+	); err != nil {
+		return nil, err
+	}
+	return response, nil
+}
+
+func (c *Client) Exportsends(
+	ctx context.Context,
+	projectID string,
+	id string,
+	opts ...option.RequestOption,
+) (io.Reader, error) {
+	options := core.NewRequestOptions(opts...)
+	baseURL := internal.ResolveBaseURL(
+		options.BaseURL,
+		c.baseURL,
+		"",
+	)
+	endpointURL := internal.EncodeURL(
+		baseURL+"/projects/%v/campaigns/%v/sends/export",
+		projectID,
+		id,
+	)
+	headers := internal.MergeHeaders(
+		c.header.Clone(),
+		options.ToHeader(),
+	)
+
+	response := bytes.NewBuffer(nil)
 	if err := c.caller.Call(
 		ctx,
 		&internal.CallParams{
@@ -419,20 +566,21 @@ func (c *Client) CampaignsControllerExportSends(
 			BodyProperties:  options.BodyProperties,
 			QueryParameters: options.QueryParameters,
 			Client:          options.HTTPClient,
+			Response:        response,
 		},
 	); err != nil {
-		return err
+		return nil, err
 	}
-	return nil
+	return response, nil
 }
 
-func (c *Client) CampaignsControllerGetSends(
+func (c *Client) Getsends(
 	ctx context.Context,
-	appID string,
+	projectID string,
 	id string,
-	request *sdk.CampaignsControllerGetSendsRequest,
+	request *mailmusgo.CampaignsGetSendsRequest,
 	opts ...option.RequestOption,
-) error {
+) (*mailmusgo.CampaignSendListResponseDto, error) {
 	options := core.NewRequestOptions(opts...)
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
@@ -440,13 +588,13 @@ func (c *Client) CampaignsControllerGetSends(
 		"",
 	)
 	endpointURL := internal.EncodeURL(
-		baseURL+"/apps/%v/campaigns/%v/sends",
-		appID,
+		baseURL+"/projects/%v/campaigns/%v/sends",
+		projectID,
 		id,
 	)
 	queryParams, err := internal.QueryValues(request)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	if len(queryParams) > 0 {
 		endpointURL += "?" + queryParams.Encode()
@@ -456,6 +604,7 @@ func (c *Client) CampaignsControllerGetSends(
 		options.ToHeader(),
 	)
 
+	var response *mailmusgo.CampaignSendListResponseDto
 	if err := c.caller.Call(
 		ctx,
 		&internal.CallParams{
@@ -466,9 +615,10 @@ func (c *Client) CampaignsControllerGetSends(
 			BodyProperties:  options.BodyProperties,
 			QueryParameters: options.QueryParameters,
 			Client:          options.HTTPClient,
+			Response:        &response,
 		},
 	); err != nil {
-		return err
+		return nil, err
 	}
-	return nil
+	return response, nil
 }

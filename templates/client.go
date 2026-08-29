@@ -4,11 +4,11 @@ package templates
 
 import (
 	context "context"
-	http "net/http"
-	sdk "github.com/mailmus/mailmus-go"
+	mailmusgo "github.com/mailmus/mailmus-go"
 	core "github.com/mailmus/mailmus-go/core"
 	internal "github.com/mailmus/mailmus-go/internal"
 	option "github.com/mailmus/mailmus-go/option"
+	http "net/http"
 )
 
 type Client struct {
@@ -31,11 +31,11 @@ func NewClient(opts ...option.RequestOption) *Client {
 	}
 }
 
-func (c *Client) TemplatesControllerList(
+func (c *Client) List(
 	ctx context.Context,
-	appID string,
+	projectID string,
 	opts ...option.RequestOption,
-) error {
+) ([]*mailmusgo.TemplateResponseDto, error) {
 	options := core.NewRequestOptions(opts...)
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
@@ -43,14 +43,15 @@ func (c *Client) TemplatesControllerList(
 		"",
 	)
 	endpointURL := internal.EncodeURL(
-		baseURL+"/apps/%v/templates",
-		appID,
+		baseURL+"/projects/%v/templates",
+		projectID,
 	)
 	headers := internal.MergeHeaders(
 		c.header.Clone(),
 		options.ToHeader(),
 	)
 
+	var response []*mailmusgo.TemplateResponseDto
 	if err := c.caller.Call(
 		ctx,
 		&internal.CallParams{
@@ -61,19 +62,20 @@ func (c *Client) TemplatesControllerList(
 			BodyProperties:  options.BodyProperties,
 			QueryParameters: options.QueryParameters,
 			Client:          options.HTTPClient,
+			Response:        &response,
 		},
 	); err != nil {
-		return err
+		return nil, err
 	}
-	return nil
+	return response, nil
 }
 
-func (c *Client) TemplatesControllerCreate(
+func (c *Client) Create(
 	ctx context.Context,
-	appID string,
-	request *sdk.CreateTemplateDto,
+	projectID string,
+	request *mailmusgo.CreateTemplateDto,
 	opts ...option.RequestOption,
-) error {
+) (*mailmusgo.TemplateResponseDto, error) {
 	options := core.NewRequestOptions(opts...)
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
@@ -81,8 +83,8 @@ func (c *Client) TemplatesControllerCreate(
 		"",
 	)
 	endpointURL := internal.EncodeURL(
-		baseURL+"/apps/%v/templates",
-		appID,
+		baseURL+"/projects/%v/templates",
+		projectID,
 	)
 	headers := internal.MergeHeaders(
 		c.header.Clone(),
@@ -90,6 +92,7 @@ func (c *Client) TemplatesControllerCreate(
 	)
 	headers.Set("Content-Type", "application/json")
 
+	var response *mailmusgo.TemplateResponseDto
 	if err := c.caller.Call(
 		ctx,
 		&internal.CallParams{
@@ -101,19 +104,20 @@ func (c *Client) TemplatesControllerCreate(
 			QueryParameters: options.QueryParameters,
 			Client:          options.HTTPClient,
 			Request:         request,
+			Response:        &response,
 		},
 	); err != nil {
-		return err
+		return nil, err
 	}
-	return nil
+	return response, nil
 }
 
-func (c *Client) TemplatesControllerFindOne(
+func (c *Client) Findone(
 	ctx context.Context,
-	appID string,
+	projectID string,
 	id string,
 	opts ...option.RequestOption,
-) error {
+) (*mailmusgo.TemplateResponseDto, error) {
 	options := core.NewRequestOptions(opts...)
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
@@ -121,8 +125,8 @@ func (c *Client) TemplatesControllerFindOne(
 		"",
 	)
 	endpointURL := internal.EncodeURL(
-		baseURL+"/apps/%v/templates/%v",
-		appID,
+		baseURL+"/projects/%v/templates/%v",
+		projectID,
 		id,
 	)
 	headers := internal.MergeHeaders(
@@ -130,6 +134,7 @@ func (c *Client) TemplatesControllerFindOne(
 		options.ToHeader(),
 	)
 
+	var response *mailmusgo.TemplateResponseDto
 	if err := c.caller.Call(
 		ctx,
 		&internal.CallParams{
@@ -140,19 +145,20 @@ func (c *Client) TemplatesControllerFindOne(
 			BodyProperties:  options.BodyProperties,
 			QueryParameters: options.QueryParameters,
 			Client:          options.HTTPClient,
+			Response:        &response,
 		},
 	); err != nil {
-		return err
+		return nil, err
 	}
-	return nil
+	return response, nil
 }
 
-func (c *Client) TemplatesControllerRemove(
+func (c *Client) Remove(
 	ctx context.Context,
-	appID string,
+	projectID string,
 	id string,
 	opts ...option.RequestOption,
-) error {
+) (*mailmusgo.DeletedResponseDto, error) {
 	options := core.NewRequestOptions(opts...)
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
@@ -160,8 +166,8 @@ func (c *Client) TemplatesControllerRemove(
 		"",
 	)
 	endpointURL := internal.EncodeURL(
-		baseURL+"/apps/%v/templates/%v",
-		appID,
+		baseURL+"/projects/%v/templates/%v",
+		projectID,
 		id,
 	)
 	headers := internal.MergeHeaders(
@@ -169,6 +175,7 @@ func (c *Client) TemplatesControllerRemove(
 		options.ToHeader(),
 	)
 
+	var response *mailmusgo.DeletedResponseDto
 	if err := c.caller.Call(
 		ctx,
 		&internal.CallParams{
@@ -179,20 +186,21 @@ func (c *Client) TemplatesControllerRemove(
 			BodyProperties:  options.BodyProperties,
 			QueryParameters: options.QueryParameters,
 			Client:          options.HTTPClient,
+			Response:        &response,
 		},
 	); err != nil {
-		return err
+		return nil, err
 	}
-	return nil
+	return response, nil
 }
 
-func (c *Client) TemplatesControllerUpdate(
+func (c *Client) Update(
 	ctx context.Context,
-	appID string,
+	projectID string,
 	id string,
-	request *sdk.UpdateTemplateDto,
+	request *mailmusgo.UpdateTemplateDto,
 	opts ...option.RequestOption,
-) error {
+) (*mailmusgo.TemplateResponseDto, error) {
 	options := core.NewRequestOptions(opts...)
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
@@ -200,8 +208,8 @@ func (c *Client) TemplatesControllerUpdate(
 		"",
 	)
 	endpointURL := internal.EncodeURL(
-		baseURL+"/apps/%v/templates/%v",
-		appID,
+		baseURL+"/projects/%v/templates/%v",
+		projectID,
 		id,
 	)
 	headers := internal.MergeHeaders(
@@ -210,6 +218,7 @@ func (c *Client) TemplatesControllerUpdate(
 	)
 	headers.Set("Content-Type", "application/json")
 
+	var response *mailmusgo.TemplateResponseDto
 	if err := c.caller.Call(
 		ctx,
 		&internal.CallParams{
@@ -221,19 +230,20 @@ func (c *Client) TemplatesControllerUpdate(
 			QueryParameters: options.QueryParameters,
 			Client:          options.HTTPClient,
 			Request:         request,
+			Response:        &response,
 		},
 	); err != nil {
-		return err
+		return nil, err
 	}
-	return nil
+	return response, nil
 }
 
-func (c *Client) TemplatesControllerDuplicate(
+func (c *Client) Duplicate(
 	ctx context.Context,
-	appID string,
+	projectID string,
 	id string,
 	opts ...option.RequestOption,
-) error {
+) (*mailmusgo.TemplateResponseDto, error) {
 	options := core.NewRequestOptions(opts...)
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
@@ -241,8 +251,8 @@ func (c *Client) TemplatesControllerDuplicate(
 		"",
 	)
 	endpointURL := internal.EncodeURL(
-		baseURL+"/apps/%v/templates/%v/duplicate",
-		appID,
+		baseURL+"/projects/%v/templates/%v/duplicate",
+		projectID,
 		id,
 	)
 	headers := internal.MergeHeaders(
@@ -250,6 +260,7 @@ func (c *Client) TemplatesControllerDuplicate(
 		options.ToHeader(),
 	)
 
+	var response *mailmusgo.TemplateResponseDto
 	if err := c.caller.Call(
 		ctx,
 		&internal.CallParams{
@@ -260,9 +271,10 @@ func (c *Client) TemplatesControllerDuplicate(
 			BodyProperties:  options.BodyProperties,
 			QueryParameters: options.QueryParameters,
 			Client:          options.HTTPClient,
+			Response:        &response,
 		},
 	); err != nil {
-		return err
+		return nil, err
 	}
-	return nil
+	return response, nil
 }

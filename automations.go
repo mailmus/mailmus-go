@@ -2,6 +2,13 @@
 
 package mailmus
 
+import (
+	json "encoding/json"
+	fmt "fmt"
+	internal "github.com/mailmus/mailmus-go/internal"
+	time "time"
+)
+
 type CreateAutomationDto struct {
 	Name    string                 `json:"name" url:"-"`
 	Trigger map[string]interface{} `json:"trigger,omitempty" url:"-"`
@@ -9,4 +16,245 @@ type CreateAutomationDto struct {
 }
 
 type RenameAutomationDto struct {
+}
+
+type AutomationResponseDto struct {
+	ID   string `json:"id" url:"id"`
+	Name string `json:"name" url:"name"`
+	// Ce qui déclenche l’automatisation.
+	Trigger map[string]interface{} `json:"trigger,omitempty" url:"trigger,omitempty"`
+	// Étapes exécutées dans l’ordre après le déclenchement.
+	Steps []map[string]interface{} `json:"steps,omitempty" url:"steps,omitempty"`
+	// Une automatisation inactive garde ses étapes mais ne se déclenche plus.
+	Active    bool      `json:"active" url:"active"`
+	AppID     string    `json:"appId" url:"appId"`
+	CreatedAt time.Time `json:"createdAt" url:"createdAt"`
+	UpdatedAt time.Time `json:"updatedAt" url:"updatedAt"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (a *AutomationResponseDto) GetID() string {
+	if a == nil {
+		return ""
+	}
+	return a.ID
+}
+
+func (a *AutomationResponseDto) GetName() string {
+	if a == nil {
+		return ""
+	}
+	return a.Name
+}
+
+func (a *AutomationResponseDto) GetTrigger() map[string]interface{} {
+	if a == nil {
+		return nil
+	}
+	return a.Trigger
+}
+
+func (a *AutomationResponseDto) GetSteps() []map[string]interface{} {
+	if a == nil {
+		return nil
+	}
+	return a.Steps
+}
+
+func (a *AutomationResponseDto) GetActive() bool {
+	if a == nil {
+		return false
+	}
+	return a.Active
+}
+
+func (a *AutomationResponseDto) GetAppID() string {
+	if a == nil {
+		return ""
+	}
+	return a.AppID
+}
+
+func (a *AutomationResponseDto) GetCreatedAt() time.Time {
+	if a == nil {
+		return time.Time{}
+	}
+	return a.CreatedAt
+}
+
+func (a *AutomationResponseDto) GetUpdatedAt() time.Time {
+	if a == nil {
+		return time.Time{}
+	}
+	return a.UpdatedAt
+}
+
+func (a *AutomationResponseDto) GetExtraProperties() map[string]interface{} {
+	return a.extraProperties
+}
+
+func (a *AutomationResponseDto) UnmarshalJSON(data []byte) error {
+	type embed AutomationResponseDto
+	var unmarshaler = struct {
+		embed
+		CreatedAt *internal.DateTime `json:"createdAt"`
+		UpdatedAt *internal.DateTime `json:"updatedAt"`
+	}{
+		embed: embed(*a),
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
+		return err
+	}
+	*a = AutomationResponseDto(unmarshaler.embed)
+	a.CreatedAt = unmarshaler.CreatedAt.Time()
+	a.UpdatedAt = unmarshaler.UpdatedAt.Time()
+	extraProperties, err := internal.ExtractExtraProperties(data, *a)
+	if err != nil {
+		return err
+	}
+	a.extraProperties = extraProperties
+	a.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (a *AutomationResponseDto) MarshalJSON() ([]byte, error) {
+	type embed AutomationResponseDto
+	var marshaler = struct {
+		embed
+		CreatedAt *internal.DateTime `json:"createdAt"`
+		UpdatedAt *internal.DateTime `json:"updatedAt"`
+	}{
+		embed:     embed(*a),
+		CreatedAt: internal.NewDateTime(a.CreatedAt),
+		UpdatedAt: internal.NewDateTime(a.UpdatedAt),
+	}
+	return json.Marshal(marshaler)
+}
+
+func (a *AutomationResponseDto) String() string {
+	if len(a.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(a.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(a); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", a)
+}
+
+type AutomationRunResponseDto struct {
+	ID           string `json:"id" url:"id"`
+	AutomationID string `json:"automationId" url:"automationId"`
+	// Contact pour lequel cette exécution tourne.
+	ContactID string `json:"contactId" url:"contactId"`
+	// Index de l’étape en cours, à partir de 0.
+	CurrentStep float64                `json:"currentStep" url:"currentStep"`
+	Status      string                 `json:"status" url:"status"`
+	StartedAt   time.Time              `json:"startedAt" url:"startedAt"`
+	FinishedAt  map[string]interface{} `json:"finishedAt,omitempty" url:"finishedAt,omitempty"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (a *AutomationRunResponseDto) GetID() string {
+	if a == nil {
+		return ""
+	}
+	return a.ID
+}
+
+func (a *AutomationRunResponseDto) GetAutomationID() string {
+	if a == nil {
+		return ""
+	}
+	return a.AutomationID
+}
+
+func (a *AutomationRunResponseDto) GetContactID() string {
+	if a == nil {
+		return ""
+	}
+	return a.ContactID
+}
+
+func (a *AutomationRunResponseDto) GetCurrentStep() float64 {
+	if a == nil {
+		return 0
+	}
+	return a.CurrentStep
+}
+
+func (a *AutomationRunResponseDto) GetStatus() string {
+	if a == nil {
+		return ""
+	}
+	return a.Status
+}
+
+func (a *AutomationRunResponseDto) GetStartedAt() time.Time {
+	if a == nil {
+		return time.Time{}
+	}
+	return a.StartedAt
+}
+
+func (a *AutomationRunResponseDto) GetFinishedAt() map[string]interface{} {
+	if a == nil {
+		return nil
+	}
+	return a.FinishedAt
+}
+
+func (a *AutomationRunResponseDto) GetExtraProperties() map[string]interface{} {
+	return a.extraProperties
+}
+
+func (a *AutomationRunResponseDto) UnmarshalJSON(data []byte) error {
+	type embed AutomationRunResponseDto
+	var unmarshaler = struct {
+		embed
+		StartedAt *internal.DateTime `json:"startedAt"`
+	}{
+		embed: embed(*a),
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
+		return err
+	}
+	*a = AutomationRunResponseDto(unmarshaler.embed)
+	a.StartedAt = unmarshaler.StartedAt.Time()
+	extraProperties, err := internal.ExtractExtraProperties(data, *a)
+	if err != nil {
+		return err
+	}
+	a.extraProperties = extraProperties
+	a.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (a *AutomationRunResponseDto) MarshalJSON() ([]byte, error) {
+	type embed AutomationRunResponseDto
+	var marshaler = struct {
+		embed
+		StartedAt *internal.DateTime `json:"startedAt"`
+	}{
+		embed:     embed(*a),
+		StartedAt: internal.NewDateTime(a.StartedAt),
+	}
+	return json.Marshal(marshaler)
+}
+
+func (a *AutomationRunResponseDto) String() string {
+	if len(a.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(a.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(a); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", a)
 }

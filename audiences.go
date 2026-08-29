@@ -2,6 +2,13 @@
 
 package mailmus
 
+import (
+	json "encoding/json"
+	fmt "fmt"
+	internal "github.com/mailmus/mailmus-go/internal"
+	time "time"
+)
+
 type AddContactDto struct {
 	ContactID string `json:"contactId" url:"-"`
 }
@@ -14,9 +21,494 @@ type BulkAddByEmailsDto struct {
 }
 
 type CreateAudienceDto struct {
-	Name string `json:"name" url:"-"`
+	Name string                 `json:"name" url:"-"`
+	Type *CreateAudienceDtoType `json:"type,omitempty" url:"-"`
+	// Required when type is DYNAMIC.
+	Rules *AudienceRulesDto `json:"rules,omitempty" url:"-"`
 }
 
 type RenameAudienceDto struct {
 	Name string `json:"name" url:"-"`
+}
+
+type AudienceBulkAddResultDto struct {
+	// Contacts rattachés à l’audience.
+	Added float64 `json:"added" url:"added"`
+	// Adresses écartées : inconnues du projet, ou déjà présentes dans l’audience.
+	Skipped float64 `json:"skipped" url:"skipped"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (a *AudienceBulkAddResultDto) GetAdded() float64 {
+	if a == nil {
+		return 0
+	}
+	return a.Added
+}
+
+func (a *AudienceBulkAddResultDto) GetSkipped() float64 {
+	if a == nil {
+		return 0
+	}
+	return a.Skipped
+}
+
+func (a *AudienceBulkAddResultDto) GetExtraProperties() map[string]interface{} {
+	return a.extraProperties
+}
+
+func (a *AudienceBulkAddResultDto) UnmarshalJSON(data []byte) error {
+	type unmarshaler AudienceBulkAddResultDto
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*a = AudienceBulkAddResultDto(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *a)
+	if err != nil {
+		return err
+	}
+	a.extraProperties = extraProperties
+	a.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (a *AudienceBulkAddResultDto) String() string {
+	if len(a.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(a.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(a); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", a)
+}
+
+type AudienceContactLinkDto struct {
+	AudienceID string `json:"audienceId" url:"audienceId"`
+	ContactID  string `json:"contactId" url:"contactId"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (a *AudienceContactLinkDto) GetAudienceID() string {
+	if a == nil {
+		return ""
+	}
+	return a.AudienceID
+}
+
+func (a *AudienceContactLinkDto) GetContactID() string {
+	if a == nil {
+		return ""
+	}
+	return a.ContactID
+}
+
+func (a *AudienceContactLinkDto) GetExtraProperties() map[string]interface{} {
+	return a.extraProperties
+}
+
+func (a *AudienceContactLinkDto) UnmarshalJSON(data []byte) error {
+	type unmarshaler AudienceContactLinkDto
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*a = AudienceContactLinkDto(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *a)
+	if err != nil {
+		return err
+	}
+	a.extraProperties = extraProperties
+	a.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (a *AudienceContactLinkDto) String() string {
+	if len(a.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(a.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(a); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", a)
+}
+
+type AudienceContactListResponseDto struct {
+	Data  []*ContactResponseDto `json:"data,omitempty" url:"data,omitempty"`
+	Total float64               `json:"total" url:"total"`
+	Page  float64               `json:"page" url:"page"`
+	Pages float64               `json:"pages" url:"pages"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (a *AudienceContactListResponseDto) GetData() []*ContactResponseDto {
+	if a == nil {
+		return nil
+	}
+	return a.Data
+}
+
+func (a *AudienceContactListResponseDto) GetTotal() float64 {
+	if a == nil {
+		return 0
+	}
+	return a.Total
+}
+
+func (a *AudienceContactListResponseDto) GetPage() float64 {
+	if a == nil {
+		return 0
+	}
+	return a.Page
+}
+
+func (a *AudienceContactListResponseDto) GetPages() float64 {
+	if a == nil {
+		return 0
+	}
+	return a.Pages
+}
+
+func (a *AudienceContactListResponseDto) GetExtraProperties() map[string]interface{} {
+	return a.extraProperties
+}
+
+func (a *AudienceContactListResponseDto) UnmarshalJSON(data []byte) error {
+	type unmarshaler AudienceContactListResponseDto
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*a = AudienceContactListResponseDto(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *a)
+	if err != nil {
+		return err
+	}
+	a.extraProperties = extraProperties
+	a.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (a *AudienceContactListResponseDto) String() string {
+	if len(a.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(a.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(a); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", a)
+}
+
+type AudienceRecomputeResultDto struct {
+	// Contacts entrés dans l’audience.
+	Added float64 `json:"added" url:"added"`
+	// Contacts qui n’y satisfont plus et en sont sortis.
+	Removed float64 `json:"removed" url:"removed"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (a *AudienceRecomputeResultDto) GetAdded() float64 {
+	if a == nil {
+		return 0
+	}
+	return a.Added
+}
+
+func (a *AudienceRecomputeResultDto) GetRemoved() float64 {
+	if a == nil {
+		return 0
+	}
+	return a.Removed
+}
+
+func (a *AudienceRecomputeResultDto) GetExtraProperties() map[string]interface{} {
+	return a.extraProperties
+}
+
+func (a *AudienceRecomputeResultDto) UnmarshalJSON(data []byte) error {
+	type unmarshaler AudienceRecomputeResultDto
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*a = AudienceRecomputeResultDto(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *a)
+	if err != nil {
+		return err
+	}
+	a.extraProperties = extraProperties
+	a.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (a *AudienceRecomputeResultDto) String() string {
+	if len(a.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(a.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(a); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", a)
+}
+
+type AudienceResponseDto struct {
+	ID   string `json:"id" url:"id"`
+	Name string `json:"name" url:"name"`
+	// STATIC : composition tenue à la main. DYNAMIC : composition déduite de `rules` et recalculée.
+	Type AudienceResponseDtoType `json:"type" url:"type"`
+	// Arbre de critères portant sur les attributs des contacts. Null sur une audience statique.
+	Rules map[string]interface{} `json:"rules,omitempty" url:"rules,omitempty"`
+	// Projet auquel cette audience appartient.
+	AppID     string    `json:"appId" url:"appId"`
+	CreatedAt time.Time `json:"createdAt" url:"createdAt"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (a *AudienceResponseDto) GetID() string {
+	if a == nil {
+		return ""
+	}
+	return a.ID
+}
+
+func (a *AudienceResponseDto) GetName() string {
+	if a == nil {
+		return ""
+	}
+	return a.Name
+}
+
+func (a *AudienceResponseDto) GetType() AudienceResponseDtoType {
+	if a == nil {
+		return ""
+	}
+	return a.Type
+}
+
+func (a *AudienceResponseDto) GetRules() map[string]interface{} {
+	if a == nil {
+		return nil
+	}
+	return a.Rules
+}
+
+func (a *AudienceResponseDto) GetAppID() string {
+	if a == nil {
+		return ""
+	}
+	return a.AppID
+}
+
+func (a *AudienceResponseDto) GetCreatedAt() time.Time {
+	if a == nil {
+		return time.Time{}
+	}
+	return a.CreatedAt
+}
+
+func (a *AudienceResponseDto) GetExtraProperties() map[string]interface{} {
+	return a.extraProperties
+}
+
+func (a *AudienceResponseDto) UnmarshalJSON(data []byte) error {
+	type embed AudienceResponseDto
+	var unmarshaler = struct {
+		embed
+		CreatedAt *internal.DateTime `json:"createdAt"`
+	}{
+		embed: embed(*a),
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
+		return err
+	}
+	*a = AudienceResponseDto(unmarshaler.embed)
+	a.CreatedAt = unmarshaler.CreatedAt.Time()
+	extraProperties, err := internal.ExtractExtraProperties(data, *a)
+	if err != nil {
+		return err
+	}
+	a.extraProperties = extraProperties
+	a.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (a *AudienceResponseDto) MarshalJSON() ([]byte, error) {
+	type embed AudienceResponseDto
+	var marshaler = struct {
+		embed
+		CreatedAt *internal.DateTime `json:"createdAt"`
+	}{
+		embed:     embed(*a),
+		CreatedAt: internal.NewDateTime(a.CreatedAt),
+	}
+	return json.Marshal(marshaler)
+}
+
+func (a *AudienceResponseDto) String() string {
+	if len(a.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(a.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(a); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", a)
+}
+
+// STATIC : composition tenue à la main. DYNAMIC : composition déduite de `rules` et recalculée.
+type AudienceResponseDtoType string
+
+const (
+	AudienceResponseDtoTypeStatic  AudienceResponseDtoType = "STATIC"
+	AudienceResponseDtoTypeDynamic AudienceResponseDtoType = "DYNAMIC"
+)
+
+func NewAudienceResponseDtoTypeFromString(s string) (AudienceResponseDtoType, error) {
+	switch s {
+	case "STATIC":
+		return AudienceResponseDtoTypeStatic, nil
+	case "DYNAMIC":
+		return AudienceResponseDtoTypeDynamic, nil
+	}
+	var t AudienceResponseDtoType
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (a AudienceResponseDtoType) Ptr() *AudienceResponseDtoType {
+	return &a
+}
+
+type AudienceRulesDto struct {
+	Match AudienceRulesDtoMatch `json:"match" url:"match"`
+	// Each item is either a leaf condition ({field, operator, value?}) or a nested group ({match, conditions}).
+	Conditions []map[string]interface{} `json:"conditions,omitempty" url:"conditions,omitempty"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (a *AudienceRulesDto) GetMatch() AudienceRulesDtoMatch {
+	if a == nil {
+		return ""
+	}
+	return a.Match
+}
+
+func (a *AudienceRulesDto) GetConditions() []map[string]interface{} {
+	if a == nil {
+		return nil
+	}
+	return a.Conditions
+}
+
+func (a *AudienceRulesDto) GetExtraProperties() map[string]interface{} {
+	return a.extraProperties
+}
+
+func (a *AudienceRulesDto) UnmarshalJSON(data []byte) error {
+	type unmarshaler AudienceRulesDto
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*a = AudienceRulesDto(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *a)
+	if err != nil {
+		return err
+	}
+	a.extraProperties = extraProperties
+	a.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (a *AudienceRulesDto) String() string {
+	if len(a.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(a.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(a); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", a)
+}
+
+type AudienceRulesDtoMatch string
+
+const (
+	AudienceRulesDtoMatchAll AudienceRulesDtoMatch = "all"
+	AudienceRulesDtoMatchAny AudienceRulesDtoMatch = "any"
+)
+
+func NewAudienceRulesDtoMatchFromString(s string) (AudienceRulesDtoMatch, error) {
+	switch s {
+	case "all":
+		return AudienceRulesDtoMatchAll, nil
+	case "any":
+		return AudienceRulesDtoMatchAny, nil
+	}
+	var t AudienceRulesDtoMatch
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (a AudienceRulesDtoMatch) Ptr() *AudienceRulesDtoMatch {
+	return &a
+}
+
+type CreateAudienceDtoType string
+
+const (
+	CreateAudienceDtoTypeStatic  CreateAudienceDtoType = "STATIC"
+	CreateAudienceDtoTypeDynamic CreateAudienceDtoType = "DYNAMIC"
+)
+
+func NewCreateAudienceDtoTypeFromString(s string) (CreateAudienceDtoType, error) {
+	switch s {
+	case "STATIC":
+		return CreateAudienceDtoTypeStatic, nil
+	case "DYNAMIC":
+		return CreateAudienceDtoTypeDynamic, nil
+	}
+	var t CreateAudienceDtoType
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (c CreateAudienceDtoType) Ptr() *CreateAudienceDtoType {
+	return &c
+}
+
+type AudiencesUpdateRulesRequest struct {
+	Body *AudienceRulesDto `json:"-" url:"-"`
+}
+
+func (a *AudiencesUpdateRulesRequest) UnmarshalJSON(data []byte) error {
+	body := new(AudienceRulesDto)
+	if err := json.Unmarshal(data, &body); err != nil {
+		return err
+	}
+	a.Body = body
+	return nil
+}
+
+func (a *AudiencesUpdateRulesRequest) MarshalJSON() ([]byte, error) {
+	return json.Marshal(a.Body)
 }

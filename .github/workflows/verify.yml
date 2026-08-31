@@ -1,0 +1,38 @@
+# Vérifie que le SDK Go compile, à chaque poussée et avant chaque version.
+#
+# Ce dépôt est le seul dont la publication est irréversible : un module Go se
+# publie en posant un tag, que le proxy public met aussitôt en cache de façon
+# immuable. Il n'existe pas d'équivalent de « npm unpublish » : une version
+# fautive ne se retire pas, elle se remplace par une suivante que chaque
+# utilisateur devra aller chercher.
+#
+# Le code étant entièrement généré par Fern, l'erreur redoutée n'est pas une
+# faute de frappe mais une génération incomplète — un type référencé sans être
+# émis, un import manquant. Cela ne se voit pas à la relecture du diff, cela se
+# voit à la compilation.
+name: Vérifier le SDK
+
+on:
+  push:
+  pull_request:
+  workflow_call:
+
+jobs:
+  verifier:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # La version déclarée par go.mod, pas la dernière en date : c'est le
+      # plancher que le SDK promet à ses utilisateurs, et c'est donc lui qu'il
+      # faut vérifier. Compiler avec une version plus récente laisserait passer
+      # une construction qui échouerait chez un client resté sur ce plancher.
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - run: go build ./...
+
+      - run: go vet ./...
+
+      - run: go test ./...

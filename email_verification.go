@@ -14,15 +14,15 @@ type EmailVerificationRequestDto struct {
 
 type EmailVerificationResponseDto struct {
 	Email string `json:"email" url:"email"`
-	// Faux si au moins une raison ci-dessous s’applique.
+	// False if at least one reason below applies.
 	Valid bool `json:"valid" url:"valid"`
-	// Vide quand l’adresse passe tous les contrôles.
+	// Empty when the address passes every check.
 	Reasons []EmailVerificationResponseDtoReasonsItem `json:"reasons,omitempty" url:"reasons,omitempty"`
-	// Vrai si le domaine sert des adresses jetables.
+	// True if the domain serves disposable addresses.
 	Disposable bool `json:"disposable" url:"disposable"`
-	// Vrai si le domaine déclare un serveur de messagerie.
+	// True if the domain declares a mail server.
 	MxFound bool `json:"mxFound" url:"mxFound"`
-	// Correction proposée sur une faute de frappe courante, par exemple gmial.com pour gmail.com.
+	// Suggested correction for a common typo, for example gmial.com for gmail.com.
 	DidYouMean *string `json:"didYouMean,omitempty" url:"didYouMean,omitempty"`
 
 	extraProperties map[string]interface{}

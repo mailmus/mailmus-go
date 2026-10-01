@@ -9,33 +9,81 @@ import (
 	time "time"
 )
 
+type CustomerAdminEventsRequest struct {
+	Limit *float64 `json:"-" url:"limit,omitempty"`
+	// The `nextCursor` of the previous page.
+	Cursor *string `json:"-" url:"cursor,omitempty"`
+}
+
+type ImpersonateCustomerDto struct {
+	// Where to land once signed in as this user. Must be one of the return addresses allowed for this project.
+	RedirectURI string `json:"redirectUri" url:"-"`
+}
+
+type LinkCustomerDto struct {
+	// The customer who signs in with Mailmus Auth. They keep their account.
+	CustomerID string `json:"customerId" url:"-"`
+	// Your own ID for the same person, the one you used to add them as a member.
+	ExternalUserID string `json:"externalUserId" url:"-"`
+}
+
 type CustomerAdminListRequest struct {
 	Q        string `json:"-" url:"q"`
 	Status   string `json:"-" url:"status"`
 	Provider string `json:"-" url:"provider"`
 }
 
+type CustomerAdminSetRolesRequest struct {
+	Body *UpdateRolesDto `json:"-" url:"-"`
+}
+
+func (c *CustomerAdminSetRolesRequest) UnmarshalJSON(data []byte) error {
+	body := new(UpdateRolesDto)
+	if err := json.Unmarshal(data, &body); err != nil {
+		return err
+	}
+	c.Body = body
+	return nil
+}
+
+func (c *CustomerAdminSetRolesRequest) MarshalJSON() ([]byte, error) {
+	return json.Marshal(c.Body)
+}
+
 type UpdateMetadataDto struct {
 	Metadata map[string]interface{} `json:"metadata,omitempty" url:"-"`
 }
 
-type UpdateRolesDto struct {
-	Roles []string `json:"roles,omitempty" url:"-"`
+type CustomerAdminUpdateRolesRequest struct {
+	Body *UpdateRolesDto `json:"-" url:"-"`
+}
+
+func (c *CustomerAdminUpdateRolesRequest) UnmarshalJSON(data []byte) error {
+	body := new(UpdateRolesDto)
+	if err := json.Unmarshal(data, &body); err != nil {
+		return err
+	}
+	c.Body = body
+	return nil
+}
+
+func (c *CustomerAdminUpdateRolesRequest) MarshalJSON() ([]byte, error) {
+	return json.Marshal(c.Body)
 }
 
 type AuditLogEntryResponseDto struct {
 	ID string `json:"id" url:"id"`
-	// Qui a agi.
+	// Who acted.
 	ActorEmail string `json:"actorEmail" url:"actorEmail"`
 	Action     string `json:"action" url:"action"`
-	// Nature de l’objet visé.
-	TargetType string                 `json:"targetType" url:"targetType"`
-	TargetID   map[string]interface{} `json:"targetId,omitempty" url:"targetId,omitempty"`
-	// Contexte de l’action, variable selon le type.
+	// Kind of object targeted.
+	TargetType string  `json:"targetType" url:"targetType"`
+	TargetID   *string `json:"targetId,omitempty" url:"targetId,omitempty"`
+	// Context of the action, which varies by type.
 	Metadata map[string]interface{} `json:"metadata,omitempty" url:"metadata,omitempty"`
-	// Non nul si l’action a été faite par le support Mailmus pendant une session d’assistance.
-	ImpersonatedByStaffEmail map[string]interface{} `json:"impersonatedByStaffEmail,omitempty" url:"impersonatedByStaffEmail,omitempty"`
-	CreatedAt                time.Time              `json:"createdAt" url:"createdAt"`
+	// Non-null if the action was taken by Mailmus support during an assistance session.
+	ImpersonatedByStaffEmail *string   `json:"impersonatedByStaffEmail,omitempty" url:"impersonatedByStaffEmail,omitempty"`
+	CreatedAt                time.Time `json:"createdAt" url:"createdAt"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -69,7 +117,7 @@ func (a *AuditLogEntryResponseDto) GetTargetType() string {
 	return a.TargetType
 }
 
-func (a *AuditLogEntryResponseDto) GetTargetID() map[string]interface{} {
+func (a *AuditLogEntryResponseDto) GetTargetID() *string {
 	if a == nil {
 		return nil
 	}
@@ -83,7 +131,7 @@ func (a *AuditLogEntryResponseDto) GetMetadata() map[string]interface{} {
 	return a.Metadata
 }
 
-func (a *AuditLogEntryResponseDto) GetImpersonatedByStaffEmail() map[string]interface{} {
+func (a *AuditLogEntryResponseDto) GetImpersonatedByStaffEmail() *string {
 	if a == nil {
 		return nil
 	}
@@ -217,6 +265,229 @@ func (a *AuditLogListResponseDto) String() string {
 	return fmt.Sprintf("%#v", a)
 }
 
+type CustomerEventDto struct {
+	ID string `json:"id" url:"id"`
+	// What happened. Same name as the matching webhook event, so one fact has one name.
+	Type string `json:"type" url:"type"`
+	// Who acted: someone on your team from the dashboard, your server with its secret key, the end-user themselves, or Mailmus.
+	ActorType CustomerEventDtoActorType `json:"actorType" url:"actorType"`
+	// Identifier of the actor, when the actor has one.
+	ActorID *string `json:"actorId,omitempty" url:"actorId,omitempty"`
+	// How to name the actor without a lookup, as they were known at the time. Null once the person has been erased.
+	ActorLabel *string `json:"actorLabel,omitempty" url:"actorLabel,omitempty"`
+	// The end-user this event is about, when it is about someone.
+	SubjectCustomerID *string `json:"subjectCustomerId,omitempty" url:"subjectCustomerId,omitempty"`
+	// What else the event carries. Its shape follows the type, and it is cleared when the person is erased.
+	Metadata   map[string]interface{} `json:"metadata,omitempty" url:"metadata,omitempty"`
+	OccurredAt time.Time              `json:"occurredAt" url:"occurredAt"`
+	// When this line stopped naming anyone, because the end-user was deleted. The fact stays, the identifiers go. Null while the person still exists.
+	ErasedAt *time.Time `json:"erasedAt,omitempty" url:"erasedAt,omitempty"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (c *CustomerEventDto) GetID() string {
+	if c == nil {
+		return ""
+	}
+	return c.ID
+}
+
+func (c *CustomerEventDto) GetType() string {
+	if c == nil {
+		return ""
+	}
+	return c.Type
+}
+
+func (c *CustomerEventDto) GetActorType() CustomerEventDtoActorType {
+	if c == nil {
+		return ""
+	}
+	return c.ActorType
+}
+
+func (c *CustomerEventDto) GetActorID() *string {
+	if c == nil {
+		return nil
+	}
+	return c.ActorID
+}
+
+func (c *CustomerEventDto) GetActorLabel() *string {
+	if c == nil {
+		return nil
+	}
+	return c.ActorLabel
+}
+
+func (c *CustomerEventDto) GetSubjectCustomerID() *string {
+	if c == nil {
+		return nil
+	}
+	return c.SubjectCustomerID
+}
+
+func (c *CustomerEventDto) GetMetadata() map[string]interface{} {
+	if c == nil {
+		return nil
+	}
+	return c.Metadata
+}
+
+func (c *CustomerEventDto) GetOccurredAt() time.Time {
+	if c == nil {
+		return time.Time{}
+	}
+	return c.OccurredAt
+}
+
+func (c *CustomerEventDto) GetErasedAt() *time.Time {
+	if c == nil {
+		return nil
+	}
+	return c.ErasedAt
+}
+
+func (c *CustomerEventDto) GetExtraProperties() map[string]interface{} {
+	return c.extraProperties
+}
+
+func (c *CustomerEventDto) UnmarshalJSON(data []byte) error {
+	type embed CustomerEventDto
+	var unmarshaler = struct {
+		embed
+		OccurredAt *internal.DateTime `json:"occurredAt"`
+		ErasedAt   *internal.DateTime `json:"erasedAt,omitempty"`
+	}{
+		embed: embed(*c),
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
+		return err
+	}
+	*c = CustomerEventDto(unmarshaler.embed)
+	c.OccurredAt = unmarshaler.OccurredAt.Time()
+	c.ErasedAt = unmarshaler.ErasedAt.TimePtr()
+	extraProperties, err := internal.ExtractExtraProperties(data, *c)
+	if err != nil {
+		return err
+	}
+	c.extraProperties = extraProperties
+	c.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (c *CustomerEventDto) MarshalJSON() ([]byte, error) {
+	type embed CustomerEventDto
+	var marshaler = struct {
+		embed
+		OccurredAt *internal.DateTime `json:"occurredAt"`
+		ErasedAt   *internal.DateTime `json:"erasedAt,omitempty"`
+	}{
+		embed:      embed(*c),
+		OccurredAt: internal.NewDateTime(c.OccurredAt),
+		ErasedAt:   internal.NewOptionalDateTime(c.ErasedAt),
+	}
+	return json.Marshal(marshaler)
+}
+
+func (c *CustomerEventDto) String() string {
+	if len(c.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(c.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(c); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", c)
+}
+
+// Who acted: someone on your team from the dashboard, your server with its secret key, the end-user themselves, or Mailmus.
+type CustomerEventDtoActorType string
+
+const (
+	CustomerEventDtoActorTypeDeveloper CustomerEventDtoActorType = "DEVELOPER"
+	CustomerEventDtoActorTypeAPIKey    CustomerEventDtoActorType = "API_KEY"
+	CustomerEventDtoActorTypeCustomer  CustomerEventDtoActorType = "CUSTOMER"
+	CustomerEventDtoActorTypeSystem    CustomerEventDtoActorType = "SYSTEM"
+)
+
+func NewCustomerEventDtoActorTypeFromString(s string) (CustomerEventDtoActorType, error) {
+	switch s {
+	case "DEVELOPER":
+		return CustomerEventDtoActorTypeDeveloper, nil
+	case "API_KEY":
+		return CustomerEventDtoActorTypeAPIKey, nil
+	case "CUSTOMER":
+		return CustomerEventDtoActorTypeCustomer, nil
+	case "SYSTEM":
+		return CustomerEventDtoActorTypeSystem, nil
+	}
+	var t CustomerEventDtoActorType
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (c CustomerEventDtoActorType) Ptr() *CustomerEventDtoActorType {
+	return &c
+}
+
+type CustomerEventsPageDto struct {
+	Data []*CustomerEventDto `json:"data,omitempty" url:"data,omitempty"`
+	// Pass this back as `cursor` to read the page before. Null when you have reached the beginning.
+	NextCursor *string `json:"nextCursor,omitempty" url:"nextCursor,omitempty"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (c *CustomerEventsPageDto) GetData() []*CustomerEventDto {
+	if c == nil {
+		return nil
+	}
+	return c.Data
+}
+
+func (c *CustomerEventsPageDto) GetNextCursor() *string {
+	if c == nil {
+		return nil
+	}
+	return c.NextCursor
+}
+
+func (c *CustomerEventsPageDto) GetExtraProperties() map[string]interface{} {
+	return c.extraProperties
+}
+
+func (c *CustomerEventsPageDto) UnmarshalJSON(data []byte) error {
+	type unmarshaler CustomerEventsPageDto
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*c = CustomerEventsPageDto(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *c)
+	if err != nil {
+		return err
+	}
+	c.extraProperties = extraProperties
+	c.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (c *CustomerEventsPageDto) String() string {
+	if len(c.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(c.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(c); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", c)
+}
+
 type CustomerIdentityResponseDto struct {
 	Provider  CustomerIdentityResponseDtoProvider `json:"provider" url:"provider"`
 	CreatedAt time.Time                           `json:"createdAt" url:"createdAt"`
@@ -299,6 +570,7 @@ const (
 	CustomerIdentityResponseDtoProviderGithub    CustomerIdentityResponseDtoProvider = "GITHUB"
 	CustomerIdentityResponseDtoProviderApple     CustomerIdentityResponseDtoProvider = "APPLE"
 	CustomerIdentityResponseDtoProviderSAML      CustomerIdentityResponseDtoProvider = "SAML"
+	CustomerIdentityResponseDtoProviderOidc      CustomerIdentityResponseDtoProvider = "OIDC"
 )
 
 func NewCustomerIdentityResponseDtoProviderFromString(s string) (CustomerIdentityResponseDtoProvider, error) {
@@ -317,6 +589,8 @@ func NewCustomerIdentityResponseDtoProviderFromString(s string) (CustomerIdentit
 		return CustomerIdentityResponseDtoProviderApple, nil
 	case "SAML":
 		return CustomerIdentityResponseDtoProviderSAML, nil
+	case "OIDC":
+		return CustomerIdentityResponseDtoProviderOidc, nil
 	}
 	var t CustomerIdentityResponseDtoProvider
 	return "", fmt.Errorf("%s is not a valid %T", s, t)
@@ -410,12 +684,12 @@ type CustomerResponseDto struct {
 	CreatedAt       time.Time              `json:"createdAt" url:"createdAt"`
 	UpdatedAt       time.Time              `json:"updatedAt" url:"updatedAt"`
 	MfaEnabledAt    *time.Time             `json:"mfaEnabledAt,omitempty" url:"mfaEnabledAt,omitempty"`
-	// Tentatives de connexion échouées consécutives (verrou anti-brute-force, remis à zéro sur connexion réussie).
+	// Consecutive failed sign-in attempts (brute-force lock, reset on a successful sign-in).
 	FailedSignInAttempts float64 `json:"failedSignInAttempts" url:"failedSignInAttempts"`
-	// Compte verrouillé jusqu'à cette date (brute-force sur le mot de passe).
+	// Account locked until this date (password brute-force).
 	SignInLockedUntil *time.Time                     `json:"signInLockedUntil,omitempty" url:"signInLockedUntil,omitempty"`
 	Identities        []*CustomerIdentityResponseDto `json:"identities,omitempty" url:"identities,omitempty"`
-	// Sessions actives — présent uniquement sur GET /customers/:id.
+	// Active sessions — present only on GET /customers/:id.
 	Sessions []*CustomerSessionResponseDto `json:"sessions,omitempty" url:"sessions,omitempty"`
 
 	extraProperties map[string]interface{}
@@ -625,6 +899,8 @@ type CustomerSessionResponseDto struct {
 	IPAddress *string   `json:"ipAddress,omitempty" url:"ipAddress,omitempty"`
 	CreatedAt time.Time `json:"createdAt" url:"createdAt"`
 	ExpiresAt time.Time `json:"expiresAt" url:"expiresAt"`
+	// Email of the team member who opened this session by signing in as the end-user, or null for a session the end-user opened.
+	ImpersonatedBy *string `json:"impersonatedBy,omitempty" url:"impersonatedBy,omitempty"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -663,6 +939,13 @@ func (c *CustomerSessionResponseDto) GetExpiresAt() time.Time {
 		return time.Time{}
 	}
 	return c.ExpiresAt
+}
+
+func (c *CustomerSessionResponseDto) GetImpersonatedBy() *string {
+	if c == nil {
+		return nil
+	}
+	return c.ImpersonatedBy
 }
 
 func (c *CustomerSessionResponseDto) GetExtraProperties() map[string]interface{} {
@@ -787,4 +1070,186 @@ func (c *CustomerStatsResponseDto) String() string {
 		return value
 	}
 	return fmt.Sprintf("%#v", c)
+}
+
+type ImpersonationTicketResponseDto struct {
+	// Single-use, valid 60 seconds. Opens a session of at most 60 minutes on the hosted page.
+	Ticket      string    `json:"ticket" url:"ticket"`
+	ExpiresAt   time.Time `json:"expiresAt" url:"expiresAt"`
+	RedirectURI string    `json:"redirectUri" url:"redirectUri"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (i *ImpersonationTicketResponseDto) GetTicket() string {
+	if i == nil {
+		return ""
+	}
+	return i.Ticket
+}
+
+func (i *ImpersonationTicketResponseDto) GetExpiresAt() time.Time {
+	if i == nil {
+		return time.Time{}
+	}
+	return i.ExpiresAt
+}
+
+func (i *ImpersonationTicketResponseDto) GetRedirectURI() string {
+	if i == nil {
+		return ""
+	}
+	return i.RedirectURI
+}
+
+func (i *ImpersonationTicketResponseDto) GetExtraProperties() map[string]interface{} {
+	return i.extraProperties
+}
+
+func (i *ImpersonationTicketResponseDto) UnmarshalJSON(data []byte) error {
+	type embed ImpersonationTicketResponseDto
+	var unmarshaler = struct {
+		embed
+		ExpiresAt *internal.DateTime `json:"expiresAt"`
+	}{
+		embed: embed(*i),
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
+		return err
+	}
+	*i = ImpersonationTicketResponseDto(unmarshaler.embed)
+	i.ExpiresAt = unmarshaler.ExpiresAt.Time()
+	extraProperties, err := internal.ExtractExtraProperties(data, *i)
+	if err != nil {
+		return err
+	}
+	i.extraProperties = extraProperties
+	i.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (i *ImpersonationTicketResponseDto) MarshalJSON() ([]byte, error) {
+	type embed ImpersonationTicketResponseDto
+	var marshaler = struct {
+		embed
+		ExpiresAt *internal.DateTime `json:"expiresAt"`
+	}{
+		embed:     embed(*i),
+		ExpiresAt: internal.NewDateTime(i.ExpiresAt),
+	}
+	return json.Marshal(marshaler)
+}
+
+func (i *ImpersonationTicketResponseDto) String() string {
+	if len(i.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(i.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(i); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", i)
+}
+
+type LinkCustomerResponseDto struct {
+	Customer *CustomerResponseDto `json:"customer,omitempty" url:"customer,omitempty"`
+	// The external customer merged into customer and deleted, or null when there was nothing to merge.
+	MergedCustomerID *string `json:"mergedCustomerId,omitempty" url:"mergedCustomerId,omitempty"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (l *LinkCustomerResponseDto) GetCustomer() *CustomerResponseDto {
+	if l == nil {
+		return nil
+	}
+	return l.Customer
+}
+
+func (l *LinkCustomerResponseDto) GetMergedCustomerID() *string {
+	if l == nil {
+		return nil
+	}
+	return l.MergedCustomerID
+}
+
+func (l *LinkCustomerResponseDto) GetExtraProperties() map[string]interface{} {
+	return l.extraProperties
+}
+
+func (l *LinkCustomerResponseDto) UnmarshalJSON(data []byte) error {
+	type unmarshaler LinkCustomerResponseDto
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*l = LinkCustomerResponseDto(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *l)
+	if err != nil {
+		return err
+	}
+	l.extraProperties = extraProperties
+	l.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (l *LinkCustomerResponseDto) String() string {
+	if len(l.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(l.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(l); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", l)
+}
+
+type UpdateRolesDto struct {
+	Roles []string `json:"roles,omitempty" url:"roles,omitempty"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (u *UpdateRolesDto) GetRoles() []string {
+	if u == nil {
+		return nil
+	}
+	return u.Roles
+}
+
+func (u *UpdateRolesDto) GetExtraProperties() map[string]interface{} {
+	return u.extraProperties
+}
+
+func (u *UpdateRolesDto) UnmarshalJSON(data []byte) error {
+	type unmarshaler UpdateRolesDto
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*u = UpdateRolesDto(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *u)
+	if err != nil {
+		return err
+	}
+	u.extraProperties = extraProperties
+	u.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (u *UpdateRolesDto) String() string {
+	if len(u.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(u.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(u); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", u)
 }

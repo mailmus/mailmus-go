@@ -9,6 +9,15 @@ import (
 	time "time"
 )
 
+type AcceptInvitationRequestDto struct {
+	// The token from the invitation link. Set invitationUrl in the B2B settings so that invitation emails link to your application with this token.
+	Token string `json:"token" url:"-"`
+	// Mailmus identifier of the person accepting, when they sign in with Mailmus. Provide this or externalUserId.
+	CustomerID *string `json:"customerId,omitempty" url:"-"`
+	// Identifier of the person accepting in your own system, when you sign them in yourself. An unknown value creates the member, with the invitation email.
+	ExternalUserID *string `json:"externalUserId,omitempty" url:"-"`
+}
+
 type CreateInvitationDto struct {
 	Email string                   `json:"email" url:"-"`
 	Role  *CreateInvitationDtoRole `json:"role,omitempty" url:"-"`

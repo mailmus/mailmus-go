@@ -82,18 +82,18 @@ func (i *InboundEmailListResponseDto) String() string {
 type InboundEmailResponseDto struct {
 	ID    string `json:"id" url:"id"`
 	AppID string `json:"appId" url:"appId"`
-	// Identifiant du message chez l’expéditeur.
-	MessageID string                 `json:"messageId" url:"messageId"`
-	From      string                 `json:"from" url:"from"`
-	To        []string               `json:"to,omitempty" url:"to,omitempty"`
-	Subject   map[string]interface{} `json:"subject,omitempty" url:"subject,omitempty"`
-	TextBody  map[string]interface{} `json:"textBody,omitempty" url:"textBody,omitempty"`
-	HTMLBody  map[string]interface{} `json:"htmlBody,omitempty" url:"htmlBody,omitempty"`
-	// Pièces jointes, avec leur nom et leur type.
+	// Identifier of the message at the sender.
+	MessageID string   `json:"messageId" url:"messageId"`
+	From      string   `json:"from" url:"from"`
+	To        []string `json:"to,omitempty" url:"to,omitempty"`
+	Subject   *string  `json:"subject,omitempty" url:"subject,omitempty"`
+	TextBody  *string  `json:"textBody,omitempty" url:"textBody,omitempty"`
+	HTMLBody  *string  `json:"htmlBody,omitempty" url:"htmlBody,omitempty"`
+	// Attachments, with their name and type.
 	Attachments map[string]interface{} `json:"attachments,omitempty" url:"attachments,omitempty"`
-	// Verdict antispam du fournisseur de réception.
-	SpamVerdict map[string]interface{} `json:"spamVerdict,omitempty" url:"spamVerdict,omitempty"`
-	ReceivedAt  time.Time              `json:"receivedAt" url:"receivedAt"`
+	// Spam verdict from the receiving provider.
+	SpamVerdict *string   `json:"spamVerdict,omitempty" url:"spamVerdict,omitempty"`
+	ReceivedAt  time.Time `json:"receivedAt" url:"receivedAt"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -134,21 +134,21 @@ func (i *InboundEmailResponseDto) GetTo() []string {
 	return i.To
 }
 
-func (i *InboundEmailResponseDto) GetSubject() map[string]interface{} {
+func (i *InboundEmailResponseDto) GetSubject() *string {
 	if i == nil {
 		return nil
 	}
 	return i.Subject
 }
 
-func (i *InboundEmailResponseDto) GetTextBody() map[string]interface{} {
+func (i *InboundEmailResponseDto) GetTextBody() *string {
 	if i == nil {
 		return nil
 	}
 	return i.TextBody
 }
 
-func (i *InboundEmailResponseDto) GetHTMLBody() map[string]interface{} {
+func (i *InboundEmailResponseDto) GetHTMLBody() *string {
 	if i == nil {
 		return nil
 	}
@@ -162,7 +162,7 @@ func (i *InboundEmailResponseDto) GetAttachments() map[string]interface{} {
 	return i.Attachments
 }
 
-func (i *InboundEmailResponseDto) GetSpamVerdict() map[string]interface{} {
+func (i *InboundEmailResponseDto) GetSpamVerdict() *string {
 	if i == nil {
 		return nil
 	}

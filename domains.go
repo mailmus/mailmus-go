@@ -16,13 +16,13 @@ type CreateDomainDto struct {
 type BlocklistStatusResponseDto struct {
 	ID       string `json:"id" url:"id"`
 	ListName string `json:"listName" url:"listName"`
-	// Vrai si le domaine figure actuellement sur cette liste.
+	// True if the domain is currently on that list.
 	Listed bool `json:"listed" url:"listed"`
-	// Première fois que nous l’y avons vu.
-	FirstListedAt map[string]interface{} `json:"firstListedAt,omitempty" url:"firstListedAt,omitempty"`
-	// Dernière vérification.
+	// First time we saw it there.
+	FirstListedAt *time.Time `json:"firstListedAt,omitempty" url:"firstListedAt,omitempty"`
+	// Last check.
 	LastCheckedAt time.Time `json:"lastCheckedAt" url:"lastCheckedAt"`
-	// La valeur interrogée, ici le domaine lui-même.
+	// The value looked up, here the domain itself.
 	SubjectValue string `json:"subjectValue" url:"subjectValue"`
 
 	extraProperties map[string]interface{}
@@ -50,7 +50,7 @@ func (b *BlocklistStatusResponseDto) GetListed() bool {
 	return b.Listed
 }
 
-func (b *BlocklistStatusResponseDto) GetFirstListedAt() map[string]interface{} {
+func (b *BlocklistStatusResponseDto) GetFirstListedAt() *time.Time {
 	if b == nil {
 		return nil
 	}
@@ -79,6 +79,7 @@ func (b *BlocklistStatusResponseDto) UnmarshalJSON(data []byte) error {
 	type embed BlocklistStatusResponseDto
 	var unmarshaler = struct {
 		embed
+		FirstListedAt *internal.DateTime `json:"firstListedAt,omitempty"`
 		LastCheckedAt *internal.DateTime `json:"lastCheckedAt"`
 	}{
 		embed: embed(*b),
@@ -87,6 +88,7 @@ func (b *BlocklistStatusResponseDto) UnmarshalJSON(data []byte) error {
 		return err
 	}
 	*b = BlocklistStatusResponseDto(unmarshaler.embed)
+	b.FirstListedAt = unmarshaler.FirstListedAt.TimePtr()
 	b.LastCheckedAt = unmarshaler.LastCheckedAt.Time()
 	extraProperties, err := internal.ExtractExtraProperties(data, *b)
 	if err != nil {
@@ -101,9 +103,11 @@ func (b *BlocklistStatusResponseDto) MarshalJSON() ([]byte, error) {
 	type embed BlocklistStatusResponseDto
 	var marshaler = struct {
 		embed
+		FirstListedAt *internal.DateTime `json:"firstListedAt,omitempty"`
 		LastCheckedAt *internal.DateTime `json:"lastCheckedAt"`
 	}{
 		embed:         embed(*b),
+		FirstListedAt: internal.NewOptionalDateTime(b.FirstListedAt),
 		LastCheckedAt: internal.NewDateTime(b.LastCheckedAt),
 	}
 	return json.Marshal(marshaler)
@@ -124,17 +128,23 @@ func (b *BlocklistStatusResponseDto) String() string {
 type SendingDomainResponseDto struct {
 	ID     string `json:"id" url:"id"`
 	Domain string `json:"domain" url:"domain"`
-	// PENDING tant que les enregistrements DNS ne sont pas visibles, FAILED s'ils ne le sont toujours pas passé le délai d'attente.
+	// PENDING while the DNS records are not visible, FAILED if they still are not once the wait is over.
 	Status SendingDomainResponseDtoStatus `json:"status" url:"status"`
-	// Jetons DKIM à publier en CNAME chez votre hébergeur DNS. Vides tant que SES ne les a pas émis.
-	DkimTokens    []string               `json:"dkimTokens,omitempty" url:"dkimTokens,omitempty"`
-	SpfVerified   bool                   `json:"spfVerified" url:"spfVerified"`
-	DkimVerified  bool                   `json:"dkimVerified" url:"dkimVerified"`
-	DmarcVerified bool                   `json:"dmarcVerified" url:"dmarcVerified"`
-	VerifiedAt    map[string]interface{} `json:"verifiedAt,omitempty" url:"verifiedAt,omitempty"`
-	AppID         string                 `json:"appId" url:"appId"`
-	CreatedAt     time.Time              `json:"createdAt" url:"createdAt"`
-	UpdatedAt     time.Time              `json:"updatedAt" url:"updatedAt"`
+	// DKIM tokens to publish as CNAMEs at your DNS host. Empty until SES has issued them.
+	DkimTokens []string `json:"dkimTokens,omitempty" url:"dkimTokens,omitempty"`
+	// Proof that your account controls the domain: publish a TXT record named `_mailmus.<domain>` with the value `mailmus-verify=<ownershipToken>`. The domain is verified only once this record and DKIM both pass. Null for domains verified before this proof existed.
+	OwnershipToken *string `json:"ownershipToken,omitempty" url:"ownershipToken,omitempty"`
+	// When the ownership record was found.
+	OwnershipVerifiedAt *time.Time `json:"ownershipVerifiedAt,omitempty" url:"ownershipVerifiedAt,omitempty"`
+	// Only in the answer to a verification: AWS had stopped checking a domain that never verified, and checking started again.
+	VerificationRestarted *bool      `json:"verificationRestarted,omitempty" url:"verificationRestarted,omitempty"`
+	SpfVerified           bool       `json:"spfVerified" url:"spfVerified"`
+	DkimVerified          bool       `json:"dkimVerified" url:"dkimVerified"`
+	DmarcVerified         bool       `json:"dmarcVerified" url:"dmarcVerified"`
+	VerifiedAt            *time.Time `json:"verifiedAt,omitempty" url:"verifiedAt,omitempty"`
+	AppID                 string     `json:"appId" url:"appId"`
+	CreatedAt             time.Time  `json:"createdAt" url:"createdAt"`
+	UpdatedAt             time.Time  `json:"updatedAt" url:"updatedAt"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -168,6 +178,27 @@ func (s *SendingDomainResponseDto) GetDkimTokens() []string {
 	return s.DkimTokens
 }
 
+func (s *SendingDomainResponseDto) GetOwnershipToken() *string {
+	if s == nil {
+		return nil
+	}
+	return s.OwnershipToken
+}
+
+func (s *SendingDomainResponseDto) GetOwnershipVerifiedAt() *time.Time {
+	if s == nil {
+		return nil
+	}
+	return s.OwnershipVerifiedAt
+}
+
+func (s *SendingDomainResponseDto) GetVerificationRestarted() *bool {
+	if s == nil {
+		return nil
+	}
+	return s.VerificationRestarted
+}
+
 func (s *SendingDomainResponseDto) GetSpfVerified() bool {
 	if s == nil {
 		return false
@@ -189,7 +220,7 @@ func (s *SendingDomainResponseDto) GetDmarcVerified() bool {
 	return s.DmarcVerified
 }
 
-func (s *SendingDomainResponseDto) GetVerifiedAt() map[string]interface{} {
+func (s *SendingDomainResponseDto) GetVerifiedAt() *time.Time {
 	if s == nil {
 		return nil
 	}
@@ -225,8 +256,10 @@ func (s *SendingDomainResponseDto) UnmarshalJSON(data []byte) error {
 	type embed SendingDomainResponseDto
 	var unmarshaler = struct {
 		embed
-		CreatedAt *internal.DateTime `json:"createdAt"`
-		UpdatedAt *internal.DateTime `json:"updatedAt"`
+		OwnershipVerifiedAt *internal.DateTime `json:"ownershipVerifiedAt,omitempty"`
+		VerifiedAt          *internal.DateTime `json:"verifiedAt,omitempty"`
+		CreatedAt           *internal.DateTime `json:"createdAt"`
+		UpdatedAt           *internal.DateTime `json:"updatedAt"`
 	}{
 		embed: embed(*s),
 	}
@@ -234,6 +267,8 @@ func (s *SendingDomainResponseDto) UnmarshalJSON(data []byte) error {
 		return err
 	}
 	*s = SendingDomainResponseDto(unmarshaler.embed)
+	s.OwnershipVerifiedAt = unmarshaler.OwnershipVerifiedAt.TimePtr()
+	s.VerifiedAt = unmarshaler.VerifiedAt.TimePtr()
 	s.CreatedAt = unmarshaler.CreatedAt.Time()
 	s.UpdatedAt = unmarshaler.UpdatedAt.Time()
 	extraProperties, err := internal.ExtractExtraProperties(data, *s)
@@ -249,12 +284,16 @@ func (s *SendingDomainResponseDto) MarshalJSON() ([]byte, error) {
 	type embed SendingDomainResponseDto
 	var marshaler = struct {
 		embed
-		CreatedAt *internal.DateTime `json:"createdAt"`
-		UpdatedAt *internal.DateTime `json:"updatedAt"`
+		OwnershipVerifiedAt *internal.DateTime `json:"ownershipVerifiedAt,omitempty"`
+		VerifiedAt          *internal.DateTime `json:"verifiedAt,omitempty"`
+		CreatedAt           *internal.DateTime `json:"createdAt"`
+		UpdatedAt           *internal.DateTime `json:"updatedAt"`
 	}{
-		embed:     embed(*s),
-		CreatedAt: internal.NewDateTime(s.CreatedAt),
-		UpdatedAt: internal.NewDateTime(s.UpdatedAt),
+		embed:               embed(*s),
+		OwnershipVerifiedAt: internal.NewOptionalDateTime(s.OwnershipVerifiedAt),
+		VerifiedAt:          internal.NewOptionalDateTime(s.VerifiedAt),
+		CreatedAt:           internal.NewDateTime(s.CreatedAt),
+		UpdatedAt:           internal.NewDateTime(s.UpdatedAt),
 	}
 	return json.Marshal(marshaler)
 }
@@ -271,7 +310,7 @@ func (s *SendingDomainResponseDto) String() string {
 	return fmt.Sprintf("%#v", s)
 }
 
-// PENDING tant que les enregistrements DNS ne sont pas visibles, FAILED s'ils ne le sont toujours pas passé le délai d'attente.
+// PENDING while the DNS records are not visible, FAILED if they still are not once the wait is over.
 type SendingDomainResponseDtoStatus string
 
 const (

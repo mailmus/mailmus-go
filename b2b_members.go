@@ -7,14 +7,28 @@ import (
 )
 
 type AddMemberDto struct {
-	CustomerID string            `json:"customerId" url:"-"`
-	Role       *AddMemberDtoRole `json:"role,omitempty" url:"-"`
+	// Identifier of an existing Mailmus Auth user. Provide this or externalUserId, not both.
+	CustomerID *string `json:"customerId,omitempty" url:"-"`
+	// Identifier of this person in your own system, when you authenticate them yourself. Unknown values create the member, with no credentials and no session.
+	ExternalUserID *string `json:"externalUserId,omitempty" url:"-"`
+	// Deprecated alias of externalUserId. Send externalUserId instead.
+	ExternalID *string `json:"externalId,omitempty" url:"-"`
+	// Email address of an external member. Optional, and only read when externalUserId is given: it is what lets this person keep their memberships if you later move authentication to Mailmus.
+	Email *string `json:"email,omitempty" url:"-"`
+	// Organization roles to give. Defaults to org:member.
+	Roles []string `json:"roles,omitempty" url:"-"`
+	// Use roles. OWNER, ADMIN and MEMBER are org:owner, org:admin and org:member.
+	Role *AddMemberDtoRole `json:"role,omitempty" url:"-"`
 }
 
 type UpdateMemberRoleDto struct {
-	Role UpdateMemberRoleDtoRole `json:"role" url:"-"`
+	// Replaces the organization roles of the member.
+	Roles []string `json:"roles,omitempty" url:"-"`
+	// Use roles. OWNER, ADMIN and MEMBER are org:owner, org:admin and org:member.
+	Role *UpdateMemberRoleDtoRole `json:"role,omitempty" url:"-"`
 }
 
+// Use roles. OWNER, ADMIN and MEMBER are org:owner, org:admin and org:member.
 type AddMemberDtoRole string
 
 const (
@@ -40,6 +54,7 @@ func (a AddMemberDtoRole) Ptr() *AddMemberDtoRole {
 	return &a
 }
 
+// Use roles. OWNER, ADMIN and MEMBER are org:owner, org:admin and org:member.
 type UpdateMemberRoleDtoRole string
 
 const (

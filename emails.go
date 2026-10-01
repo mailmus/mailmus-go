@@ -41,11 +41,11 @@ type SendBatchEmailsDto struct {
 }
 
 type BatchSendItemResultDto struct {
-	// Présent si cet email a été accepté.
+	// Present if this email was accepted.
 	ID        *string                       `json:"id,omitempty" url:"id,omitempty"`
 	MessageID *string                       `json:"messageId,omitempty" url:"messageId,omitempty"`
 	Status    *BatchSendItemResultDtoStatus `json:"status,omitempty" url:"status,omitempty"`
-	// Présent à la place des trois champs ci-dessus si cet email a été refusé.
+	// Present instead of the three fields above if this email was refused.
 	Error *string `json:"error,omitempty" url:"error,omitempty"`
 
 	extraProperties map[string]interface{}
@@ -132,7 +132,7 @@ func (b BatchSendItemResultDtoStatus) Ptr() *BatchSendItemResultDtoStatus {
 }
 
 type BatchSendResponseDto struct {
-	// Un résultat par email demandé, dans l’ordre de la requête.
+	// One result per requested email, in request order.
 	Data []*BatchSendItemResultDto `json:"data,omitempty" url:"data,omitempty"`
 
 	extraProperties map[string]interface{}
@@ -244,17 +244,17 @@ func (e *EmailAttachmentDto) String() string {
 type SendDetailResponseDto struct {
 	ID           string                      `json:"id" url:"id"`
 	Status       SendDetailResponseDtoStatus `json:"status" url:"status"`
-	MessageID    map[string]interface{}      `json:"messageId,omitempty" url:"messageId,omitempty"`
-	Subject      map[string]interface{}      `json:"subject,omitempty" url:"subject,omitempty"`
-	From         map[string]interface{}      `json:"from,omitempty" url:"from,omitempty"`
-	DeliveredAt  map[string]interface{}      `json:"deliveredAt,omitempty" url:"deliveredAt,omitempty"`
-	OpenedAt     map[string]interface{}      `json:"openedAt,omitempty" url:"openedAt,omitempty"`
-	ClickedAt    map[string]interface{}      `json:"clickedAt,omitempty" url:"clickedAt,omitempty"`
-	BouncedAt    map[string]interface{}      `json:"bouncedAt,omitempty" url:"bouncedAt,omitempty"`
-	ComplainedAt map[string]interface{}      `json:"complainedAt,omitempty" url:"complainedAt,omitempty"`
+	MessageID    *string                     `json:"messageId,omitempty" url:"messageId,omitempty"`
+	Subject      *string                     `json:"subject,omitempty" url:"subject,omitempty"`
+	From         *string                     `json:"from,omitempty" url:"from,omitempty"`
+	DeliveredAt  *time.Time                  `json:"deliveredAt,omitempty" url:"deliveredAt,omitempty"`
+	OpenedAt     *time.Time                  `json:"openedAt,omitempty" url:"openedAt,omitempty"`
+	ClickedAt    *time.Time                  `json:"clickedAt,omitempty" url:"clickedAt,omitempty"`
+	BouncedAt    *time.Time                  `json:"bouncedAt,omitempty" url:"bouncedAt,omitempty"`
+	ComplainedAt *time.Time                  `json:"complainedAt,omitempty" url:"complainedAt,omitempty"`
 	CreatedAt    time.Time                   `json:"createdAt" url:"createdAt"`
 	Contact      *SendContactSummaryDto      `json:"contact,omitempty" url:"contact,omitempty"`
-	// Événements du fournisseur, du plus ancien au plus récent.
+	// Provider events, oldest first.
 	WebhookEvents []*SendWebhookEventDto `json:"webhookEvents,omitempty" url:"webhookEvents,omitempty"`
 
 	extraProperties map[string]interface{}
@@ -275,56 +275,56 @@ func (s *SendDetailResponseDto) GetStatus() SendDetailResponseDtoStatus {
 	return s.Status
 }
 
-func (s *SendDetailResponseDto) GetMessageID() map[string]interface{} {
+func (s *SendDetailResponseDto) GetMessageID() *string {
 	if s == nil {
 		return nil
 	}
 	return s.MessageID
 }
 
-func (s *SendDetailResponseDto) GetSubject() map[string]interface{} {
+func (s *SendDetailResponseDto) GetSubject() *string {
 	if s == nil {
 		return nil
 	}
 	return s.Subject
 }
 
-func (s *SendDetailResponseDto) GetFrom() map[string]interface{} {
+func (s *SendDetailResponseDto) GetFrom() *string {
 	if s == nil {
 		return nil
 	}
 	return s.From
 }
 
-func (s *SendDetailResponseDto) GetDeliveredAt() map[string]interface{} {
+func (s *SendDetailResponseDto) GetDeliveredAt() *time.Time {
 	if s == nil {
 		return nil
 	}
 	return s.DeliveredAt
 }
 
-func (s *SendDetailResponseDto) GetOpenedAt() map[string]interface{} {
+func (s *SendDetailResponseDto) GetOpenedAt() *time.Time {
 	if s == nil {
 		return nil
 	}
 	return s.OpenedAt
 }
 
-func (s *SendDetailResponseDto) GetClickedAt() map[string]interface{} {
+func (s *SendDetailResponseDto) GetClickedAt() *time.Time {
 	if s == nil {
 		return nil
 	}
 	return s.ClickedAt
 }
 
-func (s *SendDetailResponseDto) GetBouncedAt() map[string]interface{} {
+func (s *SendDetailResponseDto) GetBouncedAt() *time.Time {
 	if s == nil {
 		return nil
 	}
 	return s.BouncedAt
 }
 
-func (s *SendDetailResponseDto) GetComplainedAt() map[string]interface{} {
+func (s *SendDetailResponseDto) GetComplainedAt() *time.Time {
 	if s == nil {
 		return nil
 	}
@@ -360,7 +360,12 @@ func (s *SendDetailResponseDto) UnmarshalJSON(data []byte) error {
 	type embed SendDetailResponseDto
 	var unmarshaler = struct {
 		embed
-		CreatedAt *internal.DateTime `json:"createdAt"`
+		DeliveredAt  *internal.DateTime `json:"deliveredAt,omitempty"`
+		OpenedAt     *internal.DateTime `json:"openedAt,omitempty"`
+		ClickedAt    *internal.DateTime `json:"clickedAt,omitempty"`
+		BouncedAt    *internal.DateTime `json:"bouncedAt,omitempty"`
+		ComplainedAt *internal.DateTime `json:"complainedAt,omitempty"`
+		CreatedAt    *internal.DateTime `json:"createdAt"`
 	}{
 		embed: embed(*s),
 	}
@@ -368,6 +373,11 @@ func (s *SendDetailResponseDto) UnmarshalJSON(data []byte) error {
 		return err
 	}
 	*s = SendDetailResponseDto(unmarshaler.embed)
+	s.DeliveredAt = unmarshaler.DeliveredAt.TimePtr()
+	s.OpenedAt = unmarshaler.OpenedAt.TimePtr()
+	s.ClickedAt = unmarshaler.ClickedAt.TimePtr()
+	s.BouncedAt = unmarshaler.BouncedAt.TimePtr()
+	s.ComplainedAt = unmarshaler.ComplainedAt.TimePtr()
 	s.CreatedAt = unmarshaler.CreatedAt.Time()
 	extraProperties, err := internal.ExtractExtraProperties(data, *s)
 	if err != nil {
@@ -382,10 +392,20 @@ func (s *SendDetailResponseDto) MarshalJSON() ([]byte, error) {
 	type embed SendDetailResponseDto
 	var marshaler = struct {
 		embed
-		CreatedAt *internal.DateTime `json:"createdAt"`
+		DeliveredAt  *internal.DateTime `json:"deliveredAt,omitempty"`
+		OpenedAt     *internal.DateTime `json:"openedAt,omitempty"`
+		ClickedAt    *internal.DateTime `json:"clickedAt,omitempty"`
+		BouncedAt    *internal.DateTime `json:"bouncedAt,omitempty"`
+		ComplainedAt *internal.DateTime `json:"complainedAt,omitempty"`
+		CreatedAt    *internal.DateTime `json:"createdAt"`
 	}{
-		embed:     embed(*s),
-		CreatedAt: internal.NewDateTime(s.CreatedAt),
+		embed:        embed(*s),
+		DeliveredAt:  internal.NewOptionalDateTime(s.DeliveredAt),
+		OpenedAt:     internal.NewOptionalDateTime(s.OpenedAt),
+		ClickedAt:    internal.NewOptionalDateTime(s.ClickedAt),
+		BouncedAt:    internal.NewOptionalDateTime(s.BouncedAt),
+		ComplainedAt: internal.NewOptionalDateTime(s.ComplainedAt),
+		CreatedAt:    internal.NewDateTime(s.CreatedAt),
 	}
 	return json.Marshal(marshaler)
 }
@@ -443,11 +463,11 @@ func (s SendDetailResponseDtoStatus) Ptr() *SendDetailResponseDtoStatus {
 }
 
 type SendEmailResponseDto struct {
-	// Identifiant de l’envoi chez Mailmus. C’est lui qui sert à relire le détail et qui revient dans les webhooks.
+	// Identifier of the send at Mailmus. It is what you use to read the detail back, and what comes back in the webhooks.
 	ID string `json:"id" url:"id"`
-	// Identifiant attribué par le fournisseur d’envoi. Utile pour un échange avec le support d’un fournisseur de messagerie.
+	// Identifier assigned by the sending provider. Useful when talking to a mailbox provider support team.
 	MessageID string `json:"messageId" url:"messageId"`
-	// Toujours SENT : le message a été accepté pour envoi. La remise effective se suit ensuite par webhook ou par la route de détail.
+	// Always SENT: the message was accepted for sending. Actual delivery is then followed by webhook, or on the detail route.
 	Status SendEmailResponseDtoStatus `json:"status" url:"status"`
 
 	extraProperties map[string]interface{}
@@ -507,7 +527,7 @@ func (s *SendEmailResponseDto) String() string {
 	return fmt.Sprintf("%#v", s)
 }
 
-// Toujours SENT : le message a été accepté pour envoi. La remise effective se suit ensuite par webhook ou par la route de détail.
+// Always SENT: the message was accepted for sending. Actual delivery is then followed by webhook, or on the detail route.
 type SendEmailResponseDtoStatus string
 
 const (
@@ -600,14 +620,14 @@ func (s *SendLogListResponseDto) String() string {
 type SendLogResponseDto struct {
 	ID           string                   `json:"id" url:"id"`
 	Status       SendLogResponseDtoStatus `json:"status" url:"status"`
-	MessageID    map[string]interface{}   `json:"messageId,omitempty" url:"messageId,omitempty"`
-	Subject      map[string]interface{}   `json:"subject,omitempty" url:"subject,omitempty"`
-	From         map[string]interface{}   `json:"from,omitempty" url:"from,omitempty"`
-	DeliveredAt  map[string]interface{}   `json:"deliveredAt,omitempty" url:"deliveredAt,omitempty"`
-	OpenedAt     map[string]interface{}   `json:"openedAt,omitempty" url:"openedAt,omitempty"`
-	ClickedAt    map[string]interface{}   `json:"clickedAt,omitempty" url:"clickedAt,omitempty"`
-	BouncedAt    map[string]interface{}   `json:"bouncedAt,omitempty" url:"bouncedAt,omitempty"`
-	ComplainedAt map[string]interface{}   `json:"complainedAt,omitempty" url:"complainedAt,omitempty"`
+	MessageID    *string                  `json:"messageId,omitempty" url:"messageId,omitempty"`
+	Subject      *string                  `json:"subject,omitempty" url:"subject,omitempty"`
+	From         *string                  `json:"from,omitempty" url:"from,omitempty"`
+	DeliveredAt  *time.Time               `json:"deliveredAt,omitempty" url:"deliveredAt,omitempty"`
+	OpenedAt     *time.Time               `json:"openedAt,omitempty" url:"openedAt,omitempty"`
+	ClickedAt    *time.Time               `json:"clickedAt,omitempty" url:"clickedAt,omitempty"`
+	BouncedAt    *time.Time               `json:"bouncedAt,omitempty" url:"bouncedAt,omitempty"`
+	ComplainedAt *time.Time               `json:"complainedAt,omitempty" url:"complainedAt,omitempty"`
 	CreatedAt    time.Time                `json:"createdAt" url:"createdAt"`
 	Contact      *SendContactSummaryDto   `json:"contact,omitempty" url:"contact,omitempty"`
 
@@ -629,56 +649,56 @@ func (s *SendLogResponseDto) GetStatus() SendLogResponseDtoStatus {
 	return s.Status
 }
 
-func (s *SendLogResponseDto) GetMessageID() map[string]interface{} {
+func (s *SendLogResponseDto) GetMessageID() *string {
 	if s == nil {
 		return nil
 	}
 	return s.MessageID
 }
 
-func (s *SendLogResponseDto) GetSubject() map[string]interface{} {
+func (s *SendLogResponseDto) GetSubject() *string {
 	if s == nil {
 		return nil
 	}
 	return s.Subject
 }
 
-func (s *SendLogResponseDto) GetFrom() map[string]interface{} {
+func (s *SendLogResponseDto) GetFrom() *string {
 	if s == nil {
 		return nil
 	}
 	return s.From
 }
 
-func (s *SendLogResponseDto) GetDeliveredAt() map[string]interface{} {
+func (s *SendLogResponseDto) GetDeliveredAt() *time.Time {
 	if s == nil {
 		return nil
 	}
 	return s.DeliveredAt
 }
 
-func (s *SendLogResponseDto) GetOpenedAt() map[string]interface{} {
+func (s *SendLogResponseDto) GetOpenedAt() *time.Time {
 	if s == nil {
 		return nil
 	}
 	return s.OpenedAt
 }
 
-func (s *SendLogResponseDto) GetClickedAt() map[string]interface{} {
+func (s *SendLogResponseDto) GetClickedAt() *time.Time {
 	if s == nil {
 		return nil
 	}
 	return s.ClickedAt
 }
 
-func (s *SendLogResponseDto) GetBouncedAt() map[string]interface{} {
+func (s *SendLogResponseDto) GetBouncedAt() *time.Time {
 	if s == nil {
 		return nil
 	}
 	return s.BouncedAt
 }
 
-func (s *SendLogResponseDto) GetComplainedAt() map[string]interface{} {
+func (s *SendLogResponseDto) GetComplainedAt() *time.Time {
 	if s == nil {
 		return nil
 	}
@@ -707,7 +727,12 @@ func (s *SendLogResponseDto) UnmarshalJSON(data []byte) error {
 	type embed SendLogResponseDto
 	var unmarshaler = struct {
 		embed
-		CreatedAt *internal.DateTime `json:"createdAt"`
+		DeliveredAt  *internal.DateTime `json:"deliveredAt,omitempty"`
+		OpenedAt     *internal.DateTime `json:"openedAt,omitempty"`
+		ClickedAt    *internal.DateTime `json:"clickedAt,omitempty"`
+		BouncedAt    *internal.DateTime `json:"bouncedAt,omitempty"`
+		ComplainedAt *internal.DateTime `json:"complainedAt,omitempty"`
+		CreatedAt    *internal.DateTime `json:"createdAt"`
 	}{
 		embed: embed(*s),
 	}
@@ -715,6 +740,11 @@ func (s *SendLogResponseDto) UnmarshalJSON(data []byte) error {
 		return err
 	}
 	*s = SendLogResponseDto(unmarshaler.embed)
+	s.DeliveredAt = unmarshaler.DeliveredAt.TimePtr()
+	s.OpenedAt = unmarshaler.OpenedAt.TimePtr()
+	s.ClickedAt = unmarshaler.ClickedAt.TimePtr()
+	s.BouncedAt = unmarshaler.BouncedAt.TimePtr()
+	s.ComplainedAt = unmarshaler.ComplainedAt.TimePtr()
 	s.CreatedAt = unmarshaler.CreatedAt.Time()
 	extraProperties, err := internal.ExtractExtraProperties(data, *s)
 	if err != nil {
@@ -729,10 +759,20 @@ func (s *SendLogResponseDto) MarshalJSON() ([]byte, error) {
 	type embed SendLogResponseDto
 	var marshaler = struct {
 		embed
-		CreatedAt *internal.DateTime `json:"createdAt"`
+		DeliveredAt  *internal.DateTime `json:"deliveredAt,omitempty"`
+		OpenedAt     *internal.DateTime `json:"openedAt,omitempty"`
+		ClickedAt    *internal.DateTime `json:"clickedAt,omitempty"`
+		BouncedAt    *internal.DateTime `json:"bouncedAt,omitempty"`
+		ComplainedAt *internal.DateTime `json:"complainedAt,omitempty"`
+		CreatedAt    *internal.DateTime `json:"createdAt"`
 	}{
-		embed:     embed(*s),
-		CreatedAt: internal.NewDateTime(s.CreatedAt),
+		embed:        embed(*s),
+		DeliveredAt:  internal.NewOptionalDateTime(s.DeliveredAt),
+		OpenedAt:     internal.NewOptionalDateTime(s.OpenedAt),
+		ClickedAt:    internal.NewOptionalDateTime(s.ClickedAt),
+		BouncedAt:    internal.NewOptionalDateTime(s.BouncedAt),
+		ComplainedAt: internal.NewOptionalDateTime(s.ComplainedAt),
+		CreatedAt:    internal.NewDateTime(s.CreatedAt),
 	}
 	return json.Marshal(marshaler)
 }

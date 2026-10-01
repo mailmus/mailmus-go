@@ -14,10 +14,10 @@ type ContentCheckDto struct {
 }
 
 type ContentCheckFindingDto struct {
-	// Identifiant stable du contrôle, pour l’ignorer si besoin.
+	// Stable identifier of the check, so you can ignore it if you want.
 	ID       string                         `json:"id" url:"id"`
 	Severity ContentCheckFindingDtoSeverity `json:"severity" url:"severity"`
-	// Ce qui a été relevé, en clair.
+	// What was found, in plain words.
 	Message string `json:"message" url:"message"`
 
 	extraProperties map[string]interface{}

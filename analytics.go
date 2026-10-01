@@ -16,7 +16,7 @@ type AutomationsAnalyticsDto struct {
 	TotalRuns float64 `json:"totalRuns" url:"totalRuns"`
 	Completed float64 `json:"completed" url:"completed"`
 	Failed    float64 `json:"failed" url:"failed"`
-	// Exécutions abouties rapportées au total.
+	// Completed runs over the total.
 	SuccessRate float64 `json:"successRate" url:"successRate"`
 
 	extraProperties map[string]interface{}
@@ -85,7 +85,7 @@ func (a *AutomationsAnalyticsDto) String() string {
 
 type CampaignsAnalyticsDto struct {
 	Total float64 `json:"total" url:"total"`
-	// Campagnes réellement parties.
+	// Campaigns that actually went out.
 	Sent float64 `json:"sent" url:"sent"`
 
 	extraProperties map[string]interface{}
@@ -141,7 +141,7 @@ func (c *CampaignsAnalyticsDto) String() string {
 type ContactsAnalyticsDto struct {
 	Total        float64 `json:"total" url:"total"`
 	Unsubscribed float64 `json:"unsubscribed" url:"unsubscribed"`
-	// Désinscrits rapportés au total des contacts.
+	// Unsubscribes over total contacts.
 	UnsubscribeRate float64 `json:"unsubscribeRate" url:"unsubscribeRate"`
 	NewLast30Days   float64 `json:"newLast30Days" url:"newLast30Days"`
 
@@ -299,17 +299,17 @@ type MailDomainStatsDto struct {
 	Domain   string                   `json:"domain" url:"domain"`
 	DomainID string                   `json:"domainId" url:"domainId"`
 	Status   MailDomainStatsDtoStatus `json:"status" url:"status"`
-	// Messages émis depuis ce domaine.
+	// Messages issued from this domain.
 	Total      float64 `json:"total" url:"total"`
 	Bounced    float64 `json:"bounced" url:"bounced"`
 	Complained float64 `json:"complained" url:"complained"`
 	Opened     float64 `json:"opened" url:"opened"`
 	Clicked    float64 `json:"clicked" url:"clicked"`
-	// Rejets rapportés aux messages émis.
+	// Bounces over messages issued.
 	BounceRate float64 `json:"bounceRate" url:"bounceRate"`
-	// Plaintes rapportées aux messages émis.
+	// Complaints over messages issued.
 	ComplaintRate float64 `json:"complaintRate" url:"complaintRate"`
-	// Ouvertures rapportées aux messages remis.
+	// Opens over delivered messages.
 	OpenRate float64 `json:"openRate" url:"openRate"`
 
 	extraProperties map[string]interface{}
@@ -538,13 +538,13 @@ type SendsAnalyticsDto struct {
 	Complained float64 `json:"complained" url:"complained"`
 	Failed     float64 `json:"failed" url:"failed"`
 	Last30Days float64 `json:"last30Days" url:"last30Days"`
-	// Ouvertures rapportées aux messages remis.
+	// Opens over delivered messages.
 	OpenRate float64 `json:"openRate" url:"openRate"`
-	// Clics rapportés aux messages remis.
+	// Clicks over delivered messages.
 	ClickRate float64 `json:"clickRate" url:"clickRate"`
-	// Rejets rapportés aux messages émis.
+	// Bounces over messages issued.
 	BounceRate float64 `json:"bounceRate" url:"bounceRate"`
-	// Plaintes rapportées aux messages émis.
+	// Complaints over messages issued.
 	ComplaintRate float64 `json:"complaintRate" url:"complaintRate"`
 
 	extraProperties map[string]interface{}

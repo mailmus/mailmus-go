@@ -32,9 +32,9 @@ type RenameAudienceDto struct {
 }
 
 type AudienceBulkAddResultDto struct {
-	// Contacts rattachés à l’audience.
+	// Contacts attached to the audience.
 	Added float64 `json:"added" url:"added"`
-	// Adresses écartées : inconnues du projet, ou déjà présentes dans l’audience.
+	// Addresses skipped: unknown to the project, or already in the audience.
 	Skipped float64 `json:"skipped" url:"skipped"`
 
 	extraProperties map[string]interface{}
@@ -212,9 +212,9 @@ func (a *AudienceContactListResponseDto) String() string {
 }
 
 type AudienceRecomputeResultDto struct {
-	// Contacts entrés dans l’audience.
+	// Contacts that entered the audience.
 	Added float64 `json:"added" url:"added"`
-	// Contacts qui n’y satisfont plus et en sont sortis.
+	// Contacts that no longer match and left it.
 	Removed float64 `json:"removed" url:"removed"`
 
 	extraProperties map[string]interface{}
@@ -270,11 +270,11 @@ func (a *AudienceRecomputeResultDto) String() string {
 type AudienceResponseDto struct {
 	ID   string `json:"id" url:"id"`
 	Name string `json:"name" url:"name"`
-	// STATIC : composition tenue à la main. DYNAMIC : composition déduite de `rules` et recalculée.
+	// STATIC: membership maintained by hand. DYNAMIC: membership derived from `rules` and recomputed.
 	Type AudienceResponseDtoType `json:"type" url:"type"`
-	// Arbre de critères portant sur les attributs des contacts. Null sur une audience statique.
+	// Tree of criteria over contact attributes. Null on a static audience.
 	Rules map[string]interface{} `json:"rules,omitempty" url:"rules,omitempty"`
-	// Projet auquel cette audience appartient.
+	// Project this audience belongs to.
 	AppID     string    `json:"appId" url:"appId"`
 	CreatedAt time.Time `json:"createdAt" url:"createdAt"`
 
@@ -374,7 +374,7 @@ func (a *AudienceResponseDto) String() string {
 	return fmt.Sprintf("%#v", a)
 }
 
-// STATIC : composition tenue à la main. DYNAMIC : composition déduite de `rules` et recalculée.
+// STATIC: membership maintained by hand. DYNAMIC: membership derived from `rules` and recomputed.
 type AudienceResponseDtoType string
 
 const (

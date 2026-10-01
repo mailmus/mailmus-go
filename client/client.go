@@ -3,12 +3,25 @@
 package client
 
 import (
+	access "github.com/mailmus/mailmus-go/access"
 	analytics "github.com/mailmus/mailmus-go/analytics"
 	apikeys "github.com/mailmus/mailmus-go/apikeys"
 	audiences "github.com/mailmus/mailmus-go/audiences"
 	auth "github.com/mailmus/mailmus-go/auth"
 	authanalytics "github.com/mailmus/mailmus-go/authanalytics"
 	automations "github.com/mailmus/mailmus-go/automations"
+	b2bentitlements "github.com/mailmus/mailmus-go/b2bentitlements"
+	b2bevents "github.com/mailmus/mailmus-go/b2bevents"
+	b2bfeatures "github.com/mailmus/mailmus-go/b2bfeatures"
+	b2binvitations "github.com/mailmus/mailmus-go/b2binvitations"
+	b2bmembers "github.com/mailmus/mailmus-go/b2bmembers"
+	b2borganizationdomains "github.com/mailmus/mailmus-go/b2borganizationdomains"
+	b2borganizations "github.com/mailmus/mailmus-go/b2borganizations"
+	b2bplans "github.com/mailmus/mailmus-go/b2bplans"
+	b2bscimtokens "github.com/mailmus/mailmus-go/b2bscimtokens"
+	b2bsettings "github.com/mailmus/mailmus-go/b2bsettings"
+	b2bsso "github.com/mailmus/mailmus-go/b2bsso"
+	b2bssoconnections "github.com/mailmus/mailmus-go/b2bssoconnections"
 	campaigns "github.com/mailmus/mailmus-go/campaigns"
 	contacts "github.com/mailmus/mailmus-go/contacts"
 	contentcheck "github.com/mailmus/mailmus-go/contentcheck"
@@ -20,12 +33,9 @@ import (
 	emailverification "github.com/mailmus/mailmus-go/emailverification"
 	inboundemails "github.com/mailmus/mailmus-go/inboundemails"
 	internal "github.com/mailmus/mailmus-go/internal"
+	mailsettings "github.com/mailmus/mailmus-go/mailsettings"
 	option "github.com/mailmus/mailmus-go/option"
-	organizationinvitations "github.com/mailmus/mailmus-go/organizationinvitations"
-	organizationmembers "github.com/mailmus/mailmus-go/organizationmembers"
-	organizations "github.com/mailmus/mailmus-go/organizations"
 	seedlist "github.com/mailmus/mailmus-go/seedlist"
-	ssoconnections "github.com/mailmus/mailmus-go/ssoconnections"
 	status "github.com/mailmus/mailmus-go/status"
 	templates "github.com/mailmus/mailmus-go/templates"
 	webhooks "github.com/mailmus/mailmus-go/webhooks"
@@ -37,29 +47,39 @@ type Client struct {
 	caller  *internal.Caller
 	header  http.Header
 
-	APIKeys                 *apikeys.Client
-	Webhooks                *webhooks.Client
-	Customers               *customers.Client
-	Auth                    *auth.Client
-	CustomerVerification    *customerverification.Client
-	Status                  *status.Client
-	Domains                 *domains.Client
-	Templates               *templates.Client
-	Contacts                *contacts.Client
-	Automations             *automations.Client
-	Audiences               *audiences.Client
-	Campaigns               *campaigns.Client
-	SeedList                *seedlist.Client
-	ContentCheck            *contentcheck.Client
-	Emails                  *emails.Client
-	Analytics               *analytics.Client
-	AuthAnalytics           *authanalytics.Client
-	EmailVerification       *emailverification.Client
-	InboundEmails           *inboundemails.Client
-	Organizations           *organizations.Client
-	OrganizationMembers     *organizationmembers.Client
-	OrganizationInvitations *organizationinvitations.Client
-	SSOConnections          *ssoconnections.Client
+	APIKeys                *apikeys.Client
+	Webhooks               *webhooks.Client
+	Access                 *access.Client
+	Auth                   *auth.Client
+	Customers              *customers.Client
+	CustomerVerification   *customerverification.Client
+	Status                 *status.Client
+	Domains                *domains.Client
+	Templates              *templates.Client
+	Contacts               *contacts.Client
+	Automations            *automations.Client
+	Audiences              *audiences.Client
+	Campaigns              *campaigns.Client
+	SeedList               *seedlist.Client
+	ContentCheck           *contentcheck.Client
+	Emails                 *emails.Client
+	Analytics              *analytics.Client
+	MailSettings           *mailsettings.Client
+	AuthAnalytics          *authanalytics.Client
+	EmailVerification      *emailverification.Client
+	InboundEmails          *inboundemails.Client
+	B2BOrganizations       *b2borganizations.Client
+	B2BMembers             *b2bmembers.Client
+	B2BInvitations         *b2binvitations.Client
+	B2BSSOConnections      *b2bssoconnections.Client
+	B2BEvents              *b2bevents.Client
+	B2BOrganizationDomains *b2borganizationdomains.Client
+	B2BSSO                 *b2bsso.Client
+	B2BSettings            *b2bsettings.Client
+	B2BFeatures            *b2bfeatures.Client
+	B2BPlans               *b2bplans.Client
+	B2BEntitlements        *b2bentitlements.Client
+	B2BSCIMTokens          *b2bscimtokens.Client
 }
 
 func NewClient(opts ...option.RequestOption) *Client {
@@ -72,29 +92,39 @@ func NewClient(opts ...option.RequestOption) *Client {
 				MaxAttempts: options.MaxAttempts,
 			},
 		),
-		header:                  options.ToHeader(),
-		APIKeys:                 apikeys.NewClient(opts...),
-		Webhooks:                webhooks.NewClient(opts...),
-		Customers:               customers.NewClient(opts...),
-		Auth:                    auth.NewClient(opts...),
-		CustomerVerification:    customerverification.NewClient(opts...),
-		Status:                  status.NewClient(opts...),
-		Domains:                 domains.NewClient(opts...),
-		Templates:               templates.NewClient(opts...),
-		Contacts:                contacts.NewClient(opts...),
-		Automations:             automations.NewClient(opts...),
-		Audiences:               audiences.NewClient(opts...),
-		Campaigns:               campaigns.NewClient(opts...),
-		SeedList:                seedlist.NewClient(opts...),
-		ContentCheck:            contentcheck.NewClient(opts...),
-		Emails:                  emails.NewClient(opts...),
-		Analytics:               analytics.NewClient(opts...),
-		AuthAnalytics:           authanalytics.NewClient(opts...),
-		EmailVerification:       emailverification.NewClient(opts...),
-		InboundEmails:           inboundemails.NewClient(opts...),
-		Organizations:           organizations.NewClient(opts...),
-		OrganizationMembers:     organizationmembers.NewClient(opts...),
-		OrganizationInvitations: organizationinvitations.NewClient(opts...),
-		SSOConnections:          ssoconnections.NewClient(opts...),
+		header:                 options.ToHeader(),
+		APIKeys:                apikeys.NewClient(opts...),
+		Webhooks:               webhooks.NewClient(opts...),
+		Access:                 access.NewClient(opts...),
+		Auth:                   auth.NewClient(opts...),
+		Customers:              customers.NewClient(opts...),
+		CustomerVerification:   customerverification.NewClient(opts...),
+		Status:                 status.NewClient(opts...),
+		Domains:                domains.NewClient(opts...),
+		Templates:              templates.NewClient(opts...),
+		Contacts:               contacts.NewClient(opts...),
+		Automations:            automations.NewClient(opts...),
+		Audiences:              audiences.NewClient(opts...),
+		Campaigns:              campaigns.NewClient(opts...),
+		SeedList:               seedlist.NewClient(opts...),
+		ContentCheck:           contentcheck.NewClient(opts...),
+		Emails:                 emails.NewClient(opts...),
+		Analytics:              analytics.NewClient(opts...),
+		MailSettings:           mailsettings.NewClient(opts...),
+		AuthAnalytics:          authanalytics.NewClient(opts...),
+		EmailVerification:      emailverification.NewClient(opts...),
+		InboundEmails:          inboundemails.NewClient(opts...),
+		B2BOrganizations:       b2borganizations.NewClient(opts...),
+		B2BMembers:             b2bmembers.NewClient(opts...),
+		B2BInvitations:         b2binvitations.NewClient(opts...),
+		B2BSSOConnections:      b2bssoconnections.NewClient(opts...),
+		B2BEvents:              b2bevents.NewClient(opts...),
+		B2BOrganizationDomains: b2borganizationdomains.NewClient(opts...),
+		B2BSSO:                 b2bsso.NewClient(opts...),
+		B2BSettings:            b2bsettings.NewClient(opts...),
+		B2BFeatures:            b2bfeatures.NewClient(opts...),
+		B2BPlans:               b2bplans.NewClient(opts...),
+		B2BEntitlements:        b2bentitlements.NewClient(opts...),
+		B2BSCIMTokens:          b2bscimtokens.NewClient(opts...),
 	}
 }

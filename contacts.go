@@ -70,9 +70,9 @@ func (c *ContactDeletedResponseDto) String() string {
 }
 
 type ContactImportResultDto struct {
-	// Contacts créés ou mis à jour.
+	// Contacts created or updated.
 	Imported float64 `json:"imported" url:"imported"`
-	// Lignes écartées : adresse invalide ou doublon.
+	// Rows skipped: invalid address, or duplicate.
 	Skipped float64 `json:"skipped" url:"skipped"`
 
 	extraProperties map[string]interface{}
@@ -129,7 +129,7 @@ type ContactListResponseDto struct {
 	Data []*ContactResponseDto `json:"data,omitempty" url:"data,omitempty"`
 	// Nombre total de contacts correspondant au filtre.
 	Total float64 `json:"total" url:"total"`
-	// Page demandée, à partir de 1.
+	// Requested page, starting at 1.
 	Page float64 `json:"page" url:"page"`
 	// Nombre de pages disponibles.
 	Pages float64 `json:"pages" url:"pages"`

@@ -12,13 +12,73 @@ type VerifyTokenDto struct {
 	AccessToken string `json:"accessToken" url:"-"`
 }
 
+type ImpersonationActorDto struct {
+	// The team member acting for this user.
+	ID    string `json:"id" url:"id"`
+	Email string `json:"email" url:"email"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (i *ImpersonationActorDto) GetID() string {
+	if i == nil {
+		return ""
+	}
+	return i.ID
+}
+
+func (i *ImpersonationActorDto) GetEmail() string {
+	if i == nil {
+		return ""
+	}
+	return i.Email
+}
+
+func (i *ImpersonationActorDto) GetExtraProperties() map[string]interface{} {
+	return i.extraProperties
+}
+
+func (i *ImpersonationActorDto) UnmarshalJSON(data []byte) error {
+	type unmarshaler ImpersonationActorDto
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*i = ImpersonationActorDto(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *i)
+	if err != nil {
+		return err
+	}
+	i.extraProperties = extraProperties
+	i.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (i *ImpersonationActorDto) String() string {
+	if len(i.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(i.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(i); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", i)
+}
+
 type VerifiedCustomerResponseDto struct {
-	ID               string                 `json:"id" url:"id"`
-	Email            *string                `json:"email,omitempty" url:"email,omitempty"`
-	Metadata         map[string]interface{} `json:"metadata,omitempty" url:"metadata,omitempty"`
-	SessionID        *string                `json:"sessionId,omitempty" url:"sessionId,omitempty"`
-	OrganizationID   *string                `json:"organizationId,omitempty" url:"organizationId,omitempty"`
-	OrganizationRole *string                `json:"organizationRole,omitempty" url:"organizationRole,omitempty"`
+	ID             string                 `json:"id" url:"id"`
+	Email          *string                `json:"email,omitempty" url:"email,omitempty"`
+	Metadata       map[string]interface{} `json:"metadata,omitempty" url:"metadata,omitempty"`
+	SessionID      *string                `json:"sessionId,omitempty" url:"sessionId,omitempty"`
+	OrganizationID *string                `json:"organizationId,omitempty" url:"organizationId,omitempty"`
+	// Every role of the Customer in the active organization, such as org:admin or billing. Null when no organization is active.
+	OrganizationRoles []string `json:"organizationRoles,omitempty" url:"organizationRoles,omitempty"`
+	// OWNER, ADMIN or MEMBER: the highest built-in role among organizationRoles. Use organizationRoles.
+	OrganizationRole *string `json:"organizationRole,omitempty" url:"organizationRole,omitempty"`
+	// Set when a member of your team is signed in as this user from the dashboard, null otherwise. Use it to show a banner, and to refuse anything only the user should do.
+	Actor *ImpersonationActorDto `json:"actor,omitempty" url:"actor,omitempty"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -59,11 +119,25 @@ func (v *VerifiedCustomerResponseDto) GetOrganizationID() *string {
 	return v.OrganizationID
 }
 
+func (v *VerifiedCustomerResponseDto) GetOrganizationRoles() []string {
+	if v == nil {
+		return nil
+	}
+	return v.OrganizationRoles
+}
+
 func (v *VerifiedCustomerResponseDto) GetOrganizationRole() *string {
 	if v == nil {
 		return nil
 	}
 	return v.OrganizationRole
+}
+
+func (v *VerifiedCustomerResponseDto) GetActor() *ImpersonationActorDto {
+	if v == nil {
+		return nil
+	}
+	return v.Actor
 }
 
 func (v *VerifiedCustomerResponseDto) GetExtraProperties() map[string]interface{} {

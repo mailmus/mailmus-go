@@ -18,9 +18,9 @@ type SeedListEntryResponseDto struct {
 	ID    string `json:"id" url:"id"`
 	AppID string `json:"appId" url:"appId"`
 	Email string `json:"email" url:"email"`
-	// Repère libre, par exemple le fournisseur testé.
-	Label     map[string]interface{} `json:"label,omitempty" url:"label,omitempty"`
-	CreatedAt time.Time              `json:"createdAt" url:"createdAt"`
+	// Free-form label, for example the provider being tested.
+	Label     *string   `json:"label,omitempty" url:"label,omitempty"`
+	CreatedAt time.Time `json:"createdAt" url:"createdAt"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -47,7 +47,7 @@ func (s *SeedListEntryResponseDto) GetEmail() string {
 	return s.Email
 }
 
-func (s *SeedListEntryResponseDto) GetLabel() map[string]interface{} {
+func (s *SeedListEntryResponseDto) GetLabel() *string {
 	if s == nil {
 		return nil
 	}

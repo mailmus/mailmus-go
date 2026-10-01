@@ -17,15 +17,17 @@ type CreateAPIKeyDto struct {
 
 type APIKeyResponseDto struct {
 	ID string `json:"id" url:"id"`
-	// Nom que vous lui avez donné.
+	// The name you gave it.
 	Name string `json:"name" url:"name"`
-	// SECRET reste sur votre serveur. PUBLISHABLE peut vivre dans un navigateur ou une application mobile : elle n’ouvre que les routes d’authentification des Customers.
+	// SECRET stays on your server. PUBLISHABLE can live in a browser or a mobile app: it opens only the Customer authentication routes.
 	Type APIKeyResponseDtoType `json:"type" url:"type"`
-	// Une clé TEST n’envoie rien pour de vrai.
+	// A TEST key sends nothing for real.
 	Environment APIKeyResponseDtoEnvironment `json:"environment" url:"environment"`
-	// Dernier usage constaté. Nul si la clé n’a jamais servi.
-	LastUsedAt map[string]interface{} `json:"lastUsedAt,omitempty" url:"lastUsedAt,omitempty"`
-	CreatedAt  time.Time              `json:"createdAt" url:"createdAt"`
+	// The key value, for a PUBLISHABLE key only. Always null for a SECRET key, which is kept hashed only. Null too for a publishable key created before 10 September 2026: its value was not kept and cannot be recovered.
+	Key *string `json:"key,omitempty" url:"key,omitempty"`
+	// Last use observed. Null if the key was never used.
+	LastUsedAt *time.Time `json:"lastUsedAt,omitempty" url:"lastUsedAt,omitempty"`
+	CreatedAt  time.Time  `json:"createdAt" url:"createdAt"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -59,7 +61,14 @@ func (a *APIKeyResponseDto) GetEnvironment() APIKeyResponseDtoEnvironment {
 	return a.Environment
 }
 
-func (a *APIKeyResponseDto) GetLastUsedAt() map[string]interface{} {
+func (a *APIKeyResponseDto) GetKey() *string {
+	if a == nil {
+		return nil
+	}
+	return a.Key
+}
+
+func (a *APIKeyResponseDto) GetLastUsedAt() *time.Time {
 	if a == nil {
 		return nil
 	}
@@ -81,7 +90,8 @@ func (a *APIKeyResponseDto) UnmarshalJSON(data []byte) error {
 	type embed APIKeyResponseDto
 	var unmarshaler = struct {
 		embed
-		CreatedAt *internal.DateTime `json:"createdAt"`
+		LastUsedAt *internal.DateTime `json:"lastUsedAt,omitempty"`
+		CreatedAt  *internal.DateTime `json:"createdAt"`
 	}{
 		embed: embed(*a),
 	}
@@ -89,6 +99,7 @@ func (a *APIKeyResponseDto) UnmarshalJSON(data []byte) error {
 		return err
 	}
 	*a = APIKeyResponseDto(unmarshaler.embed)
+	a.LastUsedAt = unmarshaler.LastUsedAt.TimePtr()
 	a.CreatedAt = unmarshaler.CreatedAt.Time()
 	extraProperties, err := internal.ExtractExtraProperties(data, *a)
 	if err != nil {
@@ -103,10 +114,12 @@ func (a *APIKeyResponseDto) MarshalJSON() ([]byte, error) {
 	type embed APIKeyResponseDto
 	var marshaler = struct {
 		embed
-		CreatedAt *internal.DateTime `json:"createdAt"`
+		LastUsedAt *internal.DateTime `json:"lastUsedAt,omitempty"`
+		CreatedAt  *internal.DateTime `json:"createdAt"`
 	}{
-		embed:     embed(*a),
-		CreatedAt: internal.NewDateTime(a.CreatedAt),
+		embed:      embed(*a),
+		LastUsedAt: internal.NewOptionalDateTime(a.LastUsedAt),
+		CreatedAt:  internal.NewDateTime(a.CreatedAt),
 	}
 	return json.Marshal(marshaler)
 }
@@ -123,7 +136,7 @@ func (a *APIKeyResponseDto) String() string {
 	return fmt.Sprintf("%#v", a)
 }
 
-// Une clé TEST n’envoie rien pour de vrai.
+// A TEST key sends nothing for real.
 type APIKeyResponseDtoEnvironment string
 
 const (
@@ -146,7 +159,7 @@ func (a APIKeyResponseDtoEnvironment) Ptr() *APIKeyResponseDtoEnvironment {
 	return &a
 }
 
-// SECRET reste sur votre serveur. PUBLISHABLE peut vivre dans un navigateur ou une application mobile : elle n’ouvre que les routes d’authentification des Customers.
+// SECRET stays on your server. PUBLISHABLE can live in a browser or a mobile app: it opens only the Customer authentication routes.
 type APIKeyResponseDtoType string
 
 const (
@@ -171,16 +184,16 @@ func (a APIKeyResponseDtoType) Ptr() *APIKeyResponseDtoType {
 
 type APIKeyWithValueResponseDto struct {
 	ID string `json:"id" url:"id"`
-	// Nom que vous lui avez donné.
+	// The name you gave it.
 	Name string `json:"name" url:"name"`
-	// SECRET reste sur votre serveur. PUBLISHABLE peut vivre dans un navigateur ou une application mobile : elle n’ouvre que les routes d’authentification des Customers.
+	// SECRET stays on your server. PUBLISHABLE can live in a browser or a mobile app: it opens only the Customer authentication routes.
 	Type APIKeyWithValueResponseDtoType `json:"type" url:"type"`
-	// Une clé TEST n’envoie rien pour de vrai.
+	// A TEST key sends nothing for real.
 	Environment APIKeyWithValueResponseDtoEnvironment `json:"environment" url:"environment"`
-	// Dernier usage constaté. Nul si la clé n’a jamais servi.
-	LastUsedAt map[string]interface{} `json:"lastUsedAt,omitempty" url:"lastUsedAt,omitempty"`
-	CreatedAt  time.Time              `json:"createdAt" url:"createdAt"`
-	// Visible ici et nulle part ailleurs.
+	// Last use observed. Null if the key was never used.
+	LastUsedAt *time.Time `json:"lastUsedAt,omitempty" url:"lastUsedAt,omitempty"`
+	CreatedAt  time.Time  `json:"createdAt" url:"createdAt"`
+	// For a SECRET key, shown here and nowhere else. For a PUBLISHABLE key, readable again afterwards in the list.
 	Key string `json:"key" url:"key"`
 
 	extraProperties map[string]interface{}
@@ -215,7 +228,7 @@ func (a *APIKeyWithValueResponseDto) GetEnvironment() APIKeyWithValueResponseDto
 	return a.Environment
 }
 
-func (a *APIKeyWithValueResponseDto) GetLastUsedAt() map[string]interface{} {
+func (a *APIKeyWithValueResponseDto) GetLastUsedAt() *time.Time {
 	if a == nil {
 		return nil
 	}
@@ -244,7 +257,8 @@ func (a *APIKeyWithValueResponseDto) UnmarshalJSON(data []byte) error {
 	type embed APIKeyWithValueResponseDto
 	var unmarshaler = struct {
 		embed
-		CreatedAt *internal.DateTime `json:"createdAt"`
+		LastUsedAt *internal.DateTime `json:"lastUsedAt,omitempty"`
+		CreatedAt  *internal.DateTime `json:"createdAt"`
 	}{
 		embed: embed(*a),
 	}
@@ -252,6 +266,7 @@ func (a *APIKeyWithValueResponseDto) UnmarshalJSON(data []byte) error {
 		return err
 	}
 	*a = APIKeyWithValueResponseDto(unmarshaler.embed)
+	a.LastUsedAt = unmarshaler.LastUsedAt.TimePtr()
 	a.CreatedAt = unmarshaler.CreatedAt.Time()
 	extraProperties, err := internal.ExtractExtraProperties(data, *a)
 	if err != nil {
@@ -266,10 +281,12 @@ func (a *APIKeyWithValueResponseDto) MarshalJSON() ([]byte, error) {
 	type embed APIKeyWithValueResponseDto
 	var marshaler = struct {
 		embed
-		CreatedAt *internal.DateTime `json:"createdAt"`
+		LastUsedAt *internal.DateTime `json:"lastUsedAt,omitempty"`
+		CreatedAt  *internal.DateTime `json:"createdAt"`
 	}{
-		embed:     embed(*a),
-		CreatedAt: internal.NewDateTime(a.CreatedAt),
+		embed:      embed(*a),
+		LastUsedAt: internal.NewOptionalDateTime(a.LastUsedAt),
+		CreatedAt:  internal.NewDateTime(a.CreatedAt),
 	}
 	return json.Marshal(marshaler)
 }
@@ -286,7 +303,7 @@ func (a *APIKeyWithValueResponseDto) String() string {
 	return fmt.Sprintf("%#v", a)
 }
 
-// Une clé TEST n’envoie rien pour de vrai.
+// A TEST key sends nothing for real.
 type APIKeyWithValueResponseDtoEnvironment string
 
 const (
@@ -309,7 +326,7 @@ func (a APIKeyWithValueResponseDtoEnvironment) Ptr() *APIKeyWithValueResponseDto
 	return &a
 }
 
-// SECRET reste sur votre serveur. PUBLISHABLE peut vivre dans un navigateur ou une application mobile : elle n’ouvre que les routes d’authentification des Customers.
+// SECRET stays on your server. PUBLISHABLE can live in a browser or a mobile app: it opens only the Customer authentication routes.
 type APIKeyWithValueResponseDtoType string
 
 const (

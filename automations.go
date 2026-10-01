@@ -21,11 +21,11 @@ type RenameAutomationDto struct {
 type AutomationResponseDto struct {
 	ID   string `json:"id" url:"id"`
 	Name string `json:"name" url:"name"`
-	// Ce qui déclenche l’automatisation.
+	// What triggers the automation.
 	Trigger map[string]interface{} `json:"trigger,omitempty" url:"trigger,omitempty"`
-	// Étapes exécutées dans l’ordre après le déclenchement.
+	// Steps run in order after the trigger.
 	Steps []map[string]interface{} `json:"steps,omitempty" url:"steps,omitempty"`
-	// Une automatisation inactive garde ses étapes mais ne se déclenche plus.
+	// An inactive automation keeps its steps but no longer triggers.
 	Active    bool      `json:"active" url:"active"`
 	AppID     string    `json:"appId" url:"appId"`
 	CreatedAt time.Time `json:"createdAt" url:"createdAt"`
@@ -148,13 +148,13 @@ func (a *AutomationResponseDto) String() string {
 type AutomationRunResponseDto struct {
 	ID           string `json:"id" url:"id"`
 	AutomationID string `json:"automationId" url:"automationId"`
-	// Contact pour lequel cette exécution tourne.
+	// Contact this run is for.
 	ContactID string `json:"contactId" url:"contactId"`
-	// Index de l’étape en cours, à partir de 0.
-	CurrentStep float64                `json:"currentStep" url:"currentStep"`
-	Status      string                 `json:"status" url:"status"`
-	StartedAt   time.Time              `json:"startedAt" url:"startedAt"`
-	FinishedAt  map[string]interface{} `json:"finishedAt,omitempty" url:"finishedAt,omitempty"`
+	// Index of the current step, starting at 0.
+	CurrentStep float64    `json:"currentStep" url:"currentStep"`
+	Status      string     `json:"status" url:"status"`
+	StartedAt   time.Time  `json:"startedAt" url:"startedAt"`
+	FinishedAt  *time.Time `json:"finishedAt,omitempty" url:"finishedAt,omitempty"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -202,7 +202,7 @@ func (a *AutomationRunResponseDto) GetStartedAt() time.Time {
 	return a.StartedAt
 }
 
-func (a *AutomationRunResponseDto) GetFinishedAt() map[string]interface{} {
+func (a *AutomationRunResponseDto) GetFinishedAt() *time.Time {
 	if a == nil {
 		return nil
 	}
@@ -217,7 +217,8 @@ func (a *AutomationRunResponseDto) UnmarshalJSON(data []byte) error {
 	type embed AutomationRunResponseDto
 	var unmarshaler = struct {
 		embed
-		StartedAt *internal.DateTime `json:"startedAt"`
+		StartedAt  *internal.DateTime `json:"startedAt"`
+		FinishedAt *internal.DateTime `json:"finishedAt,omitempty"`
 	}{
 		embed: embed(*a),
 	}
@@ -226,6 +227,7 @@ func (a *AutomationRunResponseDto) UnmarshalJSON(data []byte) error {
 	}
 	*a = AutomationRunResponseDto(unmarshaler.embed)
 	a.StartedAt = unmarshaler.StartedAt.Time()
+	a.FinishedAt = unmarshaler.FinishedAt.TimePtr()
 	extraProperties, err := internal.ExtractExtraProperties(data, *a)
 	if err != nil {
 		return err
@@ -239,10 +241,12 @@ func (a *AutomationRunResponseDto) MarshalJSON() ([]byte, error) {
 	type embed AutomationRunResponseDto
 	var marshaler = struct {
 		embed
-		StartedAt *internal.DateTime `json:"startedAt"`
+		StartedAt  *internal.DateTime `json:"startedAt"`
+		FinishedAt *internal.DateTime `json:"finishedAt,omitempty"`
 	}{
-		embed:     embed(*a),
-		StartedAt: internal.NewDateTime(a.StartedAt),
+		embed:      embed(*a),
+		StartedAt:  internal.NewDateTime(a.StartedAt),
+		FinishedAt: internal.NewOptionalDateTime(a.FinishedAt),
 	}
 	return json.Marshal(marshaler)
 }

@@ -20,12 +20,12 @@ type AppAuthAnalyticsTimeSeriesRequest struct {
 type AuthAnalyticsResponseDto struct {
 	ProjectID   string `json:"projectId" url:"projectId"`
 	ProjectName string `json:"projectName" url:"projectName"`
-	// Absent sur les lignes par projet d’un agrégat : n’y sert qu’à borner le sélecteur d’année.
+	// Absent on the per-project rows of an aggregate: it only bounds the year selector.
 	ProjectCreatedAt *time.Time `json:"projectCreatedAt,omitempty" url:"projectCreatedAt,omitempty"`
-	// Absent sur un agrégat multi-projets : additionner des user-agents entre projets ne veut rien dire.
+	// Absent on a multi-project aggregate: adding up user-agents across projects means nothing.
 	Devices   *AuthDevicesDto            `json:"devices,omitempty" url:"devices,omitempty"`
 	Customers *AuthCustomersAnalyticsDto `json:"customers,omitempty" url:"customers,omitempty"`
-	// Nombre de Customers par méthode de connexion (PASSWORD, GOOGLE, GITHUB...).
+	// Number of Customers per sign-in method (PASSWORD, GOOGLE, GITHUB, and so on).
 	Providers  map[string]float64 `json:"providers,omitempty" url:"providers,omitempty"`
 	Engagement *AuthEngagementDto `json:"engagement,omitempty" url:"engagement,omitempty"`
 
@@ -136,13 +136,13 @@ type AuthCustomersAnalyticsDto struct {
 	Total             float64 `json:"total" url:"total"`
 	NewLast30Days     float64 `json:"newLast30Days" url:"newLast30Days"`
 	DeletedLast30Days float64 `json:"deletedLast30Days" url:"deletedLast30Days"`
-	// Customers dont l’adresse est vérifiée.
+	// Customers whose address is verified.
 	Verified float64 `json:"verified" url:"verified"`
-	// Vérifiés rapportés au total. Fraction entre 0 et 1.
+	// Verified over total. A fraction between 0 and 1.
 	VerifiedRate float64 `json:"verifiedRate" url:"verifiedRate"`
 	Banned       float64 `json:"banned" url:"banned"`
 	BannedRate   float64 `json:"bannedRate" url:"bannedRate"`
-	// Customers ayant activé un second facteur.
+	// Customers who turned on a second factor.
 	MfaEnabled     float64 `json:"mfaEnabled" url:"mfaEnabled"`
 	MfaEnabledRate float64 `json:"mfaEnabledRate" url:"mfaEnabledRate"`
 
@@ -378,13 +378,13 @@ func (a *AuthDormantBreakdownDto) String() string {
 }
 
 type AuthEngagementDto struct {
-	// Customers actifs sur le mois en cours.
+	// Customers active in the current month.
 	Mau float64 `json:"mau" url:"mau"`
-	// Dénominateur des taux de récurrence : Customers ayant eu au moins une session. Ceux qui ne sont jamais venus n’y comptent pas.
+	// Denominator of the retention rates: Customers with at least one session. Those who never came do not count.
 	EverActiveUsers float64 `json:"everActiveUsers" url:"everActiveUsers"`
-	// Customers actifs sur au moins deux mois calendaires distincts.
+	// Customers active in at least two distinct calendar months.
 	RecurringUsers float64 `json:"recurringUsers" url:"recurringUsers"`
-	// Récurrents rapportés à everActiveUsers.
+	// Returning users over everActiveUsers.
 	RecurringRate float64                  `json:"recurringRate" url:"recurringRate"`
 	Dormant       *AuthDormantBreakdownDto `json:"dormant,omitempty" url:"dormant,omitempty"`
 
@@ -576,16 +576,17 @@ func (a *AuthTimeSeriesPointDto) String() string {
 }
 
 type DeviceBreakdownItemDto struct {
-	Label string  `json:"label" url:"label"`
+	// `null` groups the less common and unrecognised devices.
+	Label *string `json:"label,omitempty" url:"label,omitempty"`
 	Count float64 `json:"count" url:"count"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
 }
 
-func (d *DeviceBreakdownItemDto) GetLabel() string {
+func (d *DeviceBreakdownItemDto) GetLabel() *string {
 	if d == nil {
-		return ""
+		return nil
 	}
 	return d.Label
 }

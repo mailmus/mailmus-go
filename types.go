@@ -12,9 +12,9 @@ import (
 type ContactResponseDto struct {
 	ID    string `json:"id" url:"id"`
 	Email string `json:"email" url:"email"`
-	// Attributs libres que vous attachez au contact, utilisables comme variables de personnalisation et comme critères d’audience.
+	// Free-form attributes you attach to the contact, usable as personalization variables and as audience criteria.
 	Attributes map[string]interface{} `json:"attributes,omitempty" url:"attributes,omitempty"`
-	// Vrai si le contact s’est désinscrit. Un contact désinscrit est exclu de tout envoi marketing, jamais des envois transactionnels.
+	// True if the contact unsubscribed. An unsubscribed contact is excluded from every marketing send, never from transactional ones.
 	Unsubscribed bool `json:"unsubscribed" url:"unsubscribed"`
 	// Projet auquel ce contact appartient.
 	AppID     string    `json:"appId" url:"appId"`
@@ -174,9 +174,116 @@ func (d *DeletedResponseDto) String() string {
 	return fmt.Sprintf("%#v", d)
 }
 
+type DomainJoinResponseDto struct {
+	// True only when this call added the person. False if they were already a member, or if nothing matched.
+	Joined bool `json:"joined" url:"joined"`
+	// The organization they belong to, or null when no organization has proved their email domain with automatic joining turned on.
+	OrganizationID *string `json:"organizationId,omitempty" url:"organizationId,omitempty"`
+	// The email domain that was looked up, or null when the address carries none.
+	Domain *string `json:"domain,omitempty" url:"domain,omitempty"`
+	// JOINED: added now. ALREADY_MEMBER: nothing to do. NO_EMAIL_DOMAIN: the address carries no usable domain. NO_MATCHING_DOMAIN: no organization in this project has proved that domain with automatic joining turned on.
+	Reason DomainJoinResponseDtoReason `json:"reason" url:"reason"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (d *DomainJoinResponseDto) GetJoined() bool {
+	if d == nil {
+		return false
+	}
+	return d.Joined
+}
+
+func (d *DomainJoinResponseDto) GetOrganizationID() *string {
+	if d == nil {
+		return nil
+	}
+	return d.OrganizationID
+}
+
+func (d *DomainJoinResponseDto) GetDomain() *string {
+	if d == nil {
+		return nil
+	}
+	return d.Domain
+}
+
+func (d *DomainJoinResponseDto) GetReason() DomainJoinResponseDtoReason {
+	if d == nil {
+		return ""
+	}
+	return d.Reason
+}
+
+func (d *DomainJoinResponseDto) GetExtraProperties() map[string]interface{} {
+	return d.extraProperties
+}
+
+func (d *DomainJoinResponseDto) UnmarshalJSON(data []byte) error {
+	type unmarshaler DomainJoinResponseDto
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*d = DomainJoinResponseDto(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *d)
+	if err != nil {
+		return err
+	}
+	d.extraProperties = extraProperties
+	d.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (d *DomainJoinResponseDto) String() string {
+	if len(d.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(d.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(d); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", d)
+}
+
+// JOINED: added now. ALREADY_MEMBER: nothing to do. NO_EMAIL_DOMAIN: the address carries no usable domain. NO_MATCHING_DOMAIN: no organization in this project has proved that domain with automatic joining turned on.
+type DomainJoinResponseDtoReason string
+
+const (
+	DomainJoinResponseDtoReasonJoined           DomainJoinResponseDtoReason = "JOINED"
+	DomainJoinResponseDtoReasonAlreadyMember    DomainJoinResponseDtoReason = "ALREADY_MEMBER"
+	DomainJoinResponseDtoReasonNoEmailDomain    DomainJoinResponseDtoReason = "NO_EMAIL_DOMAIN"
+	DomainJoinResponseDtoReasonNoMatchingDomain DomainJoinResponseDtoReason = "NO_MATCHING_DOMAIN"
+)
+
+func NewDomainJoinResponseDtoReasonFromString(s string) (DomainJoinResponseDtoReason, error) {
+	switch s {
+	case "JOINED":
+		return DomainJoinResponseDtoReasonJoined, nil
+	case "ALREADY_MEMBER":
+		return DomainJoinResponseDtoReasonAlreadyMember, nil
+	case "NO_EMAIL_DOMAIN":
+		return DomainJoinResponseDtoReasonNoEmailDomain, nil
+	case "NO_MATCHING_DOMAIN":
+		return DomainJoinResponseDtoReasonNoMatchingDomain, nil
+	}
+	var t DomainJoinResponseDtoReason
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (d DomainJoinResponseDtoReason) Ptr() *DomainJoinResponseDtoReason {
+	return &d
+}
+
 type OrganizationCustomerSummaryDto struct {
 	ID    string  `json:"id" url:"id"`
 	Email *string `json:"email,omitempty" url:"email,omitempty"`
+	// Identifier of this person in your own system, when you authenticate them yourself. Null for a member who signs in with Mailmus.
+	ExternalID *string `json:"externalId,omitempty" url:"externalId,omitempty"`
+	// Who holds this identity. EXTERNAL means you authenticate this person yourself, and Mailmus only knows them as a member. It becomes MAILMUS_AUTH the first time they sign in with Mailmus.
+	IdentitySource OrganizationCustomerSummaryDtoIdentitySource `json:"identitySource" url:"identitySource"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -194,6 +301,20 @@ func (o *OrganizationCustomerSummaryDto) GetEmail() *string {
 		return nil
 	}
 	return o.Email
+}
+
+func (o *OrganizationCustomerSummaryDto) GetExternalID() *string {
+	if o == nil {
+		return nil
+	}
+	return o.ExternalID
+}
+
+func (o *OrganizationCustomerSummaryDto) GetIdentitySource() OrganizationCustomerSummaryDtoIdentitySource {
+	if o == nil {
+		return ""
+	}
+	return o.IdentitySource
 }
 
 func (o *OrganizationCustomerSummaryDto) GetExtraProperties() map[string]interface{} {
@@ -226,6 +347,29 @@ func (o *OrganizationCustomerSummaryDto) String() string {
 		return value
 	}
 	return fmt.Sprintf("%#v", o)
+}
+
+// Who holds this identity. EXTERNAL means you authenticate this person yourself, and Mailmus only knows them as a member. It becomes MAILMUS_AUTH the first time they sign in with Mailmus.
+type OrganizationCustomerSummaryDtoIdentitySource string
+
+const (
+	OrganizationCustomerSummaryDtoIdentitySourceMailmusAuth OrganizationCustomerSummaryDtoIdentitySource = "MAILMUS_AUTH"
+	OrganizationCustomerSummaryDtoIdentitySourceExternal    OrganizationCustomerSummaryDtoIdentitySource = "EXTERNAL"
+)
+
+func NewOrganizationCustomerSummaryDtoIdentitySourceFromString(s string) (OrganizationCustomerSummaryDtoIdentitySource, error) {
+	switch s {
+	case "MAILMUS_AUTH":
+		return OrganizationCustomerSummaryDtoIdentitySourceMailmusAuth, nil
+	case "EXTERNAL":
+		return OrganizationCustomerSummaryDtoIdentitySourceExternal, nil
+	}
+	var t OrganizationCustomerSummaryDtoIdentitySource
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (o OrganizationCustomerSummaryDtoIdentitySource) Ptr() *OrganizationCustomerSummaryDtoIdentitySource {
+	return &o
 }
 
 type OrganizationMemberRemovedResponseDto struct {
@@ -275,13 +419,17 @@ func (o *OrganizationMemberRemovedResponseDto) String() string {
 }
 
 type OrganizationMembershipResponseDto struct {
-	ID             string                                `json:"id" url:"id"`
-	OrganizationID string                                `json:"organizationId" url:"organizationId"`
-	CustomerID     string                                `json:"customerId" url:"customerId"`
-	Role           OrganizationMembershipResponseDtoRole `json:"role" url:"role"`
-	CreatedAt      time.Time                             `json:"createdAt" url:"createdAt"`
-	UpdatedAt      time.Time                             `json:"updatedAt" url:"updatedAt"`
-	Customer       *OrganizationCustomerSummaryDto       `json:"customer,omitempty" url:"customer,omitempty"`
+	ID             string `json:"id" url:"id"`
+	OrganizationID string `json:"organizationId" url:"organizationId"`
+	CustomerID     string `json:"customerId" url:"customerId"`
+	// The highest built-in role among roles. Use roles.
+	Role  OrganizationMembershipResponseDtoRole `json:"role" url:"role"`
+	Roles []string                              `json:"roles,omitempty" url:"roles,omitempty"`
+	// How this person joined: API when your server or the dashboard added them, INVITATION when they accepted an invitation, SSO when they signed in through the organization's single sign-on, DOMAIN when they signed up with an email on a domain this organization has verified.
+	Source    OrganizationMembershipResponseDtoSource `json:"source" url:"source"`
+	CreatedAt time.Time                               `json:"createdAt" url:"createdAt"`
+	UpdatedAt time.Time                               `json:"updatedAt" url:"updatedAt"`
+	Customer  *OrganizationCustomerSummaryDto         `json:"customer,omitempty" url:"customer,omitempty"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -313,6 +461,20 @@ func (o *OrganizationMembershipResponseDto) GetRole() OrganizationMembershipResp
 		return ""
 	}
 	return o.Role
+}
+
+func (o *OrganizationMembershipResponseDto) GetRoles() []string {
+	if o == nil {
+		return nil
+	}
+	return o.Roles
+}
+
+func (o *OrganizationMembershipResponseDto) GetSource() OrganizationMembershipResponseDtoSource {
+	if o == nil {
+		return ""
+	}
+	return o.Source
 }
 
 func (o *OrganizationMembershipResponseDto) GetCreatedAt() time.Time {
@@ -390,6 +552,7 @@ func (o *OrganizationMembershipResponseDto) String() string {
 	return fmt.Sprintf("%#v", o)
 }
 
+// The highest built-in role among roles. Use roles.
 type OrganizationMembershipResponseDtoRole string
 
 const (
@@ -412,6 +575,38 @@ func NewOrganizationMembershipResponseDtoRoleFromString(s string) (OrganizationM
 }
 
 func (o OrganizationMembershipResponseDtoRole) Ptr() *OrganizationMembershipResponseDtoRole {
+	return &o
+}
+
+// How this person joined: API when your server or the dashboard added them, INVITATION when they accepted an invitation, SSO when they signed in through the organization's single sign-on, DOMAIN when they signed up with an email on a domain this organization has verified.
+type OrganizationMembershipResponseDtoSource string
+
+const (
+	OrganizationMembershipResponseDtoSourceAPI        OrganizationMembershipResponseDtoSource = "API"
+	OrganizationMembershipResponseDtoSourceInvitation OrganizationMembershipResponseDtoSource = "INVITATION"
+	OrganizationMembershipResponseDtoSourceSSO        OrganizationMembershipResponseDtoSource = "SSO"
+	OrganizationMembershipResponseDtoSourceDomain     OrganizationMembershipResponseDtoSource = "DOMAIN"
+	OrganizationMembershipResponseDtoSourceSCIM       OrganizationMembershipResponseDtoSource = "SCIM"
+)
+
+func NewOrganizationMembershipResponseDtoSourceFromString(s string) (OrganizationMembershipResponseDtoSource, error) {
+	switch s {
+	case "API":
+		return OrganizationMembershipResponseDtoSourceAPI, nil
+	case "INVITATION":
+		return OrganizationMembershipResponseDtoSourceInvitation, nil
+	case "SSO":
+		return OrganizationMembershipResponseDtoSourceSSO, nil
+	case "DOMAIN":
+		return OrganizationMembershipResponseDtoSourceDomain, nil
+	case "SCIM":
+		return OrganizationMembershipResponseDtoSourceSCIM, nil
+	}
+	var t OrganizationMembershipResponseDtoSource
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (o OrganizationMembershipResponseDtoSource) Ptr() *OrganizationMembershipResponseDtoSource {
 	return &o
 }
 
@@ -458,6 +653,61 @@ func (s *SendContactSummaryDto) UnmarshalJSON(data []byte) error {
 }
 
 func (s *SendContactSummaryDto) String() string {
+	if len(s.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(s.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(s); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", s)
+}
+
+type SSOStartResponseDto struct {
+	SSORequired bool `json:"ssoRequired" url:"ssoRequired"`
+	// Where to send the person. Absent when ssoRequired is false.
+	RedirectURL *string `json:"redirectUrl,omitempty" url:"redirectUrl,omitempty"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (s *SSOStartResponseDto) GetSSORequired() bool {
+	if s == nil {
+		return false
+	}
+	return s.SSORequired
+}
+
+func (s *SSOStartResponseDto) GetRedirectURL() *string {
+	if s == nil {
+		return nil
+	}
+	return s.RedirectURL
+}
+
+func (s *SSOStartResponseDto) GetExtraProperties() map[string]interface{} {
+	return s.extraProperties
+}
+
+func (s *SSOStartResponseDto) UnmarshalJSON(data []byte) error {
+	type unmarshaler SSOStartResponseDto
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*s = SSOStartResponseDto(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *s)
+	if err != nil {
+		return err
+	}
+	s.extraProperties = extraProperties
+	s.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (s *SSOStartResponseDto) String() string {
 	if len(s.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(s.rawJSON); err == nil {
 			return value

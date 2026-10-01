@@ -6,11 +6,12 @@ import (
 	json "encoding/json"
 	fmt "fmt"
 	internal "github.com/mailmus/mailmus-go/internal"
+	time "time"
 )
 
 type PlatformStatusResponseDto struct {
 	Services []*ServiceStatusDto `json:"services,omitempty" url:"services,omitempty"`
-	// Longueur de la fenêtre de disponibilité, en jours.
+	// Length of the availability window, in days.
 	UptimeWindowDays float64 `json:"uptimeWindowDays" url:"uptimeWindowDays"`
 
 	extraProperties map[string]interface{}
@@ -65,12 +66,12 @@ func (p *PlatformStatusResponseDto) String() string {
 
 type ServiceStatusDto struct {
 	Service ServiceStatusDtoService `json:"service" url:"service"`
-	// Résultat du dernier contrôle. Nul si aucun n’a encore eu lieu.
-	IsUp           map[string]interface{} `json:"isUp,omitempty" url:"isUp,omitempty"`
-	CheckedAt      map[string]interface{} `json:"checkedAt,omitempty" url:"checkedAt,omitempty"`
-	ResponseTimeMs map[string]interface{} `json:"responseTimeMs,omitempty" url:"responseTimeMs,omitempty"`
-	// Disponibilité en pourcentage, à une décimale.
-	UptimePercent30D map[string]interface{} `json:"uptimePercent30d,omitempty" url:"uptimePercent30d,omitempty"`
+	// Result of the last check. Null if none has happened yet.
+	IsUp           *bool      `json:"isUp,omitempty" url:"isUp,omitempty"`
+	CheckedAt      *time.Time `json:"checkedAt,omitempty" url:"checkedAt,omitempty"`
+	ResponseTimeMs *float64   `json:"responseTimeMs,omitempty" url:"responseTimeMs,omitempty"`
+	// Availability as a percentage, to one decimal.
+	UptimePercent30D *float64 `json:"uptimePercent30d,omitempty" url:"uptimePercent30d,omitempty"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -83,28 +84,28 @@ func (s *ServiceStatusDto) GetService() ServiceStatusDtoService {
 	return s.Service
 }
 
-func (s *ServiceStatusDto) GetIsUp() map[string]interface{} {
+func (s *ServiceStatusDto) GetIsUp() *bool {
 	if s == nil {
 		return nil
 	}
 	return s.IsUp
 }
 
-func (s *ServiceStatusDto) GetCheckedAt() map[string]interface{} {
+func (s *ServiceStatusDto) GetCheckedAt() *time.Time {
 	if s == nil {
 		return nil
 	}
 	return s.CheckedAt
 }
 
-func (s *ServiceStatusDto) GetResponseTimeMs() map[string]interface{} {
+func (s *ServiceStatusDto) GetResponseTimeMs() *float64 {
 	if s == nil {
 		return nil
 	}
 	return s.ResponseTimeMs
 }
 
-func (s *ServiceStatusDto) GetUptimePercent30D() map[string]interface{} {
+func (s *ServiceStatusDto) GetUptimePercent30D() *float64 {
 	if s == nil {
 		return nil
 	}
@@ -116,12 +117,18 @@ func (s *ServiceStatusDto) GetExtraProperties() map[string]interface{} {
 }
 
 func (s *ServiceStatusDto) UnmarshalJSON(data []byte) error {
-	type unmarshaler ServiceStatusDto
-	var value unmarshaler
-	if err := json.Unmarshal(data, &value); err != nil {
+	type embed ServiceStatusDto
+	var unmarshaler = struct {
+		embed
+		CheckedAt *internal.DateTime `json:"checkedAt,omitempty"`
+	}{
+		embed: embed(*s),
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
 		return err
 	}
-	*s = ServiceStatusDto(value)
+	*s = ServiceStatusDto(unmarshaler.embed)
+	s.CheckedAt = unmarshaler.CheckedAt.TimePtr()
 	extraProperties, err := internal.ExtractExtraProperties(data, *s)
 	if err != nil {
 		return err
@@ -129,6 +136,18 @@ func (s *ServiceStatusDto) UnmarshalJSON(data []byte) error {
 	s.extraProperties = extraProperties
 	s.rawJSON = json.RawMessage(data)
 	return nil
+}
+
+func (s *ServiceStatusDto) MarshalJSON() ([]byte, error) {
+	type embed ServiceStatusDto
+	var marshaler = struct {
+		embed
+		CheckedAt *internal.DateTime `json:"checkedAt,omitempty"`
+	}{
+		embed:     embed(*s),
+		CheckedAt: internal.NewOptionalDateTime(s.CheckedAt),
+	}
+	return json.Marshal(marshaler)
 }
 
 func (s *ServiceStatusDto) String() string {

@@ -9,8 +9,16 @@ import (
 	time "time"
 )
 
+type AuthProviderHealthHistoryRequest struct {
+	Days *float64 `json:"-" url:"days,omitempty"`
+}
+
+type AuthProviderHealthTimelinesRequest struct {
+	Days *float64 `json:"-" url:"days,omitempty"`
+}
+
 type RequestTestPhoneDto struct {
-	// Numéro au format E.164 (ex: +33612345678). Le "+" est obligatoire.
+	// Number in E.164 format (for example +33612345678). The "+" is required.
 	Phone string `json:"phone" url:"-"`
 }
 
@@ -20,15 +28,17 @@ type UpdateAuthSettingsDto struct {
 	RedirectURLAllowlist  []string                                    `json:"redirectUrlAllowlist,omitempty" url:"-"`
 	AccessTokenTTLSeconds *float64                                    `json:"accessTokenTtlSeconds,omitempty" url:"-"`
 	RefreshTokenTTLDays   *float64                                    `json:"refreshTokenTtlDays,omitempty" url:"-"`
-	// Logo affiché sur les pages hébergées.
+	// Logo shown on the hosted pages.
 	LogoURL *string `json:"logoUrl,omitempty" url:"-"`
-	// Couleur principale des pages hébergées, format hex (#2563eb).
+	// Primary color of the hosted pages, in hex (#2563eb).
 	PrimaryColor *string `json:"primaryColor,omitempty" url:"-"`
-	// Domaine personnalisé pour les pages hébergées, ex: auth.monapp.com.
+	// Custom domain for the hosted pages, for example auth.yourapp.com.
 	CustomDomain *string `json:"customDomain,omitempty" url:"-"`
-	// Active la multi-tenance B2B (Organizations) pour cette App.
+	// Deprecated: use PATCH /projects/{projectId}/b2b/settings. Still accepted, and writes the same setting.
 	OrganizationsEnabled *bool `json:"organizationsEnabled,omitempty" url:"-"`
-	// Restreint l'envoi de codes PHONE_CODE à ces pays (codes ISO 3166-1 alpha-2, ex: FR, US). Liste vide = aucune restriction.
+	// Language your end-users are served in: hosted sign-in pages and authentication emails. English by default.
+	Locale *UpdateAuthSettingsDtoLocale `json:"locale,omitempty" url:"-"`
+	// Restricts PHONE_CODE sending to these countries (ISO 3166-1 alpha-2 codes, for example FR, US). An empty list means no restriction.
 	PhoneCodeAllowedCountries []string `json:"phoneCodeAllowedCountries,omitempty" url:"-"`
 }
 
@@ -55,7 +65,7 @@ func (c *CustomerAuthAppleCallbackRequest) MarshalJSON() ([]byte, error) {
 
 type ForgotPasswordDto struct {
 	Email string `json:"email" url:"-"`
-	// Où renvoyer le Customer une fois reconnecté ; doit figurer dans l'allowlist de redirection de l'App.
+	// Where to send the Customer once signed in again; must appear in the project redirect allowlist.
 	RedirectURI string `json:"redirectUri" url:"-"`
 }
 
@@ -78,7 +88,7 @@ func (c *CustomerAuthGithubCallbackRequest) MarshalJSON() ([]byte, error) {
 
 type GoogleCallbackDto struct {
 	Code string `json:"code" url:"-"`
-	// L'exact redirect_uri utilisé par l'app cliente pour obtenir le code ; doit figurer dans l'allowlist de redirection de l'App.
+	// The exact redirect_uri the client app used to obtain the code; must appear in the project redirect allowlist.
 	RedirectURI string `json:"redirectUri" url:"-"`
 }
 
@@ -134,7 +144,7 @@ func (c *CustomerAuthRequestOtpRequest) MarshalJSON() ([]byte, error) {
 }
 
 type PhoneOtpRequestDto struct {
-	// Numéro au format E.164 (ex: +33612345678). Le "+" est obligatoire.
+	// Number in E.164 format (for example +33612345678). The "+" is required.
 	Phone string `json:"phone" url:"-"`
 }
 
@@ -168,7 +178,7 @@ func (c *CustomerAuthSignOutRequest) MarshalJSON() ([]byte, error) {
 type SignUpDto struct {
 	Email    string `json:"email" url:"-"`
 	Password string `json:"password" url:"-"`
-	// Si fourni (et présent dans l'allowlist), déclenche l'envoi d'un email de confirmation.
+	// When provided (and present in the allowlist), triggers a confirmation email.
 	RedirectURI *string `json:"redirectUri,omitempty" url:"-"`
 }
 
@@ -182,7 +192,7 @@ type MagicLinkVerifyDto struct {
 
 type MfaVerifyDto struct {
 	ChallengeToken string `json:"challengeToken" url:"-"`
-	// Code TOTP à 6 chiffres, ou un code de secours à 10 caractères.
+	// 6-digit TOTP code, or a 10-character backup code.
 	Code string `json:"code" url:"-"`
 }
 
@@ -192,7 +202,7 @@ type OtpVerifyDto struct {
 }
 
 type PhoneOtpVerifyDto struct {
-	// Numéro au format E.164 (ex: +33612345678). Le "+" est obligatoire.
+	// Number in E.164 format (for example +33612345678). The "+" is required.
 	Phone string `json:"phone" url:"-"`
 	Code  string `json:"code" url:"-"`
 }
@@ -232,7 +242,7 @@ func (c *CustomerMfaDisableRequest) MarshalJSON() ([]byte, error) {
 }
 
 type EnrollMfaDto struct {
-	// Code TOTP à 6 chiffres ou code de secours, requis uniquement si le MFA est déjà actif — prouve la possession du facteur courant avant de le remplacer.
+	// 6-digit TOTP code or backup code, required only if MFA is already on — it proves possession of the current factor before replacing it.
 	Code *string `json:"code,omitempty" url:"-"`
 }
 
@@ -249,45 +259,188 @@ type SSOAcsDto struct {
 	RelayState   string `json:"RelayState" url:"-"`
 }
 
+type SSOOidcCallbackDto struct {
+	// The authorization code returned by the provider.
+	Code string `json:"code" url:"-"`
+	// The opaque state we issued when the sign-in started.
+	State string `json:"state" url:"-"`
+}
+
 type SSOStartDto struct {
 	Email string `json:"email" url:"-"`
-	// Doit figurer dans redirectUrlAllowlist — vérifié avant toute redirection vers un IdP.
+	// Must appear in the allowed redirect URLs, checked before any redirect to an IdP: the Auth redirectUrlAllowlist for the session flow, the B2B settings ssoRedirectUrls for the profile flow.
 	RedirectURI string `json:"redirectUri" url:"-"`
-	// Nonce anti-CSRF généré côté client, simplement reporté tel quel jusqu'au retour d'ACS (même contrat que le pont OAuth existant) — non validé par le backend, la vérification se fait côté frontend.
+	// session (default) signs the person in with Mailmus Auth. profile sends the person back to redirectUri with a one-time code, which your server exchanges for the verified profile: use it when you sign people in yourself.
+	Flow *SSOStartDtoFlow `json:"flow,omitempty" url:"-"`
+	// Anti-CSRF nonce generated client-side, carried through unchanged until the ACS return (same contract as the existing OAuth bridge) — not validated server-side, the check happens in your front end.
 	Nonce *string `json:"nonce,omitempty" url:"-"`
+}
+
+type AuthProviderIncidentDto struct {
+	// Identifier of the incident.
+	ID string `json:"id" url:"id"`
+	// The provider concerned.
+	Provider string `json:"provider" url:"provider"`
+	// Where the sign-in gave way: CONFIGURATION, CODE_EXCHANGE, TOKEN_VERIFICATION or PROFILE_READ. CONFIGURATION points at a setting to fix; the others usually concern a single attempt.
+	Stage string `json:"stage" url:"stage"`
+	// Stable reason, comparable over time.
+	Reason string `json:"reason" url:"reason"`
+	// Number of attempts hit by the incident.
+	Occurrences float64 `json:"occurrences" url:"occurrences"`
+	// When the incident started.
+	StartedAt time.Time `json:"startedAt" url:"startedAt"`
+	// Last attempt hit.
+	LastSeenAt time.Time `json:"lastSeenAt" url:"lastSeenAt"`
+	// End of the incident, set by the first successful sign-in. Null while it lasts.
+	ResolvedAt *string `json:"resolvedAt,omitempty" url:"resolvedAt,omitempty"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (a *AuthProviderIncidentDto) GetID() string {
+	if a == nil {
+		return ""
+	}
+	return a.ID
+}
+
+func (a *AuthProviderIncidentDto) GetProvider() string {
+	if a == nil {
+		return ""
+	}
+	return a.Provider
+}
+
+func (a *AuthProviderIncidentDto) GetStage() string {
+	if a == nil {
+		return ""
+	}
+	return a.Stage
+}
+
+func (a *AuthProviderIncidentDto) GetReason() string {
+	if a == nil {
+		return ""
+	}
+	return a.Reason
+}
+
+func (a *AuthProviderIncidentDto) GetOccurrences() float64 {
+	if a == nil {
+		return 0
+	}
+	return a.Occurrences
+}
+
+func (a *AuthProviderIncidentDto) GetStartedAt() time.Time {
+	if a == nil {
+		return time.Time{}
+	}
+	return a.StartedAt
+}
+
+func (a *AuthProviderIncidentDto) GetLastSeenAt() time.Time {
+	if a == nil {
+		return time.Time{}
+	}
+	return a.LastSeenAt
+}
+
+func (a *AuthProviderIncidentDto) GetResolvedAt() *string {
+	if a == nil {
+		return nil
+	}
+	return a.ResolvedAt
+}
+
+func (a *AuthProviderIncidentDto) GetExtraProperties() map[string]interface{} {
+	return a.extraProperties
+}
+
+func (a *AuthProviderIncidentDto) UnmarshalJSON(data []byte) error {
+	type embed AuthProviderIncidentDto
+	var unmarshaler = struct {
+		embed
+		StartedAt  *internal.DateTime `json:"startedAt"`
+		LastSeenAt *internal.DateTime `json:"lastSeenAt"`
+	}{
+		embed: embed(*a),
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
+		return err
+	}
+	*a = AuthProviderIncidentDto(unmarshaler.embed)
+	a.StartedAt = unmarshaler.StartedAt.Time()
+	a.LastSeenAt = unmarshaler.LastSeenAt.Time()
+	extraProperties, err := internal.ExtractExtraProperties(data, *a)
+	if err != nil {
+		return err
+	}
+	a.extraProperties = extraProperties
+	a.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (a *AuthProviderIncidentDto) MarshalJSON() ([]byte, error) {
+	type embed AuthProviderIncidentDto
+	var marshaler = struct {
+		embed
+		StartedAt  *internal.DateTime `json:"startedAt"`
+		LastSeenAt *internal.DateTime `json:"lastSeenAt"`
+	}{
+		embed:      embed(*a),
+		StartedAt:  internal.NewDateTime(a.StartedAt),
+		LastSeenAt: internal.NewDateTime(a.LastSeenAt),
+	}
+	return json.Marshal(marshaler)
+}
+
+func (a *AuthProviderIncidentDto) String() string {
+	if len(a.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(a.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(a); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", a)
 }
 
 type AuthSettingsResponseDto struct {
 	ID    string `json:"id" url:"id"`
 	AppID string `json:"appId" url:"appId"`
-	// Faux tant que le produit Auth n’est pas activé : les routes de connexion refusent alors les appels.
+	// False until Auth is enabled: the sign-in routes then refuse calls.
 	Enabled bool `json:"enabled" url:"enabled"`
-	// Méthodes de connexion ouvertes aux Customers de ce projet.
+	// Sign-in methods open to this project Customers.
 	AllowedProviders []string `json:"allowedProviders,omitempty" url:"allowedProviders,omitempty"`
-	// Adresses de retour autorisées après connexion. Toute autre est refusée, ce qui empêche un tiers de détourner les jetons.
+	// Return addresses allowed after sign-in. Any other one is refused, which stops a third party from diverting the tokens.
 	RedirectURLAllowlist []string `json:"redirectUrlAllowlist,omitempty" url:"redirectUrlAllowlist,omitempty"`
-	// Durée de vie d’un accessToken, en secondes.
+	// Lifetime of an accessToken, in seconds.
 	AccessTokenTTLSeconds float64 `json:"accessTokenTtlSeconds" url:"accessTokenTtlSeconds"`
-	// Durée de vie d’un refreshToken, en jours.
-	RefreshTokenTTLDays float64                `json:"refreshTokenTtlDays" url:"refreshTokenTtlDays"`
-	LogoURL             map[string]interface{} `json:"logoUrl,omitempty" url:"logoUrl,omitempty"`
-	PrimaryColor        map[string]interface{} `json:"primaryColor,omitempty" url:"primaryColor,omitempty"`
-	// Domaine sur lequel servir vos pages d’authentification.
-	CustomDomain       map[string]interface{}                     `json:"customDomain,omitempty" url:"customDomain,omitempty"`
+	// Lifetime of a refreshToken, in days.
+	RefreshTokenTTLDays float64 `json:"refreshTokenTtlDays" url:"refreshTokenTtlDays"`
+	LogoURL             *string `json:"logoUrl,omitempty" url:"logoUrl,omitempty"`
+	PrimaryColor        *string `json:"primaryColor,omitempty" url:"primaryColor,omitempty"`
+	// Domain your authentication pages are served from.
+	CustomDomain       *string                                    `json:"customDomain,omitempty" url:"customDomain,omitempty"`
 	CustomDomainStatus *AuthSettingsResponseDtoCustomDomainStatus `json:"customDomainStatus,omitempty" url:"customDomainStatus,omitempty"`
-	// Vrai si vos Customers peuvent appartenir à des organisations.
+	// Deprecated: read GET /projects/{projectId}/b2b/settings. Same value, kept here for existing integrations.
 	OrganizationsEnabled bool `json:"organizationsEnabled" url:"organizationsEnabled"`
-	// Sur le palier gratuit, seul ce numéro peut recevoir un code par SMS. Le palier Pro lève cette restriction.
-	TestPhoneNumber     map[string]interface{} `json:"testPhoneNumber,omitempty" url:"testPhoneNumber,omitempty"`
-	TestPhoneVerifiedAt map[string]interface{} `json:"testPhoneVerifiedAt,omitempty" url:"testPhoneVerifiedAt,omitempty"`
-	// Changements de numéro de test déjà consommés.
-	TestPhoneChangesUsed      float64                `json:"testPhoneChangesUsed" url:"testPhoneChangesUsed"`
-	TestPhonePendingNumber    map[string]interface{} `json:"testPhonePendingNumber,omitempty" url:"testPhonePendingNumber,omitempty"`
-	TestPhonePendingExpiresAt map[string]interface{} `json:"testPhonePendingExpiresAt,omitempty" url:"testPhonePendingExpiresAt,omitempty"`
-	TestPhonePendingAttempts  float64                `json:"testPhonePendingAttempts" url:"testPhonePendingAttempts"`
-	TestPhoneSendCount        float64                `json:"testPhoneSendCount" url:"testPhoneSendCount"`
-	TestPhoneSendPeriodStart  map[string]interface{} `json:"testPhoneSendPeriodStart,omitempty" url:"testPhoneSendPeriodStart,omitempty"`
-	// Indicatifs pays autorisés pour les codes par SMS. Vide signifie aucune restriction.
+	// Language your end-users are served in: hosted sign-in pages and authentication emails.
+	Locale AuthSettingsResponseDtoLocale `json:"locale" url:"locale"`
+	// On the free tier, only this number can receive an SMS code. The Pro tier lifts that restriction.
+	TestPhoneNumber     *string    `json:"testPhoneNumber,omitempty" url:"testPhoneNumber,omitempty"`
+	TestPhoneVerifiedAt *time.Time `json:"testPhoneVerifiedAt,omitempty" url:"testPhoneVerifiedAt,omitempty"`
+	// Test number changes already used.
+	TestPhoneChangesUsed      float64    `json:"testPhoneChangesUsed" url:"testPhoneChangesUsed"`
+	TestPhonePendingNumber    *string    `json:"testPhonePendingNumber,omitempty" url:"testPhonePendingNumber,omitempty"`
+	TestPhonePendingExpiresAt *time.Time `json:"testPhonePendingExpiresAt,omitempty" url:"testPhonePendingExpiresAt,omitempty"`
+	TestPhonePendingAttempts  float64    `json:"testPhonePendingAttempts" url:"testPhonePendingAttempts"`
+	TestPhoneSendCount        float64    `json:"testPhoneSendCount" url:"testPhoneSendCount"`
+	TestPhoneSendPeriodStart  *time.Time `json:"testPhoneSendPeriodStart,omitempty" url:"testPhoneSendPeriodStart,omitempty"`
+	// Country codes allowed for SMS codes. Empty means no restriction.
 	PhoneCodeAllowedCountries []string  `json:"phoneCodeAllowedCountries,omitempty" url:"phoneCodeAllowedCountries,omitempty"`
 	NewSignupCount            float64   `json:"newSignupCount" url:"newSignupCount"`
 	NewSignupPeriodStart      time.Time `json:"newSignupPeriodStart" url:"newSignupPeriodStart"`
@@ -347,21 +500,21 @@ func (a *AuthSettingsResponseDto) GetRefreshTokenTTLDays() float64 {
 	return a.RefreshTokenTTLDays
 }
 
-func (a *AuthSettingsResponseDto) GetLogoURL() map[string]interface{} {
+func (a *AuthSettingsResponseDto) GetLogoURL() *string {
 	if a == nil {
 		return nil
 	}
 	return a.LogoURL
 }
 
-func (a *AuthSettingsResponseDto) GetPrimaryColor() map[string]interface{} {
+func (a *AuthSettingsResponseDto) GetPrimaryColor() *string {
 	if a == nil {
 		return nil
 	}
 	return a.PrimaryColor
 }
 
-func (a *AuthSettingsResponseDto) GetCustomDomain() map[string]interface{} {
+func (a *AuthSettingsResponseDto) GetCustomDomain() *string {
 	if a == nil {
 		return nil
 	}
@@ -382,14 +535,21 @@ func (a *AuthSettingsResponseDto) GetOrganizationsEnabled() bool {
 	return a.OrganizationsEnabled
 }
 
-func (a *AuthSettingsResponseDto) GetTestPhoneNumber() map[string]interface{} {
+func (a *AuthSettingsResponseDto) GetLocale() AuthSettingsResponseDtoLocale {
+	if a == nil {
+		return ""
+	}
+	return a.Locale
+}
+
+func (a *AuthSettingsResponseDto) GetTestPhoneNumber() *string {
 	if a == nil {
 		return nil
 	}
 	return a.TestPhoneNumber
 }
 
-func (a *AuthSettingsResponseDto) GetTestPhoneVerifiedAt() map[string]interface{} {
+func (a *AuthSettingsResponseDto) GetTestPhoneVerifiedAt() *time.Time {
 	if a == nil {
 		return nil
 	}
@@ -403,14 +563,14 @@ func (a *AuthSettingsResponseDto) GetTestPhoneChangesUsed() float64 {
 	return a.TestPhoneChangesUsed
 }
 
-func (a *AuthSettingsResponseDto) GetTestPhonePendingNumber() map[string]interface{} {
+func (a *AuthSettingsResponseDto) GetTestPhonePendingNumber() *string {
 	if a == nil {
 		return nil
 	}
 	return a.TestPhonePendingNumber
 }
 
-func (a *AuthSettingsResponseDto) GetTestPhonePendingExpiresAt() map[string]interface{} {
+func (a *AuthSettingsResponseDto) GetTestPhonePendingExpiresAt() *time.Time {
 	if a == nil {
 		return nil
 	}
@@ -431,7 +591,7 @@ func (a *AuthSettingsResponseDto) GetTestPhoneSendCount() float64 {
 	return a.TestPhoneSendCount
 }
 
-func (a *AuthSettingsResponseDto) GetTestPhoneSendPeriodStart() map[string]interface{} {
+func (a *AuthSettingsResponseDto) GetTestPhoneSendPeriodStart() *time.Time {
 	if a == nil {
 		return nil
 	}
@@ -481,9 +641,12 @@ func (a *AuthSettingsResponseDto) UnmarshalJSON(data []byte) error {
 	type embed AuthSettingsResponseDto
 	var unmarshaler = struct {
 		embed
-		NewSignupPeriodStart *internal.DateTime `json:"newSignupPeriodStart"`
-		CreatedAt            *internal.DateTime `json:"createdAt"`
-		UpdatedAt            *internal.DateTime `json:"updatedAt"`
+		TestPhoneVerifiedAt       *internal.DateTime `json:"testPhoneVerifiedAt,omitempty"`
+		TestPhonePendingExpiresAt *internal.DateTime `json:"testPhonePendingExpiresAt,omitempty"`
+		TestPhoneSendPeriodStart  *internal.DateTime `json:"testPhoneSendPeriodStart,omitempty"`
+		NewSignupPeriodStart      *internal.DateTime `json:"newSignupPeriodStart"`
+		CreatedAt                 *internal.DateTime `json:"createdAt"`
+		UpdatedAt                 *internal.DateTime `json:"updatedAt"`
 	}{
 		embed: embed(*a),
 	}
@@ -491,6 +654,9 @@ func (a *AuthSettingsResponseDto) UnmarshalJSON(data []byte) error {
 		return err
 	}
 	*a = AuthSettingsResponseDto(unmarshaler.embed)
+	a.TestPhoneVerifiedAt = unmarshaler.TestPhoneVerifiedAt.TimePtr()
+	a.TestPhonePendingExpiresAt = unmarshaler.TestPhonePendingExpiresAt.TimePtr()
+	a.TestPhoneSendPeriodStart = unmarshaler.TestPhoneSendPeriodStart.TimePtr()
 	a.NewSignupPeriodStart = unmarshaler.NewSignupPeriodStart.Time()
 	a.CreatedAt = unmarshaler.CreatedAt.Time()
 	a.UpdatedAt = unmarshaler.UpdatedAt.Time()
@@ -507,14 +673,20 @@ func (a *AuthSettingsResponseDto) MarshalJSON() ([]byte, error) {
 	type embed AuthSettingsResponseDto
 	var marshaler = struct {
 		embed
-		NewSignupPeriodStart *internal.DateTime `json:"newSignupPeriodStart"`
-		CreatedAt            *internal.DateTime `json:"createdAt"`
-		UpdatedAt            *internal.DateTime `json:"updatedAt"`
+		TestPhoneVerifiedAt       *internal.DateTime `json:"testPhoneVerifiedAt,omitempty"`
+		TestPhonePendingExpiresAt *internal.DateTime `json:"testPhonePendingExpiresAt,omitempty"`
+		TestPhoneSendPeriodStart  *internal.DateTime `json:"testPhoneSendPeriodStart,omitempty"`
+		NewSignupPeriodStart      *internal.DateTime `json:"newSignupPeriodStart"`
+		CreatedAt                 *internal.DateTime `json:"createdAt"`
+		UpdatedAt                 *internal.DateTime `json:"updatedAt"`
 	}{
-		embed:                embed(*a),
-		NewSignupPeriodStart: internal.NewDateTime(a.NewSignupPeriodStart),
-		CreatedAt:            internal.NewDateTime(a.CreatedAt),
-		UpdatedAt:            internal.NewDateTime(a.UpdatedAt),
+		embed:                     embed(*a),
+		TestPhoneVerifiedAt:       internal.NewOptionalDateTime(a.TestPhoneVerifiedAt),
+		TestPhonePendingExpiresAt: internal.NewOptionalDateTime(a.TestPhonePendingExpiresAt),
+		TestPhoneSendPeriodStart:  internal.NewOptionalDateTime(a.TestPhoneSendPeriodStart),
+		NewSignupPeriodStart:      internal.NewDateTime(a.NewSignupPeriodStart),
+		CreatedAt:                 internal.NewDateTime(a.CreatedAt),
+		UpdatedAt:                 internal.NewDateTime(a.UpdatedAt),
 	}
 	return json.Marshal(marshaler)
 }
@@ -553,6 +725,29 @@ func NewAuthSettingsResponseDtoCustomDomainStatusFromString(s string) (AuthSetti
 }
 
 func (a AuthSettingsResponseDtoCustomDomainStatus) Ptr() *AuthSettingsResponseDtoCustomDomainStatus {
+	return &a
+}
+
+// Language your end-users are served in: hosted sign-in pages and authentication emails.
+type AuthSettingsResponseDtoLocale string
+
+const (
+	AuthSettingsResponseDtoLocaleEn AuthSettingsResponseDtoLocale = "en"
+	AuthSettingsResponseDtoLocaleFr AuthSettingsResponseDtoLocale = "fr"
+)
+
+func NewAuthSettingsResponseDtoLocaleFromString(s string) (AuthSettingsResponseDtoLocale, error) {
+	switch s {
+	case "en":
+		return AuthSettingsResponseDtoLocaleEn, nil
+	case "fr":
+		return AuthSettingsResponseDtoLocaleFr, nil
+	}
+	var t AuthSettingsResponseDtoLocale
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (a AuthSettingsResponseDtoLocale) Ptr() *AuthSettingsResponseDtoLocale {
 	return &a
 }
 
@@ -632,9 +827,11 @@ type CustomerOrganizationSummaryDto struct {
 	ID   string `json:"id" url:"id"`
 	Name string `json:"name" url:"name"`
 	Slug string `json:"slug" url:"slug"`
-	// Rôle du Customer dans cette organisation.
+	// Every role of the Customer in this organization.
+	Roles []string `json:"roles,omitempty" url:"roles,omitempty"`
+	// The highest built-in role among roles. Use roles.
 	Role CustomerOrganizationSummaryDtoRole `json:"role" url:"role"`
-	// Vrai pour l’organisation active.
+	// True for the active organization.
 	Active bool `json:"active" url:"active"`
 
 	extraProperties map[string]interface{}
@@ -660,6 +857,13 @@ func (c *CustomerOrganizationSummaryDto) GetSlug() string {
 		return ""
 	}
 	return c.Slug
+}
+
+func (c *CustomerOrganizationSummaryDto) GetRoles() []string {
+	if c == nil {
+		return nil
+	}
+	return c.Roles
 }
 
 func (c *CustomerOrganizationSummaryDto) GetRole() CustomerOrganizationSummaryDtoRole {
@@ -708,7 +912,7 @@ func (c *CustomerOrganizationSummaryDto) String() string {
 	return fmt.Sprintf("%#v", c)
 }
 
-// Rôle du Customer dans cette organisation.
+// The highest built-in role among roles. Use roles.
 type CustomerOrganizationSummaryDtoRole string
 
 const (
@@ -736,13 +940,15 @@ func (c CustomerOrganizationSummaryDtoRole) Ptr() *CustomerOrganizationSummaryDt
 
 type CustomerSessionSummaryDto struct {
 	ID string `json:"id" url:"id"`
-	// User-agent enregistré à l’ouverture de la session.
-	UserAgent map[string]interface{} `json:"userAgent,omitempty" url:"userAgent,omitempty"`
-	IPAddress map[string]interface{} `json:"ipAddress,omitempty" url:"ipAddress,omitempty"`
-	CreatedAt time.Time              `json:"createdAt" url:"createdAt"`
-	ExpiresAt time.Time              `json:"expiresAt" url:"expiresAt"`
-	// Vrai pour la session qui fait cette requête.
+	// User-agent recorded when the session opened.
+	UserAgent *string   `json:"userAgent,omitempty" url:"userAgent,omitempty"`
+	IPAddress *string   `json:"ipAddress,omitempty" url:"ipAddress,omitempty"`
+	CreatedAt time.Time `json:"createdAt" url:"createdAt"`
+	ExpiresAt time.Time `json:"expiresAt" url:"expiresAt"`
+	// True for the session making this request.
 	Current bool `json:"current" url:"current"`
+	// True when a member of the app's team opened this session to reproduce an issue. It ends on its own within 60 minutes.
+	SupportSession bool `json:"supportSession" url:"supportSession"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -755,14 +961,14 @@ func (c *CustomerSessionSummaryDto) GetID() string {
 	return c.ID
 }
 
-func (c *CustomerSessionSummaryDto) GetUserAgent() map[string]interface{} {
+func (c *CustomerSessionSummaryDto) GetUserAgent() *string {
 	if c == nil {
 		return nil
 	}
 	return c.UserAgent
 }
 
-func (c *CustomerSessionSummaryDto) GetIPAddress() map[string]interface{} {
+func (c *CustomerSessionSummaryDto) GetIPAddress() *string {
 	if c == nil {
 		return nil
 	}
@@ -788,6 +994,13 @@ func (c *CustomerSessionSummaryDto) GetCurrent() bool {
 		return false
 	}
 	return c.Current
+}
+
+func (c *CustomerSessionSummaryDto) GetSupportSession() bool {
+	if c == nil {
+		return false
+	}
+	return c.SupportSession
 }
 
 func (c *CustomerSessionSummaryDto) GetExtraProperties() map[string]interface{} {
@@ -845,11 +1058,11 @@ func (c *CustomerSessionSummaryDto) String() string {
 }
 
 type CustomerTokensResponseDto struct {
-	// Jeton d'accès à présenter en Bearer sur les routes self-service, et à vérifier côté serveur via les clés publiques du projet.
+	// Access token to present as a Bearer on the self-service routes, and to verify server-side with the project public keys.
 	AccessToken string `json:"accessToken" url:"accessToken"`
-	// Jeton opaque servant à obtenir un nouvel accessToken. Il tourne à chaque usage : celui-ci ne sert qu’une fois.
+	// Opaque token used to obtain a new accessToken. It rotates on every use: this one works once.
 	RefreshToken string `json:"refreshToken" url:"refreshToken"`
-	// Durée de validité de l'accessToken, en secondes.
+	// Lifetime of the accessToken, in seconds.
 	ExpiresIn float64 `json:"expiresIn" url:"expiresIn"`
 
 	extraProperties map[string]interface{}
@@ -911,7 +1124,7 @@ func (c *CustomerTokensResponseDto) String() string {
 
 type EmailCodeRequestDto struct {
 	Email string `json:"email" url:"email"`
-	// Obligatoire pour un lien magique ; doit figurer dans l'allowlist de redirection de l'App.
+	// Required for a magic link; must appear in the project redirect allowlist.
 	RedirectURI *string `json:"redirectUri,omitempty" url:"redirectUri,omitempty"`
 
 	extraProperties map[string]interface{}
@@ -965,19 +1178,23 @@ func (e *EmailCodeRequestDto) String() string {
 }
 
 type HostedAuthConfigResponseDto struct {
-	// Nom du projet, affiché sur les pages hébergées.
+	// Project name, shown on the hosted pages.
 	ProjectName string `json:"projectName" url:"projectName"`
-	// Faux tant que le produit Auth n'a pas été activé sur ce projet : les routes de connexion refusent alors les appels.
+	// False until Auth is enabled on this project: the sign-in routes then refuse calls.
 	Enabled bool `json:"enabled" url:"enabled"`
-	// Méthodes de connexion activées (PASSWORD, GOOGLE, MAGIC_LINK...).
+	// Enabled sign-in methods (PASSWORD, GOOGLE, MAGIC_LINK, and so on).
 	AllowedProviders []string `json:"allowedProviders,omitempty" url:"allowedProviders,omitempty"`
-	// Adresses de retour autorisées après connexion. Toute autre est refusée.
-	RedirectURLAllowlist []string               `json:"redirectUrlAllowlist,omitempty" url:"redirectUrlAllowlist,omitempty"`
-	LogoURL              map[string]interface{} `json:"logoUrl,omitempty" url:"logoUrl,omitempty"`
-	PrimaryColor         map[string]interface{} `json:"primaryColor,omitempty" url:"primaryColor,omitempty"`
-	// Vrai si les Customers de ce projet peuvent appartenir à des organisations. Permet au front de sauter la découverte de domaine SSO quand elle ne sert à rien.
-	OrganizationsEnabled bool                  `json:"organizationsEnabled" url:"organizationsEnabled"`
-	Oauth                *OAuthBridgeConfigDto `json:"oauth,omitempty" url:"oauth,omitempty"`
+	// Return addresses allowed after sign-in. Any other one is refused.
+	RedirectURLAllowlist []string `json:"redirectUrlAllowlist,omitempty" url:"redirectUrlAllowlist,omitempty"`
+	LogoURL              *string  `json:"logoUrl,omitempty" url:"logoUrl,omitempty"`
+	PrimaryColor         *string  `json:"primaryColor,omitempty" url:"primaryColor,omitempty"`
+	// True if this project Customers can belong to organizations. Lets the front end skip SSO domain discovery when it serves no purpose.
+	OrganizationsEnabled bool `json:"organizationsEnabled" url:"organizationsEnabled"`
+	// Language the sign-in pages are shown in to your end-users, chosen by you in the dashboard.
+	Locale HostedAuthConfigResponseDtoLocale `json:"locale" url:"locale"`
+	Oauth  *OAuthBridgeConfigDto             `json:"oauth,omitempty" url:"oauth,omitempty"`
+	// True if the hosted pages show a small "Secured by Mailmus" badge. Removed from the Pro plan up.
+	ShowMailmusBadge bool `json:"showMailmusBadge" url:"showMailmusBadge"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -1011,14 +1228,14 @@ func (h *HostedAuthConfigResponseDto) GetRedirectURLAllowlist() []string {
 	return h.RedirectURLAllowlist
 }
 
-func (h *HostedAuthConfigResponseDto) GetLogoURL() map[string]interface{} {
+func (h *HostedAuthConfigResponseDto) GetLogoURL() *string {
 	if h == nil {
 		return nil
 	}
 	return h.LogoURL
 }
 
-func (h *HostedAuthConfigResponseDto) GetPrimaryColor() map[string]interface{} {
+func (h *HostedAuthConfigResponseDto) GetPrimaryColor() *string {
 	if h == nil {
 		return nil
 	}
@@ -1032,11 +1249,25 @@ func (h *HostedAuthConfigResponseDto) GetOrganizationsEnabled() bool {
 	return h.OrganizationsEnabled
 }
 
+func (h *HostedAuthConfigResponseDto) GetLocale() HostedAuthConfigResponseDtoLocale {
+	if h == nil {
+		return ""
+	}
+	return h.Locale
+}
+
 func (h *HostedAuthConfigResponseDto) GetOauth() *OAuthBridgeConfigDto {
 	if h == nil {
 		return nil
 	}
 	return h.Oauth
+}
+
+func (h *HostedAuthConfigResponseDto) GetShowMailmusBadge() bool {
+	if h == nil {
+		return false
+	}
+	return h.ShowMailmusBadge
 }
 
 func (h *HostedAuthConfigResponseDto) GetExtraProperties() map[string]interface{} {
@@ -1071,8 +1302,31 @@ func (h *HostedAuthConfigResponseDto) String() string {
 	return fmt.Sprintf("%#v", h)
 }
 
+// Language the sign-in pages are shown in to your end-users, chosen by you in the dashboard.
+type HostedAuthConfigResponseDtoLocale string
+
+const (
+	HostedAuthConfigResponseDtoLocaleEn HostedAuthConfigResponseDtoLocale = "en"
+	HostedAuthConfigResponseDtoLocaleFr HostedAuthConfigResponseDtoLocale = "fr"
+)
+
+func NewHostedAuthConfigResponseDtoLocaleFromString(s string) (HostedAuthConfigResponseDtoLocale, error) {
+	switch s {
+	case "en":
+		return HostedAuthConfigResponseDtoLocaleEn, nil
+	case "fr":
+		return HostedAuthConfigResponseDtoLocaleFr, nil
+	}
+	var t HostedAuthConfigResponseDtoLocale
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (h HostedAuthConfigResponseDtoLocale) Ptr() *HostedAuthConfigResponseDtoLocale {
+	return &h
+}
+
 type HostedDomainResolveResponseDto struct {
-	// Projet auquel ce domaine est rattaché.
+	// Project this domain is attached to.
 	AppID string `json:"appId" url:"appId"`
 
 	extraProperties map[string]interface{}
@@ -1119,7 +1373,7 @@ func (h *HostedDomainResolveResponseDto) String() string {
 }
 
 type JwksResponseDto struct {
-	// Clés publiques, au format JSON Web Key.
+	// Public keys, in JSON Web Key format.
 	Keys []map[string]interface{} `json:"keys,omitempty" url:"keys,omitempty"`
 
 	extraProperties map[string]interface{}
@@ -1167,7 +1421,7 @@ func (j *JwksResponseDto) String() string {
 
 type MfaChallengeResponseDto struct {
 	MfaRequired bool `json:"mfaRequired" url:"mfaRequired"`
-	// Laissez-passer à échanger contre une vraie session via POST auth/mfa/verify. Ce n’est pas un accessToken : il ne donne accès à rien.
+	// Pass to exchange for a real session via POST auth/mfa/verify. It is not an accessToken: it grants access to nothing.
 	ChallengeToken string `json:"challengeToken" url:"challengeToken"`
 
 	extraProperties map[string]interface{}
@@ -1221,7 +1475,7 @@ func (m *MfaChallengeResponseDto) String() string {
 }
 
 type MfaCodeDto struct {
-	// Code TOTP à 6 chiffres, ou un code de secours à 10 caractères.
+	// 6-digit TOTP code, or a 10-character backup code.
 	Code string `json:"code" url:"code"`
 
 	extraProperties map[string]interface{}
@@ -1268,7 +1522,7 @@ func (m *MfaCodeDto) String() string {
 }
 
 type MfaConfirmResponseDto struct {
-	// Codes à usage unique, visibles ici et nulle part ailleurs.
+	// Single-use codes, shown here and nowhere else.
 	BackupCodes []string `json:"backupCodes,omitempty" url:"backupCodes,omitempty"`
 
 	extraProperties map[string]interface{}
@@ -1315,9 +1569,9 @@ func (m *MfaConfirmResponseDto) String() string {
 }
 
 type MfaEnrollResponseDto struct {
-	// Secret partagé, en base32. À saisir à la main dans une application d’authentification qui ne lit pas les QR codes.
+	// Shared secret, in base32. To type by hand into an authenticator app that cannot read QR codes.
 	Secret string `json:"secret" url:"secret"`
-	// La même chose sous forme d’URL, à encoder en QR code.
+	// The same thing as a URL, to encode as a QR code.
 	OtpauthURL string `json:"otpauthUrl" url:"otpauthUrl"`
 
 	extraProperties map[string]interface{}
@@ -1371,9 +1625,9 @@ func (m *MfaEnrollResponseDto) String() string {
 }
 
 type OAuthBridgeConfigDto struct {
-	// Unique redirect_uri enregistrée chez Google, GitHub et Apple. Une page hébergée par Mailmus y échange le code contre une session, puis relaie le résultat au SDK.
+	// The single redirect_uri registered with Google, GitHub and Apple. A Mailmus-hosted page exchanges the code for a session there, then relays the result to the SDK.
 	BridgeBaseURL string `json:"bridgeBaseUrl" url:"bridgeBaseUrl"`
-	// Fournisseurs réellement utilisables, indexés par nom (GOOGLE, GITHUB, APPLE). Un fournisseur autorisé mais non configuré côté plateforme n'y figure pas.
+	// Providers actually usable, keyed by name (GOOGLE, GITHUB, APPLE). A provider allowed but not configured on the platform side is absent.
 	Providers *OAuthBridgeConfigDtoProviders `json:"providers,omitempty" url:"providers,omitempty"`
 
 	extraProperties map[string]interface{}
@@ -1426,9 +1680,9 @@ func (o *OAuthBridgeConfigDto) String() string {
 	return fmt.Sprintf("%#v", o)
 }
 
-// Fournisseurs réellement utilisables, indexés par nom (GOOGLE, GITHUB, APPLE). Un fournisseur autorisé mais non configuré côté plateforme n'y figure pas.
+// Providers actually usable, keyed by name (GOOGLE, GITHUB, APPLE). A provider allowed but not configured on the platform side is absent.
 type OAuthBridgeConfigDtoProviders struct {
-	// Identifiant client OAuth, partagé par toute la plateforme : le SDK construit lui-même l'URL d'autorisation plutôt que de le coder en dur.
+	// OAuth client identifier, shared across the platform: the SDK builds the authorization URL itself rather than hard-coding it.
 	ClientID string `json:"clientId" url:"clientId"`
 
 	extraProperties map[string]interface{}
@@ -1475,7 +1729,7 @@ func (o *OAuthBridgeConfigDtoProviders) String() string {
 }
 
 type OAuthBridgeProviderDto struct {
-	// Identifiant client OAuth, partagé par toute la plateforme : le SDK construit lui-même l'URL d'autorisation plutôt que de le coder en dur.
+	// OAuth client identifier, shared across the platform: the SDK builds the authorization URL itself rather than hard-coding it.
 	ClientID string `json:"clientId" url:"clientId"`
 
 	extraProperties map[string]interface{}
@@ -1523,7 +1777,7 @@ func (o *OAuthBridgeProviderDto) String() string {
 
 type OAuthCallbackDto struct {
 	Code string `json:"code" url:"code"`
-	// L'exact redirect_uri utilisé par l'app cliente pour obtenir le code ; doit figurer dans l'allowlist de redirection de l'App.
+	// The exact redirect_uri the client app used to obtain the code; must appear in the project redirect allowlist.
 	RedirectURI string `json:"redirectUri" url:"redirectUri"`
 
 	extraProperties map[string]interface{}
@@ -1578,7 +1832,7 @@ func (o *OAuthCallbackDto) String() string {
 
 type OrganizationInvitationPreviewDto struct {
 	OrganizationName string `json:"organizationName" url:"organizationName"`
-	// Adresse à laquelle cette invitation a été émise.
+	// Address this invitation was issued to.
 	Email string                               `json:"email" url:"email"`
 	Role  OrganizationInvitationPreviewDtoRole `json:"role" url:"role"`
 
@@ -1664,24 +1918,144 @@ func (o OrganizationInvitationPreviewDtoRole) Ptr() *OrganizationInvitationPrevi
 	return &o
 }
 
+type ProviderDayDto struct {
+	// The day, in YYYY-MM-DD format.
+	Day string `json:"day" url:"day"`
+	// Incidents opened that day.
+	Incidents float64 `json:"incidents" url:"incidents"`
+	// At least one blocking incident that day, meaning sign-in was impossible for all of your end-users.
+	Blocking bool `json:"blocking" url:"blocking"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (p *ProviderDayDto) GetDay() string {
+	if p == nil {
+		return ""
+	}
+	return p.Day
+}
+
+func (p *ProviderDayDto) GetIncidents() float64 {
+	if p == nil {
+		return 0
+	}
+	return p.Incidents
+}
+
+func (p *ProviderDayDto) GetBlocking() bool {
+	if p == nil {
+		return false
+	}
+	return p.Blocking
+}
+
+func (p *ProviderDayDto) GetExtraProperties() map[string]interface{} {
+	return p.extraProperties
+}
+
+func (p *ProviderDayDto) UnmarshalJSON(data []byte) error {
+	type unmarshaler ProviderDayDto
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*p = ProviderDayDto(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *p)
+	if err != nil {
+		return err
+	}
+	p.extraProperties = extraProperties
+	p.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (p *ProviderDayDto) String() string {
+	if len(p.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(p.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(p); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", p)
+}
+
+type ProviderTimelineDto struct {
+	// The provider concerned.
+	Provider string            `json:"provider" url:"provider"`
+	Days     []*ProviderDayDto `json:"days,omitempty" url:"days,omitempty"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (p *ProviderTimelineDto) GetProvider() string {
+	if p == nil {
+		return ""
+	}
+	return p.Provider
+}
+
+func (p *ProviderTimelineDto) GetDays() []*ProviderDayDto {
+	if p == nil {
+		return nil
+	}
+	return p.Days
+}
+
+func (p *ProviderTimelineDto) GetExtraProperties() map[string]interface{} {
+	return p.extraProperties
+}
+
+func (p *ProviderTimelineDto) UnmarshalJSON(data []byte) error {
+	type unmarshaler ProviderTimelineDto
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*p = ProviderTimelineDto(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *p)
+	if err != nil {
+		return err
+	}
+	p.extraProperties = extraProperties
+	p.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (p *ProviderTimelineDto) String() string {
+	if len(p.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(p.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(p); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", p)
+}
+
 type PublicCustomerResponseDto struct {
 	ID string `json:"id" url:"id"`
-	// Identifiant du projet auquel ce Customer appartient. Un Customer n'existe que dans un projet : la même adresse dans deux projets, ce sont deux Customers.
-	ProjectID       string                 `json:"projectId" url:"projectId"`
-	Email           map[string]interface{} `json:"email,omitempty" url:"email,omitempty"`
-	EmailVerifiedAt map[string]interface{} `json:"emailVerifiedAt,omitempty" url:"emailVerifiedAt,omitempty"`
-	Phone           map[string]interface{} `json:"phone,omitempty" url:"phone,omitempty"`
-	PhoneVerifiedAt map[string]interface{} `json:"phoneVerifiedAt,omitempty" url:"phoneVerifiedAt,omitempty"`
-	// Métadonnées libres que vous attachez au Customer.
+	// Identifier of the project this Customer belongs to. A Customer exists only inside a project: the same address in two projects means two Customers.
+	ProjectID       string     `json:"projectId" url:"projectId"`
+	Email           *string    `json:"email,omitempty" url:"email,omitempty"`
+	EmailVerifiedAt *time.Time `json:"emailVerifiedAt,omitempty" url:"emailVerifiedAt,omitempty"`
+	Phone           *string    `json:"phone,omitempty" url:"phone,omitempty"`
+	PhoneVerifiedAt *time.Time `json:"phoneVerifiedAt,omitempty" url:"phoneVerifiedAt,omitempty"`
+	// Free-form metadata you attach to the Customer.
 	Metadata map[string]interface{} `json:"metadata,omitempty" url:"metadata,omitempty"`
-	// Rôles applicatifs, repris dans le claim `roles` du jeton.
-	Roles        []string               `json:"roles,omitempty" url:"roles,omitempty"`
-	LastSignInAt map[string]interface{} `json:"lastSignInAt,omitempty" url:"lastSignInAt,omitempty"`
-	// Non nul si le Customer est banni : il ne peut plus se connecter.
-	BannedAt map[string]interface{} `json:"bannedAt,omitempty" url:"bannedAt,omitempty"`
-	// Vrai si un second facteur est actif sur ce Customer.
+	// Application roles, carried in the token `roles` claim.
+	Roles        []string   `json:"roles,omitempty" url:"roles,omitempty"`
+	LastSignInAt *time.Time `json:"lastSignInAt,omitempty" url:"lastSignInAt,omitempty"`
+	// Non-null if the Customer is banned: they can no longer sign in.
+	BannedAt *time.Time `json:"bannedAt,omitempty" url:"bannedAt,omitempty"`
+	// True if a second factor is active on this Customer.
 	MfaEnabled   bool                          `json:"mfaEnabled" url:"mfaEnabled"`
-	MfaEnabledAt map[string]interface{}        `json:"mfaEnabledAt,omitempty" url:"mfaEnabledAt,omitempty"`
+	MfaEnabledAt *time.Time                    `json:"mfaEnabledAt,omitempty" url:"mfaEnabledAt,omitempty"`
 	CreatedAt    time.Time                     `json:"createdAt" url:"createdAt"`
 	UpdatedAt    time.Time                     `json:"updatedAt" url:"updatedAt"`
 	Identities   []*CustomerIdentitySummaryDto `json:"identities,omitempty" url:"identities,omitempty"`
@@ -1704,28 +2078,28 @@ func (p *PublicCustomerResponseDto) GetProjectID() string {
 	return p.ProjectID
 }
 
-func (p *PublicCustomerResponseDto) GetEmail() map[string]interface{} {
+func (p *PublicCustomerResponseDto) GetEmail() *string {
 	if p == nil {
 		return nil
 	}
 	return p.Email
 }
 
-func (p *PublicCustomerResponseDto) GetEmailVerifiedAt() map[string]interface{} {
+func (p *PublicCustomerResponseDto) GetEmailVerifiedAt() *time.Time {
 	if p == nil {
 		return nil
 	}
 	return p.EmailVerifiedAt
 }
 
-func (p *PublicCustomerResponseDto) GetPhone() map[string]interface{} {
+func (p *PublicCustomerResponseDto) GetPhone() *string {
 	if p == nil {
 		return nil
 	}
 	return p.Phone
 }
 
-func (p *PublicCustomerResponseDto) GetPhoneVerifiedAt() map[string]interface{} {
+func (p *PublicCustomerResponseDto) GetPhoneVerifiedAt() *time.Time {
 	if p == nil {
 		return nil
 	}
@@ -1746,14 +2120,14 @@ func (p *PublicCustomerResponseDto) GetRoles() []string {
 	return p.Roles
 }
 
-func (p *PublicCustomerResponseDto) GetLastSignInAt() map[string]interface{} {
+func (p *PublicCustomerResponseDto) GetLastSignInAt() *time.Time {
 	if p == nil {
 		return nil
 	}
 	return p.LastSignInAt
 }
 
-func (p *PublicCustomerResponseDto) GetBannedAt() map[string]interface{} {
+func (p *PublicCustomerResponseDto) GetBannedAt() *time.Time {
 	if p == nil {
 		return nil
 	}
@@ -1767,7 +2141,7 @@ func (p *PublicCustomerResponseDto) GetMfaEnabled() bool {
 	return p.MfaEnabled
 }
 
-func (p *PublicCustomerResponseDto) GetMfaEnabledAt() map[string]interface{} {
+func (p *PublicCustomerResponseDto) GetMfaEnabledAt() *time.Time {
 	if p == nil {
 		return nil
 	}
@@ -1803,8 +2177,13 @@ func (p *PublicCustomerResponseDto) UnmarshalJSON(data []byte) error {
 	type embed PublicCustomerResponseDto
 	var unmarshaler = struct {
 		embed
-		CreatedAt *internal.DateTime `json:"createdAt"`
-		UpdatedAt *internal.DateTime `json:"updatedAt"`
+		EmailVerifiedAt *internal.DateTime `json:"emailVerifiedAt,omitempty"`
+		PhoneVerifiedAt *internal.DateTime `json:"phoneVerifiedAt,omitempty"`
+		LastSignInAt    *internal.DateTime `json:"lastSignInAt,omitempty"`
+		BannedAt        *internal.DateTime `json:"bannedAt,omitempty"`
+		MfaEnabledAt    *internal.DateTime `json:"mfaEnabledAt,omitempty"`
+		CreatedAt       *internal.DateTime `json:"createdAt"`
+		UpdatedAt       *internal.DateTime `json:"updatedAt"`
 	}{
 		embed: embed(*p),
 	}
@@ -1812,6 +2191,11 @@ func (p *PublicCustomerResponseDto) UnmarshalJSON(data []byte) error {
 		return err
 	}
 	*p = PublicCustomerResponseDto(unmarshaler.embed)
+	p.EmailVerifiedAt = unmarshaler.EmailVerifiedAt.TimePtr()
+	p.PhoneVerifiedAt = unmarshaler.PhoneVerifiedAt.TimePtr()
+	p.LastSignInAt = unmarshaler.LastSignInAt.TimePtr()
+	p.BannedAt = unmarshaler.BannedAt.TimePtr()
+	p.MfaEnabledAt = unmarshaler.MfaEnabledAt.TimePtr()
 	p.CreatedAt = unmarshaler.CreatedAt.Time()
 	p.UpdatedAt = unmarshaler.UpdatedAt.Time()
 	extraProperties, err := internal.ExtractExtraProperties(data, *p)
@@ -1827,12 +2211,22 @@ func (p *PublicCustomerResponseDto) MarshalJSON() ([]byte, error) {
 	type embed PublicCustomerResponseDto
 	var marshaler = struct {
 		embed
-		CreatedAt *internal.DateTime `json:"createdAt"`
-		UpdatedAt *internal.DateTime `json:"updatedAt"`
+		EmailVerifiedAt *internal.DateTime `json:"emailVerifiedAt,omitempty"`
+		PhoneVerifiedAt *internal.DateTime `json:"phoneVerifiedAt,omitempty"`
+		LastSignInAt    *internal.DateTime `json:"lastSignInAt,omitempty"`
+		BannedAt        *internal.DateTime `json:"bannedAt,omitempty"`
+		MfaEnabledAt    *internal.DateTime `json:"mfaEnabledAt,omitempty"`
+		CreatedAt       *internal.DateTime `json:"createdAt"`
+		UpdatedAt       *internal.DateTime `json:"updatedAt"`
 	}{
-		embed:     embed(*p),
-		CreatedAt: internal.NewDateTime(p.CreatedAt),
-		UpdatedAt: internal.NewDateTime(p.UpdatedAt),
+		embed:           embed(*p),
+		EmailVerifiedAt: internal.NewOptionalDateTime(p.EmailVerifiedAt),
+		PhoneVerifiedAt: internal.NewOptionalDateTime(p.PhoneVerifiedAt),
+		LastSignInAt:    internal.NewOptionalDateTime(p.LastSignInAt),
+		BannedAt:        internal.NewOptionalDateTime(p.BannedAt),
+		MfaEnabledAt:    internal.NewOptionalDateTime(p.MfaEnabledAt),
+		CreatedAt:       internal.NewDateTime(p.CreatedAt),
+		UpdatedAt:       internal.NewDateTime(p.UpdatedAt),
 	}
 	return json.Marshal(marshaler)
 }
@@ -1896,11 +2290,11 @@ func (r *RefreshDto) String() string {
 }
 
 type SignInSuccessResponseDto struct {
-	// Jeton d'accès à présenter en Bearer sur les routes self-service, et à vérifier côté serveur via les clés publiques du projet.
+	// Access token to present as a Bearer on the self-service routes, and to verify server-side with the project public keys.
 	AccessToken string `json:"accessToken" url:"accessToken"`
-	// Jeton opaque servant à obtenir un nouvel accessToken. Il tourne à chaque usage : celui-ci ne sert qu’une fois.
+	// Opaque token used to obtain a new accessToken. It rotates on every use: this one works once.
 	RefreshToken string `json:"refreshToken" url:"refreshToken"`
-	// Durée de validité de l'accessToken, en secondes.
+	// Lifetime of the accessToken, in seconds.
 	ExpiresIn float64                    `json:"expiresIn" url:"expiresIn"`
 	Customer  *PublicCustomerResponseDto `json:"customer,omitempty" url:"customer,omitempty"`
 
@@ -1969,7 +2363,7 @@ func (s *SignInSuccessResponseDto) String() string {
 }
 
 type SigningKeyRotationResponseDto struct {
-	// Identifiant de la nouvelle clé, celui du claim `kid` des jetons.
+	// Identifier of the new key, the one in the token `kid` claim.
 	Kid       string    `json:"kid" url:"kid"`
 	CreatedAt time.Time `json:"createdAt" url:"createdAt"`
 
@@ -2041,40 +2435,47 @@ func (s *SigningKeyRotationResponseDto) String() string {
 	return fmt.Sprintf("%#v", s)
 }
 
-type SSOStartResponseDto struct {
-	SSORequired bool `json:"ssoRequired" url:"ssoRequired"`
-	// Où envoyer la personne. Absent quand ssoRequired est faux.
-	RedirectURL *string `json:"redirectUrl,omitempty" url:"redirectUrl,omitempty"`
+type SSOProfileAcsResponseDto struct {
+	Code        string  `json:"code" url:"code"`
+	RedirectURI string  `json:"redirectUri" url:"redirectUri"`
+	Nonce       *string `json:"nonce,omitempty" url:"nonce,omitempty"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
 }
 
-func (s *SSOStartResponseDto) GetSSORequired() bool {
+func (s *SSOProfileAcsResponseDto) GetCode() string {
 	if s == nil {
-		return false
+		return ""
 	}
-	return s.SSORequired
+	return s.Code
 }
 
-func (s *SSOStartResponseDto) GetRedirectURL() *string {
+func (s *SSOProfileAcsResponseDto) GetRedirectURI() string {
+	if s == nil {
+		return ""
+	}
+	return s.RedirectURI
+}
+
+func (s *SSOProfileAcsResponseDto) GetNonce() *string {
 	if s == nil {
 		return nil
 	}
-	return s.RedirectURL
+	return s.Nonce
 }
 
-func (s *SSOStartResponseDto) GetExtraProperties() map[string]interface{} {
+func (s *SSOProfileAcsResponseDto) GetExtraProperties() map[string]interface{} {
 	return s.extraProperties
 }
 
-func (s *SSOStartResponseDto) UnmarshalJSON(data []byte) error {
-	type unmarshaler SSOStartResponseDto
+func (s *SSOProfileAcsResponseDto) UnmarshalJSON(data []byte) error {
+	type unmarshaler SSOProfileAcsResponseDto
 	var value unmarshaler
 	if err := json.Unmarshal(data, &value); err != nil {
 		return err
 	}
-	*s = SSOStartResponseDto(value)
+	*s = SSOProfileAcsResponseDto(value)
 	extraProperties, err := internal.ExtractExtraProperties(data, *s)
 	if err != nil {
 		return err
@@ -2084,7 +2485,7 @@ func (s *SSOStartResponseDto) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-func (s *SSOStartResponseDto) String() string {
+func (s *SSOProfileAcsResponseDto) String() string {
 	if len(s.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(s.rawJSON); err == nil {
 			return value
@@ -2659,6 +3060,7 @@ func (c *CustomerAuthVerifyPhoneOtpResponse) Accept(visitor CustomerAuthVerifyPh
 type SSOAuthAcsResponse struct {
 	SignInSuccessResponseDto *SignInSuccessResponseDto
 	MfaChallengeResponseDto  *MfaChallengeResponseDto
+	SSOProfileAcsResponseDto *SSOProfileAcsResponseDto
 
 	typ string
 }
@@ -2669,6 +3071,10 @@ func NewSSOAuthAcsResponseFromSignInSuccessResponseDto(value *SignInSuccessRespo
 
 func NewSSOAuthAcsResponseFromMfaChallengeResponseDto(value *MfaChallengeResponseDto) *SSOAuthAcsResponse {
 	return &SSOAuthAcsResponse{typ: "MfaChallengeResponseDto", MfaChallengeResponseDto: value}
+}
+
+func NewSSOAuthAcsResponseFromSSOProfileAcsResponseDto(value *SSOProfileAcsResponseDto) *SSOAuthAcsResponse {
+	return &SSOAuthAcsResponse{typ: "SSOProfileAcsResponseDto", SSOProfileAcsResponseDto: value}
 }
 
 func (s *SSOAuthAcsResponse) GetSignInSuccessResponseDto() *SignInSuccessResponseDto {
@@ -2685,6 +3091,13 @@ func (s *SSOAuthAcsResponse) GetMfaChallengeResponseDto() *MfaChallengeResponseD
 	return s.MfaChallengeResponseDto
 }
 
+func (s *SSOAuthAcsResponse) GetSSOProfileAcsResponseDto() *SSOProfileAcsResponseDto {
+	if s == nil {
+		return nil
+	}
+	return s.SSOProfileAcsResponseDto
+}
+
 func (s *SSOAuthAcsResponse) UnmarshalJSON(data []byte) error {
 	valueSignInSuccessResponseDto := new(SignInSuccessResponseDto)
 	if err := json.Unmarshal(data, &valueSignInSuccessResponseDto); err == nil {
@@ -2698,6 +3111,12 @@ func (s *SSOAuthAcsResponse) UnmarshalJSON(data []byte) error {
 		s.MfaChallengeResponseDto = valueMfaChallengeResponseDto
 		return nil
 	}
+	valueSSOProfileAcsResponseDto := new(SSOProfileAcsResponseDto)
+	if err := json.Unmarshal(data, &valueSSOProfileAcsResponseDto); err == nil {
+		s.typ = "SSOProfileAcsResponseDto"
+		s.SSOProfileAcsResponseDto = valueSSOProfileAcsResponseDto
+		return nil
+	}
 	return fmt.Errorf("%s cannot be deserialized as a %T", data, s)
 }
 
@@ -2708,12 +3127,16 @@ func (s SSOAuthAcsResponse) MarshalJSON() ([]byte, error) {
 	if s.typ == "MfaChallengeResponseDto" || s.MfaChallengeResponseDto != nil {
 		return json.Marshal(s.MfaChallengeResponseDto)
 	}
+	if s.typ == "SSOProfileAcsResponseDto" || s.SSOProfileAcsResponseDto != nil {
+		return json.Marshal(s.SSOProfileAcsResponseDto)
+	}
 	return nil, fmt.Errorf("type %T does not include a non-empty union type", s)
 }
 
 type SSOAuthAcsResponseVisitor interface {
 	VisitSignInSuccessResponseDto(*SignInSuccessResponseDto) error
 	VisitMfaChallengeResponseDto(*MfaChallengeResponseDto) error
+	VisitSSOProfileAcsResponseDto(*SSOProfileAcsResponseDto) error
 }
 
 func (s *SSOAuthAcsResponse) Accept(visitor SSOAuthAcsResponseVisitor) error {
@@ -2723,7 +3146,128 @@ func (s *SSOAuthAcsResponse) Accept(visitor SSOAuthAcsResponseVisitor) error {
 	if s.typ == "MfaChallengeResponseDto" || s.MfaChallengeResponseDto != nil {
 		return visitor.VisitMfaChallengeResponseDto(s.MfaChallengeResponseDto)
 	}
+	if s.typ == "SSOProfileAcsResponseDto" || s.SSOProfileAcsResponseDto != nil {
+		return visitor.VisitSSOProfileAcsResponseDto(s.SSOProfileAcsResponseDto)
+	}
 	return fmt.Errorf("type %T does not include a non-empty union type", s)
+}
+
+type SSOAuthCallbackResponse struct {
+	SignInSuccessResponseDto *SignInSuccessResponseDto
+	MfaChallengeResponseDto  *MfaChallengeResponseDto
+	SSOProfileAcsResponseDto *SSOProfileAcsResponseDto
+
+	typ string
+}
+
+func NewSSOAuthCallbackResponseFromSignInSuccessResponseDto(value *SignInSuccessResponseDto) *SSOAuthCallbackResponse {
+	return &SSOAuthCallbackResponse{typ: "SignInSuccessResponseDto", SignInSuccessResponseDto: value}
+}
+
+func NewSSOAuthCallbackResponseFromMfaChallengeResponseDto(value *MfaChallengeResponseDto) *SSOAuthCallbackResponse {
+	return &SSOAuthCallbackResponse{typ: "MfaChallengeResponseDto", MfaChallengeResponseDto: value}
+}
+
+func NewSSOAuthCallbackResponseFromSSOProfileAcsResponseDto(value *SSOProfileAcsResponseDto) *SSOAuthCallbackResponse {
+	return &SSOAuthCallbackResponse{typ: "SSOProfileAcsResponseDto", SSOProfileAcsResponseDto: value}
+}
+
+func (s *SSOAuthCallbackResponse) GetSignInSuccessResponseDto() *SignInSuccessResponseDto {
+	if s == nil {
+		return nil
+	}
+	return s.SignInSuccessResponseDto
+}
+
+func (s *SSOAuthCallbackResponse) GetMfaChallengeResponseDto() *MfaChallengeResponseDto {
+	if s == nil {
+		return nil
+	}
+	return s.MfaChallengeResponseDto
+}
+
+func (s *SSOAuthCallbackResponse) GetSSOProfileAcsResponseDto() *SSOProfileAcsResponseDto {
+	if s == nil {
+		return nil
+	}
+	return s.SSOProfileAcsResponseDto
+}
+
+func (s *SSOAuthCallbackResponse) UnmarshalJSON(data []byte) error {
+	valueSignInSuccessResponseDto := new(SignInSuccessResponseDto)
+	if err := json.Unmarshal(data, &valueSignInSuccessResponseDto); err == nil {
+		s.typ = "SignInSuccessResponseDto"
+		s.SignInSuccessResponseDto = valueSignInSuccessResponseDto
+		return nil
+	}
+	valueMfaChallengeResponseDto := new(MfaChallengeResponseDto)
+	if err := json.Unmarshal(data, &valueMfaChallengeResponseDto); err == nil {
+		s.typ = "MfaChallengeResponseDto"
+		s.MfaChallengeResponseDto = valueMfaChallengeResponseDto
+		return nil
+	}
+	valueSSOProfileAcsResponseDto := new(SSOProfileAcsResponseDto)
+	if err := json.Unmarshal(data, &valueSSOProfileAcsResponseDto); err == nil {
+		s.typ = "SSOProfileAcsResponseDto"
+		s.SSOProfileAcsResponseDto = valueSSOProfileAcsResponseDto
+		return nil
+	}
+	return fmt.Errorf("%s cannot be deserialized as a %T", data, s)
+}
+
+func (s SSOAuthCallbackResponse) MarshalJSON() ([]byte, error) {
+	if s.typ == "SignInSuccessResponseDto" || s.SignInSuccessResponseDto != nil {
+		return json.Marshal(s.SignInSuccessResponseDto)
+	}
+	if s.typ == "MfaChallengeResponseDto" || s.MfaChallengeResponseDto != nil {
+		return json.Marshal(s.MfaChallengeResponseDto)
+	}
+	if s.typ == "SSOProfileAcsResponseDto" || s.SSOProfileAcsResponseDto != nil {
+		return json.Marshal(s.SSOProfileAcsResponseDto)
+	}
+	return nil, fmt.Errorf("type %T does not include a non-empty union type", s)
+}
+
+type SSOAuthCallbackResponseVisitor interface {
+	VisitSignInSuccessResponseDto(*SignInSuccessResponseDto) error
+	VisitMfaChallengeResponseDto(*MfaChallengeResponseDto) error
+	VisitSSOProfileAcsResponseDto(*SSOProfileAcsResponseDto) error
+}
+
+func (s *SSOAuthCallbackResponse) Accept(visitor SSOAuthCallbackResponseVisitor) error {
+	if s.typ == "SignInSuccessResponseDto" || s.SignInSuccessResponseDto != nil {
+		return visitor.VisitSignInSuccessResponseDto(s.SignInSuccessResponseDto)
+	}
+	if s.typ == "MfaChallengeResponseDto" || s.MfaChallengeResponseDto != nil {
+		return visitor.VisitMfaChallengeResponseDto(s.MfaChallengeResponseDto)
+	}
+	if s.typ == "SSOProfileAcsResponseDto" || s.SSOProfileAcsResponseDto != nil {
+		return visitor.VisitSSOProfileAcsResponseDto(s.SSOProfileAcsResponseDto)
+	}
+	return fmt.Errorf("type %T does not include a non-empty union type", s)
+}
+
+// session (default) signs the person in with Mailmus Auth. profile sends the person back to redirectUri with a one-time code, which your server exchanges for the verified profile: use it when you sign people in yourself.
+type SSOStartDtoFlow string
+
+const (
+	SSOStartDtoFlowSession SSOStartDtoFlow = "session"
+	SSOStartDtoFlowProfile SSOStartDtoFlow = "profile"
+)
+
+func NewSSOStartDtoFlowFromString(s string) (SSOStartDtoFlow, error) {
+	switch s {
+	case "session":
+		return SSOStartDtoFlowSession, nil
+	case "profile":
+		return SSOStartDtoFlowProfile, nil
+	}
+	var t SSOStartDtoFlow
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (s SSOStartDtoFlow) Ptr() *SSOStartDtoFlow {
+	return &s
 }
 
 type UpdateAuthSettingsDtoAllowedProvidersItem string
@@ -2736,6 +3280,7 @@ const (
 	UpdateAuthSettingsDtoAllowedProvidersItemGithub    UpdateAuthSettingsDtoAllowedProvidersItem = "GITHUB"
 	UpdateAuthSettingsDtoAllowedProvidersItemApple     UpdateAuthSettingsDtoAllowedProvidersItem = "APPLE"
 	UpdateAuthSettingsDtoAllowedProvidersItemSAML      UpdateAuthSettingsDtoAllowedProvidersItem = "SAML"
+	UpdateAuthSettingsDtoAllowedProvidersItemOidc      UpdateAuthSettingsDtoAllowedProvidersItem = "OIDC"
 )
 
 func NewUpdateAuthSettingsDtoAllowedProvidersItemFromString(s string) (UpdateAuthSettingsDtoAllowedProvidersItem, error) {
@@ -2754,11 +3299,36 @@ func NewUpdateAuthSettingsDtoAllowedProvidersItemFromString(s string) (UpdateAut
 		return UpdateAuthSettingsDtoAllowedProvidersItemApple, nil
 	case "SAML":
 		return UpdateAuthSettingsDtoAllowedProvidersItemSAML, nil
+	case "OIDC":
+		return UpdateAuthSettingsDtoAllowedProvidersItemOidc, nil
 	}
 	var t UpdateAuthSettingsDtoAllowedProvidersItem
 	return "", fmt.Errorf("%s is not a valid %T", s, t)
 }
 
 func (u UpdateAuthSettingsDtoAllowedProvidersItem) Ptr() *UpdateAuthSettingsDtoAllowedProvidersItem {
+	return &u
+}
+
+// Language your end-users are served in: hosted sign-in pages and authentication emails. English by default.
+type UpdateAuthSettingsDtoLocale string
+
+const (
+	UpdateAuthSettingsDtoLocaleEn UpdateAuthSettingsDtoLocale = "en"
+	UpdateAuthSettingsDtoLocaleFr UpdateAuthSettingsDtoLocale = "fr"
+)
+
+func NewUpdateAuthSettingsDtoLocaleFromString(s string) (UpdateAuthSettingsDtoLocale, error) {
+	switch s {
+	case "en":
+		return UpdateAuthSettingsDtoLocaleEn, nil
+	case "fr":
+		return UpdateAuthSettingsDtoLocaleFr, nil
+	}
+	var t UpdateAuthSettingsDtoLocale
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (u UpdateAuthSettingsDtoLocale) Ptr() *UpdateAuthSettingsDtoLocale {
 	return &u
 }

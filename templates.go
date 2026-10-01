@@ -17,11 +17,11 @@ type CreateTemplateDto struct {
 
 type TemplateResponseDto struct {
 	ID string `json:"id" url:"id"`
-	// Nom interne, jamais visible par un destinataire.
+	// Internal name, never visible to a recipient.
 	Name string `json:"name" url:"name"`
-	// Représentation structurée de l'éditeur visuel. Passez-la telle quelle pour rouvrir un template dans l'éditeur ; le HTML ci-dessous en est le rendu.
+	// Structured representation from the visual editor. Pass it back unchanged to reopen a template in the editor; the HTML below is its rendering.
 	BuilderJSON map[string]interface{} `json:"builderJson,omitempty" url:"builderJson,omitempty"`
-	// HTML final envoyé. Les variables de personnalisation y sont laissées telles quelles et interpolées au moment de l’envoi.
+	// Final HTML sent. Personalization variables are left as they are and interpolated at send time.
 	HTML string `json:"html" url:"html"`
 	// Projet auquel ce template appartient.
 	AppID     string    `json:"appId" url:"appId"`

@@ -13,16 +13,16 @@ type WebhookDeliveryResponseDto struct {
 	ID             string `json:"id" url:"id"`
 	SubscriptionID string `json:"subscriptionId" url:"subscriptionId"`
 	Event          string `json:"event" url:"event"`
-	// Corps envoyé, tel quel.
+	// Body sent, as is.
 	Payload map[string]interface{}           `json:"payload,omitempty" url:"payload,omitempty"`
 	Status  WebhookDeliveryResponseDtoStatus `json:"status" url:"status"`
-	// Tentatives effectuées, réessais compris.
+	// Attempts made, retries included.
 	Attempts float64 `json:"attempts" url:"attempts"`
-	// Code HTTP renvoyé par votre serveur à la dernière tentative.
-	ResponseStatus map[string]interface{} `json:"responseStatus,omitempty" url:"responseStatus,omitempty"`
-	ErrorMessage   map[string]interface{} `json:"errorMessage,omitempty" url:"errorMessage,omitempty"`
-	CreatedAt      time.Time              `json:"createdAt" url:"createdAt"`
-	DeliveredAt    map[string]interface{} `json:"deliveredAt,omitempty" url:"deliveredAt,omitempty"`
+	// HTTP status your server returned on the last attempt.
+	ResponseStatus *float64   `json:"responseStatus,omitempty" url:"responseStatus,omitempty"`
+	ErrorMessage   *string    `json:"errorMessage,omitempty" url:"errorMessage,omitempty"`
+	CreatedAt      time.Time  `json:"createdAt" url:"createdAt"`
+	DeliveredAt    *time.Time `json:"deliveredAt,omitempty" url:"deliveredAt,omitempty"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -70,14 +70,14 @@ func (w *WebhookDeliveryResponseDto) GetAttempts() float64 {
 	return w.Attempts
 }
 
-func (w *WebhookDeliveryResponseDto) GetResponseStatus() map[string]interface{} {
+func (w *WebhookDeliveryResponseDto) GetResponseStatus() *float64 {
 	if w == nil {
 		return nil
 	}
 	return w.ResponseStatus
 }
 
-func (w *WebhookDeliveryResponseDto) GetErrorMessage() map[string]interface{} {
+func (w *WebhookDeliveryResponseDto) GetErrorMessage() *string {
 	if w == nil {
 		return nil
 	}
@@ -91,7 +91,7 @@ func (w *WebhookDeliveryResponseDto) GetCreatedAt() time.Time {
 	return w.CreatedAt
 }
 
-func (w *WebhookDeliveryResponseDto) GetDeliveredAt() map[string]interface{} {
+func (w *WebhookDeliveryResponseDto) GetDeliveredAt() *time.Time {
 	if w == nil {
 		return nil
 	}
@@ -106,7 +106,8 @@ func (w *WebhookDeliveryResponseDto) UnmarshalJSON(data []byte) error {
 	type embed WebhookDeliveryResponseDto
 	var unmarshaler = struct {
 		embed
-		CreatedAt *internal.DateTime `json:"createdAt"`
+		CreatedAt   *internal.DateTime `json:"createdAt"`
+		DeliveredAt *internal.DateTime `json:"deliveredAt,omitempty"`
 	}{
 		embed: embed(*w),
 	}
@@ -115,6 +116,7 @@ func (w *WebhookDeliveryResponseDto) UnmarshalJSON(data []byte) error {
 	}
 	*w = WebhookDeliveryResponseDto(unmarshaler.embed)
 	w.CreatedAt = unmarshaler.CreatedAt.Time()
+	w.DeliveredAt = unmarshaler.DeliveredAt.TimePtr()
 	extraProperties, err := internal.ExtractExtraProperties(data, *w)
 	if err != nil {
 		return err
@@ -128,10 +130,12 @@ func (w *WebhookDeliveryResponseDto) MarshalJSON() ([]byte, error) {
 	type embed WebhookDeliveryResponseDto
 	var marshaler = struct {
 		embed
-		CreatedAt *internal.DateTime `json:"createdAt"`
+		CreatedAt   *internal.DateTime `json:"createdAt"`
+		DeliveredAt *internal.DateTime `json:"deliveredAt,omitempty"`
 	}{
-		embed:     embed(*w),
-		CreatedAt: internal.NewDateTime(w.CreatedAt),
+		embed:       embed(*w),
+		CreatedAt:   internal.NewDateTime(w.CreatedAt),
+		DeliveredAt: internal.NewOptionalDateTime(w.DeliveredAt),
 	}
 	return json.Marshal(marshaler)
 }
@@ -175,11 +179,11 @@ func (w WebhookDeliveryResponseDtoStatus) Ptr() *WebhookDeliveryResponseDtoStatu
 
 type WebhookSubscriptionResponseDto struct {
 	ID string `json:"id" url:"id"`
-	// Adresse qui recevra les livraisons.
+	// Address that will receive the deliveries.
 	URL string `json:"url" url:"url"`
-	// Événements souscrits, par exemple email.delivered.
+	// Events subscribed to, for example email.delivered.
 	Events []string `json:"events,omitempty" url:"events,omitempty"`
-	// Un abonnement inactif est conservé mais ne reçoit plus rien.
+	// An inactive subscription is kept but receives nothing any more.
 	Active    bool      `json:"active" url:"active"`
 	AppID     string    `json:"appId" url:"appId"`
 	CreatedAt time.Time `json:"createdAt" url:"createdAt"`
@@ -294,16 +298,16 @@ func (w *WebhookSubscriptionResponseDto) String() string {
 
 type WebhookSubscriptionWithSecretResponseDto struct {
 	ID string `json:"id" url:"id"`
-	// Adresse qui recevra les livraisons.
+	// Address that will receive the deliveries.
 	URL string `json:"url" url:"url"`
-	// Événements souscrits, par exemple email.delivered.
+	// Events subscribed to, for example email.delivered.
 	Events []string `json:"events,omitempty" url:"events,omitempty"`
-	// Un abonnement inactif est conservé mais ne reçoit plus rien.
+	// An inactive subscription is kept but receives nothing any more.
 	Active    bool      `json:"active" url:"active"`
 	AppID     string    `json:"appId" url:"appId"`
 	CreatedAt time.Time `json:"createdAt" url:"createdAt"`
 	UpdatedAt time.Time `json:"updatedAt" url:"updatedAt"`
-	// Clé servant à vérifier la signature de chaque livraison. Visible ici et nulle part ailleurs.
+	// Key used to verify the signature of every delivery. Shown here and nowhere else.
 	Secret string `json:"secret" url:"secret"`
 
 	extraProperties map[string]interface{}
@@ -421,11 +425,11 @@ func (w *WebhookSubscriptionWithSecretResponseDto) String() string {
 }
 
 type WebhookTestResultDto struct {
-	// Code HTTP renvoyé, ou 0 si rien n’a répondu.
+	// HTTP status returned, or 0 if nothing answered.
 	Status float64 `json:"status" url:"status"`
-	// Vrai si le code est un 2xx.
+	// True if the status is a 2xx.
 	Ok bool `json:"ok" url:"ok"`
-	// Temps de réponse en millisecondes.
+	// Response time in milliseconds.
 	ResponseTime float64 `json:"responseTime" url:"responseTime"`
 
 	extraProperties map[string]interface{}
@@ -488,42 +492,64 @@ func (w *WebhookTestResultDto) String() string {
 type CreateWebhookDtoEventsItem string
 
 const (
-	CreateWebhookDtoEventsItemContactCreated                 CreateWebhookDtoEventsItem = "contact.created"
-	CreateWebhookDtoEventsItemContactUnsubscribed            CreateWebhookDtoEventsItem = "contact.unsubscribed"
-	CreateWebhookDtoEventsItemEmailSent                      CreateWebhookDtoEventsItem = "email.sent"
-	CreateWebhookDtoEventsItemEmailReceived                  CreateWebhookDtoEventsItem = "email.received"
-	CreateWebhookDtoEventsItemSendDelivered                  CreateWebhookDtoEventsItem = "send.delivered"
-	CreateWebhookDtoEventsItemSendBounced                    CreateWebhookDtoEventsItem = "send.bounced"
-	CreateWebhookDtoEventsItemSendComplained                 CreateWebhookDtoEventsItem = "send.complained"
-	CreateWebhookDtoEventsItemSendOpened                     CreateWebhookDtoEventsItem = "send.opened"
-	CreateWebhookDtoEventsItemSendClicked                    CreateWebhookDtoEventsItem = "send.clicked"
-	CreateWebhookDtoEventsItemCampaignSent                   CreateWebhookDtoEventsItem = "campaign.sent"
-	CreateWebhookDtoEventsItemDomainVerified                 CreateWebhookDtoEventsItem = "domain.verified"
-	CreateWebhookDtoEventsItemDomainFailed                   CreateWebhookDtoEventsItem = "domain.failed"
-	CreateWebhookDtoEventsItemAutomationCompleted            CreateWebhookDtoEventsItem = "automation.completed"
-	CreateWebhookDtoEventsItemAutomationFailed               CreateWebhookDtoEventsItem = "automation.failed"
-	CreateWebhookDtoEventsItemCustomerCreated                CreateWebhookDtoEventsItem = "customer.created"
-	CreateWebhookDtoEventsItemCustomerSignedIn               CreateWebhookDtoEventsItem = "customer.signed_in"
-	CreateWebhookDtoEventsItemCustomerEmailVerified          CreateWebhookDtoEventsItem = "customer.email_verified"
-	CreateWebhookDtoEventsItemCustomerBanned                 CreateWebhookDtoEventsItem = "customer.banned"
-	CreateWebhookDtoEventsItemCustomerUnbanned               CreateWebhookDtoEventsItem = "customer.unbanned"
-	CreateWebhookDtoEventsItemCustomerDeleted                CreateWebhookDtoEventsItem = "customer.deleted"
-	CreateWebhookDtoEventsItemCustomerMfaReset               CreateWebhookDtoEventsItem = "customer.mfa_reset"
-	CreateWebhookDtoEventsItemCustomerSessionRevoked         CreateWebhookDtoEventsItem = "customer.session_revoked"
-	CreateWebhookDtoEventsItemOrganizationCreated            CreateWebhookDtoEventsItem = "organization.created"
-	CreateWebhookDtoEventsItemOrganizationUpdated            CreateWebhookDtoEventsItem = "organization.updated"
-	CreateWebhookDtoEventsItemOrganizationDeleted            CreateWebhookDtoEventsItem = "organization.deleted"
-	CreateWebhookDtoEventsItemOrganizationMemberAdded        CreateWebhookDtoEventsItem = "organization.member_added"
-	CreateWebhookDtoEventsItemOrganizationMemberRemoved      CreateWebhookDtoEventsItem = "organization.member_removed"
-	CreateWebhookDtoEventsItemOrganizationMemberRoleUpdated  CreateWebhookDtoEventsItem = "organization.member_role_updated"
-	CreateWebhookDtoEventsItemOrganizationInvitationCreated  CreateWebhookDtoEventsItem = "organization.invitation_created"
-	CreateWebhookDtoEventsItemOrganizationInvitationAccepted CreateWebhookDtoEventsItem = "organization.invitation_accepted"
-	CreateWebhookDtoEventsItemOrganizationInvitationRevoked  CreateWebhookDtoEventsItem = "organization.invitation_revoked"
-	CreateWebhookDtoEventsItemSSOConnectionCreated           CreateWebhookDtoEventsItem = "sso_connection.created"
-	CreateWebhookDtoEventsItemSSOConnectionUpdated           CreateWebhookDtoEventsItem = "sso_connection.updated"
-	CreateWebhookDtoEventsItemSSOConnectionActivated         CreateWebhookDtoEventsItem = "sso_connection.activated"
-	CreateWebhookDtoEventsItemSSOConnectionDisabled          CreateWebhookDtoEventsItem = "sso_connection.disabled"
-	CreateWebhookDtoEventsItemSSOConnectionDeleted           CreateWebhookDtoEventsItem = "sso_connection.deleted"
+	CreateWebhookDtoEventsItemContactCreated                         CreateWebhookDtoEventsItem = "contact.created"
+	CreateWebhookDtoEventsItemContactUnsubscribed                    CreateWebhookDtoEventsItem = "contact.unsubscribed"
+	CreateWebhookDtoEventsItemEmailSent                              CreateWebhookDtoEventsItem = "email.sent"
+	CreateWebhookDtoEventsItemEmailReceived                          CreateWebhookDtoEventsItem = "email.received"
+	CreateWebhookDtoEventsItemSendDelivered                          CreateWebhookDtoEventsItem = "send.delivered"
+	CreateWebhookDtoEventsItemSendBounced                            CreateWebhookDtoEventsItem = "send.bounced"
+	CreateWebhookDtoEventsItemSendComplained                         CreateWebhookDtoEventsItem = "send.complained"
+	CreateWebhookDtoEventsItemSendOpened                             CreateWebhookDtoEventsItem = "send.opened"
+	CreateWebhookDtoEventsItemSendClicked                            CreateWebhookDtoEventsItem = "send.clicked"
+	CreateWebhookDtoEventsItemCampaignSent                           CreateWebhookDtoEventsItem = "campaign.sent"
+	CreateWebhookDtoEventsItemDomainVerified                         CreateWebhookDtoEventsItem = "domain.verified"
+	CreateWebhookDtoEventsItemDomainFailed                           CreateWebhookDtoEventsItem = "domain.failed"
+	CreateWebhookDtoEventsItemAutomationCompleted                    CreateWebhookDtoEventsItem = "automation.completed"
+	CreateWebhookDtoEventsItemAutomationFailed                       CreateWebhookDtoEventsItem = "automation.failed"
+	CreateWebhookDtoEventsItemCustomerCreated                        CreateWebhookDtoEventsItem = "customer.created"
+	CreateWebhookDtoEventsItemCustomerSignedIn                       CreateWebhookDtoEventsItem = "customer.signed_in"
+	CreateWebhookDtoEventsItemCustomerEmailVerified                  CreateWebhookDtoEventsItem = "customer.email_verified"
+	CreateWebhookDtoEventsItemCustomerBanned                         CreateWebhookDtoEventsItem = "customer.banned"
+	CreateWebhookDtoEventsItemCustomerUnbanned                       CreateWebhookDtoEventsItem = "customer.unbanned"
+	CreateWebhookDtoEventsItemCustomerDeleted                        CreateWebhookDtoEventsItem = "customer.deleted"
+	CreateWebhookDtoEventsItemCustomerMfaReset                       CreateWebhookDtoEventsItem = "customer.mfa_reset"
+	CreateWebhookDtoEventsItemCustomerSessionRevoked                 CreateWebhookDtoEventsItem = "customer.session_revoked"
+	CreateWebhookDtoEventsItemCustomerLinked                         CreateWebhookDtoEventsItem = "customer.linked"
+	CreateWebhookDtoEventsItemCustomerImpersonated                   CreateWebhookDtoEventsItem = "customer.impersonated"
+	CreateWebhookDtoEventsItemOrganizationCreated                    CreateWebhookDtoEventsItem = "organization.created"
+	CreateWebhookDtoEventsItemOrganizationUpdated                    CreateWebhookDtoEventsItem = "organization.updated"
+	CreateWebhookDtoEventsItemOrganizationDeleted                    CreateWebhookDtoEventsItem = "organization.deleted"
+	CreateWebhookDtoEventsItemOrganizationSuspended                  CreateWebhookDtoEventsItem = "organization.suspended"
+	CreateWebhookDtoEventsItemOrganizationReactivated                CreateWebhookDtoEventsItem = "organization.reactivated"
+	CreateWebhookDtoEventsItemOrganizationMemberAdded                CreateWebhookDtoEventsItem = "organization.member_added"
+	CreateWebhookDtoEventsItemOrganizationMemberRemoved              CreateWebhookDtoEventsItem = "organization.member_removed"
+	CreateWebhookDtoEventsItemOrganizationMemberRoleUpdated          CreateWebhookDtoEventsItem = "organization.member_role_updated"
+	CreateWebhookDtoEventsItemOrganizationMemberSuspended            CreateWebhookDtoEventsItem = "organization.member_suspended"
+	CreateWebhookDtoEventsItemOrganizationMemberReactivated          CreateWebhookDtoEventsItem = "organization.member_reactivated"
+	CreateWebhookDtoEventsItemOrganizationMemberLinked               CreateWebhookDtoEventsItem = "organization.member_linked"
+	CreateWebhookDtoEventsItemOrganizationInvitationCreated          CreateWebhookDtoEventsItem = "organization.invitation_created"
+	CreateWebhookDtoEventsItemOrganizationInvitationAccepted         CreateWebhookDtoEventsItem = "organization.invitation_accepted"
+	CreateWebhookDtoEventsItemOrganizationInvitationRevoked          CreateWebhookDtoEventsItem = "organization.invitation_revoked"
+	CreateWebhookDtoEventsItemOrganizationPlanChanged                CreateWebhookDtoEventsItem = "organization.plan_changed"
+	CreateWebhookDtoEventsItemOrganizationEntitlementOverridden      CreateWebhookDtoEventsItem = "organization.entitlement_overridden"
+	CreateWebhookDtoEventsItemOrganizationEntitlementOverrideRemoved CreateWebhookDtoEventsItem = "organization.entitlement_override_removed"
+	CreateWebhookDtoEventsItemOrganizationDomainAdded                CreateWebhookDtoEventsItem = "organization.domain_added"
+	CreateWebhookDtoEventsItemOrganizationDomainVerified             CreateWebhookDtoEventsItem = "organization.domain_verified"
+	CreateWebhookDtoEventsItemOrganizationDomainVerificationLost     CreateWebhookDtoEventsItem = "organization.domain_verification_lost"
+	CreateWebhookDtoEventsItemOrganizationDomainRemoved              CreateWebhookDtoEventsItem = "organization.domain_removed"
+	CreateWebhookDtoEventsItemOrganizationDomainAutoJoinUpdated      CreateWebhookDtoEventsItem = "organization.domain_auto_join_updated"
+	CreateWebhookDtoEventsItemOrganizationSSOProfileExchanged        CreateWebhookDtoEventsItem = "organization.sso_profile_exchanged"
+	CreateWebhookDtoEventsItemSSOConnectionCreated                   CreateWebhookDtoEventsItem = "sso_connection.created"
+	CreateWebhookDtoEventsItemSSOConnectionUpdated                   CreateWebhookDtoEventsItem = "sso_connection.updated"
+	CreateWebhookDtoEventsItemSSOConnectionActivated                 CreateWebhookDtoEventsItem = "sso_connection.activated"
+	CreateWebhookDtoEventsItemSSOConnectionDisabled                  CreateWebhookDtoEventsItem = "sso_connection.disabled"
+	CreateWebhookDtoEventsItemSSOConnectionDeleted                   CreateWebhookDtoEventsItem = "sso_connection.deleted"
+	CreateWebhookDtoEventsItemAccessRoleCreated                      CreateWebhookDtoEventsItem = "access_role.created"
+	CreateWebhookDtoEventsItemAccessRoleUpdated                      CreateWebhookDtoEventsItem = "access_role.updated"
+	CreateWebhookDtoEventsItemAccessRoleDeleted                      CreateWebhookDtoEventsItem = "access_role.deleted"
+	CreateWebhookDtoEventsItemAccessPermissionCreated                CreateWebhookDtoEventsItem = "access_permission.created"
+	CreateWebhookDtoEventsItemAccessPermissionDeleted                CreateWebhookDtoEventsItem = "access_permission.deleted"
+	CreateWebhookDtoEventsItemCustomerRolesUpdated                   CreateWebhookDtoEventsItem = "customer.roles_updated"
 )
 
 func NewCreateWebhookDtoEventsItemFromString(s string) (CreateWebhookDtoEventsItem, error) {
@@ -572,24 +598,56 @@ func NewCreateWebhookDtoEventsItemFromString(s string) (CreateWebhookDtoEventsIt
 		return CreateWebhookDtoEventsItemCustomerMfaReset, nil
 	case "customer.session_revoked":
 		return CreateWebhookDtoEventsItemCustomerSessionRevoked, nil
+	case "customer.linked":
+		return CreateWebhookDtoEventsItemCustomerLinked, nil
+	case "customer.impersonated":
+		return CreateWebhookDtoEventsItemCustomerImpersonated, nil
 	case "organization.created":
 		return CreateWebhookDtoEventsItemOrganizationCreated, nil
 	case "organization.updated":
 		return CreateWebhookDtoEventsItemOrganizationUpdated, nil
 	case "organization.deleted":
 		return CreateWebhookDtoEventsItemOrganizationDeleted, nil
+	case "organization.suspended":
+		return CreateWebhookDtoEventsItemOrganizationSuspended, nil
+	case "organization.reactivated":
+		return CreateWebhookDtoEventsItemOrganizationReactivated, nil
 	case "organization.member_added":
 		return CreateWebhookDtoEventsItemOrganizationMemberAdded, nil
 	case "organization.member_removed":
 		return CreateWebhookDtoEventsItemOrganizationMemberRemoved, nil
 	case "organization.member_role_updated":
 		return CreateWebhookDtoEventsItemOrganizationMemberRoleUpdated, nil
+	case "organization.member_suspended":
+		return CreateWebhookDtoEventsItemOrganizationMemberSuspended, nil
+	case "organization.member_reactivated":
+		return CreateWebhookDtoEventsItemOrganizationMemberReactivated, nil
+	case "organization.member_linked":
+		return CreateWebhookDtoEventsItemOrganizationMemberLinked, nil
 	case "organization.invitation_created":
 		return CreateWebhookDtoEventsItemOrganizationInvitationCreated, nil
 	case "organization.invitation_accepted":
 		return CreateWebhookDtoEventsItemOrganizationInvitationAccepted, nil
 	case "organization.invitation_revoked":
 		return CreateWebhookDtoEventsItemOrganizationInvitationRevoked, nil
+	case "organization.plan_changed":
+		return CreateWebhookDtoEventsItemOrganizationPlanChanged, nil
+	case "organization.entitlement_overridden":
+		return CreateWebhookDtoEventsItemOrganizationEntitlementOverridden, nil
+	case "organization.entitlement_override_removed":
+		return CreateWebhookDtoEventsItemOrganizationEntitlementOverrideRemoved, nil
+	case "organization.domain_added":
+		return CreateWebhookDtoEventsItemOrganizationDomainAdded, nil
+	case "organization.domain_verified":
+		return CreateWebhookDtoEventsItemOrganizationDomainVerified, nil
+	case "organization.domain_verification_lost":
+		return CreateWebhookDtoEventsItemOrganizationDomainVerificationLost, nil
+	case "organization.domain_removed":
+		return CreateWebhookDtoEventsItemOrganizationDomainRemoved, nil
+	case "organization.domain_auto_join_updated":
+		return CreateWebhookDtoEventsItemOrganizationDomainAutoJoinUpdated, nil
+	case "organization.sso_profile_exchanged":
+		return CreateWebhookDtoEventsItemOrganizationSSOProfileExchanged, nil
 	case "sso_connection.created":
 		return CreateWebhookDtoEventsItemSSOConnectionCreated, nil
 	case "sso_connection.updated":
@@ -600,6 +658,18 @@ func NewCreateWebhookDtoEventsItemFromString(s string) (CreateWebhookDtoEventsIt
 		return CreateWebhookDtoEventsItemSSOConnectionDisabled, nil
 	case "sso_connection.deleted":
 		return CreateWebhookDtoEventsItemSSOConnectionDeleted, nil
+	case "access_role.created":
+		return CreateWebhookDtoEventsItemAccessRoleCreated, nil
+	case "access_role.updated":
+		return CreateWebhookDtoEventsItemAccessRoleUpdated, nil
+	case "access_role.deleted":
+		return CreateWebhookDtoEventsItemAccessRoleDeleted, nil
+	case "access_permission.created":
+		return CreateWebhookDtoEventsItemAccessPermissionCreated, nil
+	case "access_permission.deleted":
+		return CreateWebhookDtoEventsItemAccessPermissionDeleted, nil
+	case "customer.roles_updated":
+		return CreateWebhookDtoEventsItemCustomerRolesUpdated, nil
 	}
 	var t CreateWebhookDtoEventsItem
 	return "", fmt.Errorf("%s is not a valid %T", s, t)
@@ -612,42 +682,64 @@ func (c CreateWebhookDtoEventsItem) Ptr() *CreateWebhookDtoEventsItem {
 type UpdateWebhookDtoEventsItem string
 
 const (
-	UpdateWebhookDtoEventsItemContactCreated                 UpdateWebhookDtoEventsItem = "contact.created"
-	UpdateWebhookDtoEventsItemContactUnsubscribed            UpdateWebhookDtoEventsItem = "contact.unsubscribed"
-	UpdateWebhookDtoEventsItemEmailSent                      UpdateWebhookDtoEventsItem = "email.sent"
-	UpdateWebhookDtoEventsItemEmailReceived                  UpdateWebhookDtoEventsItem = "email.received"
-	UpdateWebhookDtoEventsItemSendDelivered                  UpdateWebhookDtoEventsItem = "send.delivered"
-	UpdateWebhookDtoEventsItemSendBounced                    UpdateWebhookDtoEventsItem = "send.bounced"
-	UpdateWebhookDtoEventsItemSendComplained                 UpdateWebhookDtoEventsItem = "send.complained"
-	UpdateWebhookDtoEventsItemSendOpened                     UpdateWebhookDtoEventsItem = "send.opened"
-	UpdateWebhookDtoEventsItemSendClicked                    UpdateWebhookDtoEventsItem = "send.clicked"
-	UpdateWebhookDtoEventsItemCampaignSent                   UpdateWebhookDtoEventsItem = "campaign.sent"
-	UpdateWebhookDtoEventsItemDomainVerified                 UpdateWebhookDtoEventsItem = "domain.verified"
-	UpdateWebhookDtoEventsItemDomainFailed                   UpdateWebhookDtoEventsItem = "domain.failed"
-	UpdateWebhookDtoEventsItemAutomationCompleted            UpdateWebhookDtoEventsItem = "automation.completed"
-	UpdateWebhookDtoEventsItemAutomationFailed               UpdateWebhookDtoEventsItem = "automation.failed"
-	UpdateWebhookDtoEventsItemCustomerCreated                UpdateWebhookDtoEventsItem = "customer.created"
-	UpdateWebhookDtoEventsItemCustomerSignedIn               UpdateWebhookDtoEventsItem = "customer.signed_in"
-	UpdateWebhookDtoEventsItemCustomerEmailVerified          UpdateWebhookDtoEventsItem = "customer.email_verified"
-	UpdateWebhookDtoEventsItemCustomerBanned                 UpdateWebhookDtoEventsItem = "customer.banned"
-	UpdateWebhookDtoEventsItemCustomerUnbanned               UpdateWebhookDtoEventsItem = "customer.unbanned"
-	UpdateWebhookDtoEventsItemCustomerDeleted                UpdateWebhookDtoEventsItem = "customer.deleted"
-	UpdateWebhookDtoEventsItemCustomerMfaReset               UpdateWebhookDtoEventsItem = "customer.mfa_reset"
-	UpdateWebhookDtoEventsItemCustomerSessionRevoked         UpdateWebhookDtoEventsItem = "customer.session_revoked"
-	UpdateWebhookDtoEventsItemOrganizationCreated            UpdateWebhookDtoEventsItem = "organization.created"
-	UpdateWebhookDtoEventsItemOrganizationUpdated            UpdateWebhookDtoEventsItem = "organization.updated"
-	UpdateWebhookDtoEventsItemOrganizationDeleted            UpdateWebhookDtoEventsItem = "organization.deleted"
-	UpdateWebhookDtoEventsItemOrganizationMemberAdded        UpdateWebhookDtoEventsItem = "organization.member_added"
-	UpdateWebhookDtoEventsItemOrganizationMemberRemoved      UpdateWebhookDtoEventsItem = "organization.member_removed"
-	UpdateWebhookDtoEventsItemOrganizationMemberRoleUpdated  UpdateWebhookDtoEventsItem = "organization.member_role_updated"
-	UpdateWebhookDtoEventsItemOrganizationInvitationCreated  UpdateWebhookDtoEventsItem = "organization.invitation_created"
-	UpdateWebhookDtoEventsItemOrganizationInvitationAccepted UpdateWebhookDtoEventsItem = "organization.invitation_accepted"
-	UpdateWebhookDtoEventsItemOrganizationInvitationRevoked  UpdateWebhookDtoEventsItem = "organization.invitation_revoked"
-	UpdateWebhookDtoEventsItemSSOConnectionCreated           UpdateWebhookDtoEventsItem = "sso_connection.created"
-	UpdateWebhookDtoEventsItemSSOConnectionUpdated           UpdateWebhookDtoEventsItem = "sso_connection.updated"
-	UpdateWebhookDtoEventsItemSSOConnectionActivated         UpdateWebhookDtoEventsItem = "sso_connection.activated"
-	UpdateWebhookDtoEventsItemSSOConnectionDisabled          UpdateWebhookDtoEventsItem = "sso_connection.disabled"
-	UpdateWebhookDtoEventsItemSSOConnectionDeleted           UpdateWebhookDtoEventsItem = "sso_connection.deleted"
+	UpdateWebhookDtoEventsItemContactCreated                         UpdateWebhookDtoEventsItem = "contact.created"
+	UpdateWebhookDtoEventsItemContactUnsubscribed                    UpdateWebhookDtoEventsItem = "contact.unsubscribed"
+	UpdateWebhookDtoEventsItemEmailSent                              UpdateWebhookDtoEventsItem = "email.sent"
+	UpdateWebhookDtoEventsItemEmailReceived                          UpdateWebhookDtoEventsItem = "email.received"
+	UpdateWebhookDtoEventsItemSendDelivered                          UpdateWebhookDtoEventsItem = "send.delivered"
+	UpdateWebhookDtoEventsItemSendBounced                            UpdateWebhookDtoEventsItem = "send.bounced"
+	UpdateWebhookDtoEventsItemSendComplained                         UpdateWebhookDtoEventsItem = "send.complained"
+	UpdateWebhookDtoEventsItemSendOpened                             UpdateWebhookDtoEventsItem = "send.opened"
+	UpdateWebhookDtoEventsItemSendClicked                            UpdateWebhookDtoEventsItem = "send.clicked"
+	UpdateWebhookDtoEventsItemCampaignSent                           UpdateWebhookDtoEventsItem = "campaign.sent"
+	UpdateWebhookDtoEventsItemDomainVerified                         UpdateWebhookDtoEventsItem = "domain.verified"
+	UpdateWebhookDtoEventsItemDomainFailed                           UpdateWebhookDtoEventsItem = "domain.failed"
+	UpdateWebhookDtoEventsItemAutomationCompleted                    UpdateWebhookDtoEventsItem = "automation.completed"
+	UpdateWebhookDtoEventsItemAutomationFailed                       UpdateWebhookDtoEventsItem = "automation.failed"
+	UpdateWebhookDtoEventsItemCustomerCreated                        UpdateWebhookDtoEventsItem = "customer.created"
+	UpdateWebhookDtoEventsItemCustomerSignedIn                       UpdateWebhookDtoEventsItem = "customer.signed_in"
+	UpdateWebhookDtoEventsItemCustomerEmailVerified                  UpdateWebhookDtoEventsItem = "customer.email_verified"
+	UpdateWebhookDtoEventsItemCustomerBanned                         UpdateWebhookDtoEventsItem = "customer.banned"
+	UpdateWebhookDtoEventsItemCustomerUnbanned                       UpdateWebhookDtoEventsItem = "customer.unbanned"
+	UpdateWebhookDtoEventsItemCustomerDeleted                        UpdateWebhookDtoEventsItem = "customer.deleted"
+	UpdateWebhookDtoEventsItemCustomerMfaReset                       UpdateWebhookDtoEventsItem = "customer.mfa_reset"
+	UpdateWebhookDtoEventsItemCustomerSessionRevoked                 UpdateWebhookDtoEventsItem = "customer.session_revoked"
+	UpdateWebhookDtoEventsItemCustomerLinked                         UpdateWebhookDtoEventsItem = "customer.linked"
+	UpdateWebhookDtoEventsItemCustomerImpersonated                   UpdateWebhookDtoEventsItem = "customer.impersonated"
+	UpdateWebhookDtoEventsItemOrganizationCreated                    UpdateWebhookDtoEventsItem = "organization.created"
+	UpdateWebhookDtoEventsItemOrganizationUpdated                    UpdateWebhookDtoEventsItem = "organization.updated"
+	UpdateWebhookDtoEventsItemOrganizationDeleted                    UpdateWebhookDtoEventsItem = "organization.deleted"
+	UpdateWebhookDtoEventsItemOrganizationSuspended                  UpdateWebhookDtoEventsItem = "organization.suspended"
+	UpdateWebhookDtoEventsItemOrganizationReactivated                UpdateWebhookDtoEventsItem = "organization.reactivated"
+	UpdateWebhookDtoEventsItemOrganizationMemberAdded                UpdateWebhookDtoEventsItem = "organization.member_added"
+	UpdateWebhookDtoEventsItemOrganizationMemberRemoved              UpdateWebhookDtoEventsItem = "organization.member_removed"
+	UpdateWebhookDtoEventsItemOrganizationMemberRoleUpdated          UpdateWebhookDtoEventsItem = "organization.member_role_updated"
+	UpdateWebhookDtoEventsItemOrganizationMemberSuspended            UpdateWebhookDtoEventsItem = "organization.member_suspended"
+	UpdateWebhookDtoEventsItemOrganizationMemberReactivated          UpdateWebhookDtoEventsItem = "organization.member_reactivated"
+	UpdateWebhookDtoEventsItemOrganizationMemberLinked               UpdateWebhookDtoEventsItem = "organization.member_linked"
+	UpdateWebhookDtoEventsItemOrganizationInvitationCreated          UpdateWebhookDtoEventsItem = "organization.invitation_created"
+	UpdateWebhookDtoEventsItemOrganizationInvitationAccepted         UpdateWebhookDtoEventsItem = "organization.invitation_accepted"
+	UpdateWebhookDtoEventsItemOrganizationInvitationRevoked          UpdateWebhookDtoEventsItem = "organization.invitation_revoked"
+	UpdateWebhookDtoEventsItemOrganizationPlanChanged                UpdateWebhookDtoEventsItem = "organization.plan_changed"
+	UpdateWebhookDtoEventsItemOrganizationEntitlementOverridden      UpdateWebhookDtoEventsItem = "organization.entitlement_overridden"
+	UpdateWebhookDtoEventsItemOrganizationEntitlementOverrideRemoved UpdateWebhookDtoEventsItem = "organization.entitlement_override_removed"
+	UpdateWebhookDtoEventsItemOrganizationDomainAdded                UpdateWebhookDtoEventsItem = "organization.domain_added"
+	UpdateWebhookDtoEventsItemOrganizationDomainVerified             UpdateWebhookDtoEventsItem = "organization.domain_verified"
+	UpdateWebhookDtoEventsItemOrganizationDomainVerificationLost     UpdateWebhookDtoEventsItem = "organization.domain_verification_lost"
+	UpdateWebhookDtoEventsItemOrganizationDomainRemoved              UpdateWebhookDtoEventsItem = "organization.domain_removed"
+	UpdateWebhookDtoEventsItemOrganizationDomainAutoJoinUpdated      UpdateWebhookDtoEventsItem = "organization.domain_auto_join_updated"
+	UpdateWebhookDtoEventsItemOrganizationSSOProfileExchanged        UpdateWebhookDtoEventsItem = "organization.sso_profile_exchanged"
+	UpdateWebhookDtoEventsItemSSOConnectionCreated                   UpdateWebhookDtoEventsItem = "sso_connection.created"
+	UpdateWebhookDtoEventsItemSSOConnectionUpdated                   UpdateWebhookDtoEventsItem = "sso_connection.updated"
+	UpdateWebhookDtoEventsItemSSOConnectionActivated                 UpdateWebhookDtoEventsItem = "sso_connection.activated"
+	UpdateWebhookDtoEventsItemSSOConnectionDisabled                  UpdateWebhookDtoEventsItem = "sso_connection.disabled"
+	UpdateWebhookDtoEventsItemSSOConnectionDeleted                   UpdateWebhookDtoEventsItem = "sso_connection.deleted"
+	UpdateWebhookDtoEventsItemAccessRoleCreated                      UpdateWebhookDtoEventsItem = "access_role.created"
+	UpdateWebhookDtoEventsItemAccessRoleUpdated                      UpdateWebhookDtoEventsItem = "access_role.updated"
+	UpdateWebhookDtoEventsItemAccessRoleDeleted                      UpdateWebhookDtoEventsItem = "access_role.deleted"
+	UpdateWebhookDtoEventsItemAccessPermissionCreated                UpdateWebhookDtoEventsItem = "access_permission.created"
+	UpdateWebhookDtoEventsItemAccessPermissionDeleted                UpdateWebhookDtoEventsItem = "access_permission.deleted"
+	UpdateWebhookDtoEventsItemCustomerRolesUpdated                   UpdateWebhookDtoEventsItem = "customer.roles_updated"
 )
 
 func NewUpdateWebhookDtoEventsItemFromString(s string) (UpdateWebhookDtoEventsItem, error) {
@@ -696,24 +788,56 @@ func NewUpdateWebhookDtoEventsItemFromString(s string) (UpdateWebhookDtoEventsIt
 		return UpdateWebhookDtoEventsItemCustomerMfaReset, nil
 	case "customer.session_revoked":
 		return UpdateWebhookDtoEventsItemCustomerSessionRevoked, nil
+	case "customer.linked":
+		return UpdateWebhookDtoEventsItemCustomerLinked, nil
+	case "customer.impersonated":
+		return UpdateWebhookDtoEventsItemCustomerImpersonated, nil
 	case "organization.created":
 		return UpdateWebhookDtoEventsItemOrganizationCreated, nil
 	case "organization.updated":
 		return UpdateWebhookDtoEventsItemOrganizationUpdated, nil
 	case "organization.deleted":
 		return UpdateWebhookDtoEventsItemOrganizationDeleted, nil
+	case "organization.suspended":
+		return UpdateWebhookDtoEventsItemOrganizationSuspended, nil
+	case "organization.reactivated":
+		return UpdateWebhookDtoEventsItemOrganizationReactivated, nil
 	case "organization.member_added":
 		return UpdateWebhookDtoEventsItemOrganizationMemberAdded, nil
 	case "organization.member_removed":
 		return UpdateWebhookDtoEventsItemOrganizationMemberRemoved, nil
 	case "organization.member_role_updated":
 		return UpdateWebhookDtoEventsItemOrganizationMemberRoleUpdated, nil
+	case "organization.member_suspended":
+		return UpdateWebhookDtoEventsItemOrganizationMemberSuspended, nil
+	case "organization.member_reactivated":
+		return UpdateWebhookDtoEventsItemOrganizationMemberReactivated, nil
+	case "organization.member_linked":
+		return UpdateWebhookDtoEventsItemOrganizationMemberLinked, nil
 	case "organization.invitation_created":
 		return UpdateWebhookDtoEventsItemOrganizationInvitationCreated, nil
 	case "organization.invitation_accepted":
 		return UpdateWebhookDtoEventsItemOrganizationInvitationAccepted, nil
 	case "organization.invitation_revoked":
 		return UpdateWebhookDtoEventsItemOrganizationInvitationRevoked, nil
+	case "organization.plan_changed":
+		return UpdateWebhookDtoEventsItemOrganizationPlanChanged, nil
+	case "organization.entitlement_overridden":
+		return UpdateWebhookDtoEventsItemOrganizationEntitlementOverridden, nil
+	case "organization.entitlement_override_removed":
+		return UpdateWebhookDtoEventsItemOrganizationEntitlementOverrideRemoved, nil
+	case "organization.domain_added":
+		return UpdateWebhookDtoEventsItemOrganizationDomainAdded, nil
+	case "organization.domain_verified":
+		return UpdateWebhookDtoEventsItemOrganizationDomainVerified, nil
+	case "organization.domain_verification_lost":
+		return UpdateWebhookDtoEventsItemOrganizationDomainVerificationLost, nil
+	case "organization.domain_removed":
+		return UpdateWebhookDtoEventsItemOrganizationDomainRemoved, nil
+	case "organization.domain_auto_join_updated":
+		return UpdateWebhookDtoEventsItemOrganizationDomainAutoJoinUpdated, nil
+	case "organization.sso_profile_exchanged":
+		return UpdateWebhookDtoEventsItemOrganizationSSOProfileExchanged, nil
 	case "sso_connection.created":
 		return UpdateWebhookDtoEventsItemSSOConnectionCreated, nil
 	case "sso_connection.updated":
@@ -724,6 +848,18 @@ func NewUpdateWebhookDtoEventsItemFromString(s string) (UpdateWebhookDtoEventsIt
 		return UpdateWebhookDtoEventsItemSSOConnectionDisabled, nil
 	case "sso_connection.deleted":
 		return UpdateWebhookDtoEventsItemSSOConnectionDeleted, nil
+	case "access_role.created":
+		return UpdateWebhookDtoEventsItemAccessRoleCreated, nil
+	case "access_role.updated":
+		return UpdateWebhookDtoEventsItemAccessRoleUpdated, nil
+	case "access_role.deleted":
+		return UpdateWebhookDtoEventsItemAccessRoleDeleted, nil
+	case "access_permission.created":
+		return UpdateWebhookDtoEventsItemAccessPermissionCreated, nil
+	case "access_permission.deleted":
+		return UpdateWebhookDtoEventsItemAccessPermissionDeleted, nil
+	case "customer.roles_updated":
+		return UpdateWebhookDtoEventsItemCustomerRolesUpdated, nil
 	}
 	var t UpdateWebhookDtoEventsItem
 	return "", fmt.Errorf("%s is not a valid %T", s, t)

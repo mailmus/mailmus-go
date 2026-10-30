@@ -127,11 +127,11 @@ func (c *ContactImportResultDto) String() string {
 
 type ContactListResponseDto struct {
 	Data []*ContactResponseDto `json:"data,omitempty" url:"data,omitempty"`
-	// Nombre total de contacts correspondant au filtre.
+	// Total number of contacts matching the filter.
 	Total float64 `json:"total" url:"total"`
 	// Requested page, starting at 1.
 	Page float64 `json:"page" url:"page"`
-	// Nombre de pages disponibles.
+	// Number of pages available.
 	Pages float64 `json:"pages" url:"pages"`
 
 	extraProperties map[string]interface{}

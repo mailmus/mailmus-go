@@ -281,7 +281,7 @@ type AuthProviderIncidentDto struct {
 	ID string `json:"id" url:"id"`
 	// The provider concerned.
 	Provider string `json:"provider" url:"provider"`
-	// Where the sign-in gave way: CONFIGURATION, CODE_EXCHANGE, TOKEN_VERIFICATION or PROFILE_READ. CONFIGURATION points at a setting to fix; the others usually concern a single attempt.
+	// Where the sign-in gave way: CONFIGURATION, CODE_EXCHANGE, TOKEN_VERIFICATION, PROFILE_READ or DELIVERY. CONFIGURATION points at a setting to fix; DELIVERY means Mailmus could not deliver the SMS code, with nothing to change on your side; the others usually concern a single attempt.
 	Stage string `json:"stage" url:"stage"`
 	// Stable reason, comparable over time.
 	Reason string `json:"reason" url:"reason"`
@@ -2698,6 +2698,76 @@ type CustomerAuthGoogleCallbackResponseVisitor interface {
 }
 
 func (c *CustomerAuthGoogleCallbackResponse) Accept(visitor CustomerAuthGoogleCallbackResponseVisitor) error {
+	if c.typ == "SignInSuccessResponseDto" || c.SignInSuccessResponseDto != nil {
+		return visitor.VisitSignInSuccessResponseDto(c.SignInSuccessResponseDto)
+	}
+	if c.typ == "MfaChallengeResponseDto" || c.MfaChallengeResponseDto != nil {
+		return visitor.VisitMfaChallengeResponseDto(c.MfaChallengeResponseDto)
+	}
+	return fmt.Errorf("type %T does not include a non-empty union type", c)
+}
+
+type CustomerAuthResetPasswordResponse struct {
+	SignInSuccessResponseDto *SignInSuccessResponseDto
+	MfaChallengeResponseDto  *MfaChallengeResponseDto
+
+	typ string
+}
+
+func NewCustomerAuthResetPasswordResponseFromSignInSuccessResponseDto(value *SignInSuccessResponseDto) *CustomerAuthResetPasswordResponse {
+	return &CustomerAuthResetPasswordResponse{typ: "SignInSuccessResponseDto", SignInSuccessResponseDto: value}
+}
+
+func NewCustomerAuthResetPasswordResponseFromMfaChallengeResponseDto(value *MfaChallengeResponseDto) *CustomerAuthResetPasswordResponse {
+	return &CustomerAuthResetPasswordResponse{typ: "MfaChallengeResponseDto", MfaChallengeResponseDto: value}
+}
+
+func (c *CustomerAuthResetPasswordResponse) GetSignInSuccessResponseDto() *SignInSuccessResponseDto {
+	if c == nil {
+		return nil
+	}
+	return c.SignInSuccessResponseDto
+}
+
+func (c *CustomerAuthResetPasswordResponse) GetMfaChallengeResponseDto() *MfaChallengeResponseDto {
+	if c == nil {
+		return nil
+	}
+	return c.MfaChallengeResponseDto
+}
+
+func (c *CustomerAuthResetPasswordResponse) UnmarshalJSON(data []byte) error {
+	valueSignInSuccessResponseDto := new(SignInSuccessResponseDto)
+	if err := json.Unmarshal(data, &valueSignInSuccessResponseDto); err == nil {
+		c.typ = "SignInSuccessResponseDto"
+		c.SignInSuccessResponseDto = valueSignInSuccessResponseDto
+		return nil
+	}
+	valueMfaChallengeResponseDto := new(MfaChallengeResponseDto)
+	if err := json.Unmarshal(data, &valueMfaChallengeResponseDto); err == nil {
+		c.typ = "MfaChallengeResponseDto"
+		c.MfaChallengeResponseDto = valueMfaChallengeResponseDto
+		return nil
+	}
+	return fmt.Errorf("%s cannot be deserialized as a %T", data, c)
+}
+
+func (c CustomerAuthResetPasswordResponse) MarshalJSON() ([]byte, error) {
+	if c.typ == "SignInSuccessResponseDto" || c.SignInSuccessResponseDto != nil {
+		return json.Marshal(c.SignInSuccessResponseDto)
+	}
+	if c.typ == "MfaChallengeResponseDto" || c.MfaChallengeResponseDto != nil {
+		return json.Marshal(c.MfaChallengeResponseDto)
+	}
+	return nil, fmt.Errorf("type %T does not include a non-empty union type", c)
+}
+
+type CustomerAuthResetPasswordResponseVisitor interface {
+	VisitSignInSuccessResponseDto(*SignInSuccessResponseDto) error
+	VisitMfaChallengeResponseDto(*MfaChallengeResponseDto) error
+}
+
+func (c *CustomerAuthResetPasswordResponse) Accept(visitor CustomerAuthResetPasswordResponseVisitor) error {
 	if c.typ == "SignInSuccessResponseDto" || c.SignInSuccessResponseDto != nil {
 		return visitor.VisitSignInSuccessResponseDto(c.SignInSuccessResponseDto)
 	}

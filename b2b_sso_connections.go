@@ -22,7 +22,7 @@ type UpdateSSOConnectionDto struct {
 	Domain *string `json:"domain,omitempty" url:"-"`
 	// IdP Entity ID (Issuer), given to you by Okta, Azure AD or equivalent.
 	IdpEntityID *string `json:"idpEntityId,omitempty" url:"-"`
-	// URL SSO (SingleSignOnService) de l'IdP.
+	// The IdP's SSO URL (SingleSignOnService).
 	IdpSsoUrl *string `json:"idpSsoUrl,omitempty" url:"-"`
 	// IdP X.509 signing certificate(s), in PEM. An array, so a rotation needs no downtime.
 	IdpCertificate []string `json:"idpCertificate,omitempty" url:"-"`

@@ -369,6 +369,48 @@ func (c *Client) CustomerAdminAuditLog(
 	return response, nil
 }
 
+func (c *Client) CustomerAdminLink(
+	ctx context.Context,
+	projectID string,
+	request *mailmusgo.LinkCustomerDto,
+	opts ...option.RequestOption,
+) (*mailmusgo.LinkCustomerResponseDto, error) {
+	options := core.NewRequestOptions(opts...)
+	baseURL := internal.ResolveBaseURL(
+		options.BaseURL,
+		c.baseURL,
+		"",
+	)
+	endpointURL := internal.EncodeURL(
+		baseURL+"/projects/%v/customers/link",
+		projectID,
+	)
+	headers := internal.MergeHeaders(
+		c.header.Clone(),
+		options.ToHeader(),
+	)
+	headers.Set("Content-Type", "application/json")
+
+	var response *mailmusgo.LinkCustomerResponseDto
+	if err := c.caller.Call(
+		ctx,
+		&internal.CallParams{
+			URL:             endpointURL,
+			Method:          http.MethodPost,
+			Headers:         headers,
+			MaxAttempts:     options.MaxAttempts,
+			BodyProperties:  options.BodyProperties,
+			QueryParameters: options.QueryParameters,
+			Client:          options.HTTPClient,
+			Request:         request,
+			Response:        &response,
+		},
+	); err != nil {
+		return nil, err
+	}
+	return response, nil
+}
+
 func (c *Client) CustomerAdminImpersonate(
 	ctx context.Context,
 	projectID string,
@@ -732,48 +774,6 @@ func (c *Client) CustomerAdminUpdateRoles(
 		&internal.CallParams{
 			URL:             endpointURL,
 			Method:          http.MethodPatch,
-			Headers:         headers,
-			MaxAttempts:     options.MaxAttempts,
-			BodyProperties:  options.BodyProperties,
-			QueryParameters: options.QueryParameters,
-			Client:          options.HTTPClient,
-			Request:         request,
-			Response:        &response,
-		},
-	); err != nil {
-		return nil, err
-	}
-	return response, nil
-}
-
-func (c *Client) CustomerAdminLink(
-	ctx context.Context,
-	projectID string,
-	request *mailmusgo.LinkCustomerDto,
-	opts ...option.RequestOption,
-) (*mailmusgo.LinkCustomerResponseDto, error) {
-	options := core.NewRequestOptions(opts...)
-	baseURL := internal.ResolveBaseURL(
-		options.BaseURL,
-		c.baseURL,
-		"",
-	)
-	endpointURL := internal.EncodeURL(
-		baseURL+"/projects/%v/customers/link",
-		projectID,
-	)
-	headers := internal.MergeHeaders(
-		c.header.Clone(),
-		options.ToHeader(),
-	)
-	headers.Set("Content-Type", "application/json")
-
-	var response *mailmusgo.LinkCustomerResponseDto
-	if err := c.caller.Call(
-		ctx,
-		&internal.CallParams{
-			URL:             endpointURL,
-			Method:          http.MethodPost,
 			Headers:         headers,
 			MaxAttempts:     options.MaxAttempts,
 			BodyProperties:  options.BodyProperties,

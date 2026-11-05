@@ -40,7 +40,7 @@ func (c *Client) APIKeysList(
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
 		c.baseURL,
-		"",
+		"https://api.mailmus.app",
 	)
 	endpointURL := internal.EncodeURL(
 		baseURL+"/projects/%v/api-keys",
@@ -80,7 +80,7 @@ func (c *Client) APIKeysCreate(
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
 		c.baseURL,
-		"",
+		"https://api.mailmus.app",
 	)
 	endpointURL := internal.EncodeURL(
 		baseURL+"/projects/%v/api-keys",
@@ -122,7 +122,7 @@ func (c *Client) APIKeysRevoke(
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
 		c.baseURL,
-		"",
+		"https://api.mailmus.app",
 	)
 	endpointURL := internal.EncodeURL(
 		baseURL+"/projects/%v/api-keys/%v",

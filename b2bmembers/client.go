@@ -41,7 +41,7 @@ func (c *Client) OrganizationMembersList(
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
 		c.baseURL,
-		"",
+		"https://api.mailmus.app",
 	)
 	endpointURL := internal.EncodeURL(
 		baseURL+"/projects/%v/b2b/organizations/%v/members",
@@ -83,7 +83,7 @@ func (c *Client) OrganizationMembersAdd(
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
 		c.baseURL,
-		"",
+		"https://api.mailmus.app",
 	)
 	endpointURL := internal.EncodeURL(
 		baseURL+"/projects/%v/b2b/organizations/%v/members",
@@ -127,7 +127,7 @@ func (c *Client) OrganizationMembersRemove(
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
 		c.baseURL,
-		"",
+		"https://api.mailmus.app",
 	)
 	endpointURL := internal.EncodeURL(
 		baseURL+"/projects/%v/b2b/organizations/%v/members/%v",
@@ -171,7 +171,7 @@ func (c *Client) OrganizationMembersUpdateRole(
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
 		c.baseURL,
-		"",
+		"https://api.mailmus.app",
 	)
 	endpointURL := internal.EncodeURL(
 		baseURL+"/projects/%v/b2b/organizations/%v/members/%v",

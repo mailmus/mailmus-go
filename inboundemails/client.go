@@ -40,7 +40,7 @@ func (c *Client) InboundEmailsList(
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
 		c.baseURL,
-		"",
+		"https://api.mailmus.app",
 	)
 	endpointURL := internal.EncodeURL(
 		baseURL+"/projects/%v/inbound-emails",
@@ -80,7 +80,7 @@ func (c *Client) InboundEmailsFindOne(
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
 		c.baseURL,
-		"",
+		"https://api.mailmus.app",
 	)
 	endpointURL := internal.EncodeURL(
 		baseURL+"/projects/%v/inbound-emails/%v",

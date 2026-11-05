@@ -40,7 +40,7 @@ func (c *Client) List(
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
 		c.baseURL,
-		"",
+		"https://api.mailmus.app",
 	)
 	endpointURL := internal.EncodeURL(
 		baseURL+"/projects/%v/automations",
@@ -80,7 +80,7 @@ func (c *Client) Create(
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
 		c.baseURL,
-		"",
+		"https://api.mailmus.app",
 	)
 	endpointURL := internal.EncodeURL(
 		baseURL+"/projects/%v/automations",
@@ -122,7 +122,7 @@ func (c *Client) Remove(
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
 		c.baseURL,
-		"",
+		"https://api.mailmus.app",
 	)
 	endpointURL := internal.EncodeURL(
 		baseURL+"/projects/%v/automations/%v",
@@ -164,7 +164,7 @@ func (c *Client) Rename(
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
 		c.baseURL,
-		"",
+		"https://api.mailmus.app",
 	)
 	endpointURL := internal.EncodeURL(
 		baseURL+"/projects/%v/automations/%v",
@@ -207,7 +207,7 @@ func (c *Client) Setactive(
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
 		c.baseURL,
-		"",
+		"https://api.mailmus.app",
 	)
 	endpointURL := internal.EncodeURL(
 		baseURL+"/projects/%v/automations/%v/active",
@@ -248,7 +248,7 @@ func (c *Client) Listruns(
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
 		c.baseURL,
-		"",
+		"https://api.mailmus.app",
 	)
 	endpointURL := internal.EncodeURL(
 		baseURL+"/projects/%v/automations/%v/runs",

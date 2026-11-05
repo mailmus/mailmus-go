@@ -41,7 +41,7 @@ func (c *Client) EmailVerificationVerify(
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
 		c.baseURL,
-		"",
+		"https://api.mailmus.app",
 	)
 	endpointURL := internal.EncodeURL(
 		baseURL+"/projects/%v/email-verification",

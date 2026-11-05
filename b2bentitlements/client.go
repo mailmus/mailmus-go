@@ -42,7 +42,7 @@ func (c *Client) EntitlementsCheck(
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
 		c.baseURL,
-		"",
+		"https://api.mailmus.app",
 	)
 	endpointURL := internal.EncodeURL(
 		baseURL+"/projects/%v/b2b/entitlements/check",
@@ -84,7 +84,7 @@ func (c *Client) EntitlementsList(
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
 		c.baseURL,
-		"",
+		"https://api.mailmus.app",
 	)
 	endpointURL := internal.EncodeURL(
 		baseURL+"/projects/%v/b2b/organizations/%v/entitlements",
@@ -127,7 +127,7 @@ func (c *Client) EntitlementsSetPlan(
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
 		c.baseURL,
-		"",
+		"https://api.mailmus.app",
 	)
 	endpointURL := internal.EncodeURL(
 		baseURL+"/projects/%v/b2b/organizations/%v/plan",
@@ -170,7 +170,7 @@ func (c *Client) EntitlementsSetOverride(
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
 		c.baseURL,
-		"",
+		"https://api.mailmus.app",
 	)
 	endpointURL := internal.EncodeURL(
 		baseURL+"/projects/%v/b2b/organizations/%v/entitlements/%v",
@@ -215,7 +215,7 @@ func (c *Client) EntitlementsRemoveOverride(
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
 		c.baseURL,
-		"",
+		"https://api.mailmus.app",
 	)
 	endpointURL := internal.EncodeURL(
 		baseURL+"/projects/%v/b2b/organizations/%v/entitlements/%v",

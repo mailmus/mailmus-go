@@ -42,7 +42,7 @@ func (c *Client) OrganizationInvitationsList(
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
 		c.baseURL,
-		"",
+		"https://api.mailmus.app",
 	)
 	endpointURL := internal.EncodeURL(
 		baseURL+"/projects/%v/b2b/organizations/%v/invitations",
@@ -91,7 +91,7 @@ func (c *Client) OrganizationInvitationsCreate(
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
 		c.baseURL,
-		"",
+		"https://api.mailmus.app",
 	)
 	endpointURL := internal.EncodeURL(
 		baseURL+"/projects/%v/b2b/organizations/%v/invitations",
@@ -135,7 +135,7 @@ func (c *Client) OrganizationInvitationsResend(
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
 		c.baseURL,
-		"",
+		"https://api.mailmus.app",
 	)
 	endpointURL := internal.EncodeURL(
 		baseURL+"/projects/%v/b2b/organizations/%v/invitations/%v/resend",
@@ -178,7 +178,7 @@ func (c *Client) OrganizationInvitationsRevoke(
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
 		c.baseURL,
-		"",
+		"https://api.mailmus.app",
 	)
 	endpointURL := internal.EncodeURL(
 		baseURL+"/projects/%v/b2b/organizations/%v/invitations/%v",
@@ -220,7 +220,7 @@ func (c *Client) InvitationsAccept(
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
 		c.baseURL,
-		"",
+		"https://api.mailmus.app",
 	)
 	endpointURL := internal.EncodeURL(
 		baseURL+"/projects/%v/b2b/invitations/accept",

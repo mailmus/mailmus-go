@@ -42,7 +42,7 @@ func (c *Client) AppAuthAnalyticsGet(
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
 		c.baseURL,
-		"",
+		"https://api.mailmus.app",
 	)
 	endpointURL := internal.EncodeURL(
 		baseURL+"/projects/%v/auth-analytics",
@@ -81,7 +81,7 @@ func (c *Client) AppAuthAnalyticsExportCsv(
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
 		c.baseURL,
-		"",
+		"https://api.mailmus.app",
 	)
 	endpointURL := internal.EncodeURL(
 		baseURL+"/projects/%v/auth-analytics/export",
@@ -121,7 +121,7 @@ func (c *Client) AppAuthAnalyticsTimeSeries(
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
 		c.baseURL,
-		"",
+		"https://api.mailmus.app",
 	)
 	endpointURL := internal.EncodeURL(
 		baseURL+"/projects/%v/auth-analytics/time-series",
@@ -168,7 +168,7 @@ func (c *Client) AppAuthAnalyticsMauHistory(
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
 		c.baseURL,
-		"",
+		"https://api.mailmus.app",
 	)
 	endpointURL := internal.EncodeURL(
 		baseURL+"/projects/%v/auth-analytics/mau-history",

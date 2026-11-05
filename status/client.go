@@ -39,7 +39,7 @@ func (c *Client) Getstatus(
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
 		c.baseURL,
-		"",
+		"https://api.mailmus.app",
 	)
 	endpointURL := baseURL + "/public/status"
 	headers := internal.MergeHeaders(

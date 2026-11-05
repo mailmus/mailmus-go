@@ -42,7 +42,7 @@ func (c *Client) SSOConnectionsList(
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
 		c.baseURL,
-		"",
+		"https://api.mailmus.app",
 	)
 	endpointURL := internal.EncodeURL(
 		baseURL+"/projects/%v/b2b/organizations/%v/sso-connections",
@@ -85,7 +85,7 @@ func (c *Client) SSOConnectionsCreate(
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
 		c.baseURL,
-		"",
+		"https://api.mailmus.app",
 	)
 	endpointURL := internal.EncodeURL(
 		baseURL+"/projects/%v/b2b/organizations/%v/sso-connections",
@@ -130,7 +130,7 @@ func (c *Client) SSOConnectionsFindOne(
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
 		c.baseURL,
-		"",
+		"https://api.mailmus.app",
 	)
 	endpointURL := internal.EncodeURL(
 		baseURL+"/projects/%v/b2b/organizations/%v/sso-connections/%v",
@@ -174,7 +174,7 @@ func (c *Client) SSOConnectionsRemove(
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
 		c.baseURL,
-		"",
+		"https://api.mailmus.app",
 	)
 	endpointURL := internal.EncodeURL(
 		baseURL+"/projects/%v/b2b/organizations/%v/sso-connections/%v",
@@ -219,7 +219,7 @@ func (c *Client) SSOConnectionsUpdate(
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
 		c.baseURL,
-		"",
+		"https://api.mailmus.app",
 	)
 	endpointURL := internal.EncodeURL(
 		baseURL+"/projects/%v/b2b/organizations/%v/sso-connections/%v",
@@ -265,7 +265,7 @@ func (c *Client) SSOConnectionsGetMetadata(
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
 		c.baseURL,
-		"",
+		"https://api.mailmus.app",
 	)
 	endpointURL := internal.EncodeURL(
 		baseURL+"/projects/%v/b2b/organizations/%v/sso-connections/%v/metadata.xml",
@@ -307,7 +307,7 @@ func (c *Client) SSOConnectionsActivate(
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
 		c.baseURL,
-		"",
+		"https://api.mailmus.app",
 	)
 	endpointURL := internal.EncodeURL(
 		baseURL+"/projects/%v/b2b/organizations/%v/sso-connections/%v/activate",
@@ -351,7 +351,7 @@ func (c *Client) SSOConnectionsDeactivate(
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
 		c.baseURL,
-		"",
+		"https://api.mailmus.app",
 	)
 	endpointURL := internal.EncodeURL(
 		baseURL+"/projects/%v/b2b/organizations/%v/sso-connections/%v/deactivate",
@@ -393,7 +393,7 @@ func (c *Client) ProjectSSOConnectionsList(
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
 		c.baseURL,
-		"",
+		"https://api.mailmus.app",
 	)
 	endpointURL := internal.EncodeURL(
 		baseURL+"/projects/%v/b2b/sso-connections",

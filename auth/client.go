@@ -40,7 +40,7 @@ func (c *Client) JwksGetJwks(
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
 		c.baseURL,
-		"",
+		"https://api.mailmus.app",
 	)
 	endpointURL := internal.EncodeURL(
 		baseURL+"/projects/%v/.well-known/jwks.json",
@@ -79,7 +79,7 @@ func (c *Client) AuthProviderHealthCurrent(
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
 		c.baseURL,
-		"",
+		"https://api.mailmus.app",
 	)
 	endpointURL := internal.EncodeURL(
 		baseURL+"/projects/%v/auth-provider-health",
@@ -119,7 +119,7 @@ func (c *Client) AuthProviderHealthHistory(
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
 		c.baseURL,
-		"",
+		"https://api.mailmus.app",
 	)
 	endpointURL := internal.EncodeURL(
 		baseURL+"/projects/%v/auth-provider-health/history",
@@ -166,7 +166,7 @@ func (c *Client) AuthProviderHealthTimelines(
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
 		c.baseURL,
-		"",
+		"https://api.mailmus.app",
 	)
 	endpointURL := internal.EncodeURL(
 		baseURL+"/projects/%v/auth-provider-health/timelines",
@@ -212,7 +212,7 @@ func (c *Client) CustomerAuthGetHostedConfig(
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
 		c.baseURL,
-		"",
+		"https://api.mailmus.app",
 	)
 	endpointURL := internal.EncodeURL(
 		baseURL+"/projects/%v/auth/hosted-config",
@@ -252,7 +252,7 @@ func (c *Client) CustomerAuthSignUp(
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
 		c.baseURL,
-		"",
+		"https://api.mailmus.app",
 	)
 	endpointURL := internal.EncodeURL(
 		baseURL+"/projects/%v/auth/sign-up",
@@ -294,7 +294,7 @@ func (c *Client) CustomerAuthSignIn(
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
 		c.baseURL,
-		"",
+		"https://api.mailmus.app",
 	)
 	endpointURL := internal.EncodeURL(
 		baseURL+"/projects/%v/auth/sign-in",
@@ -336,7 +336,7 @@ func (c *Client) CustomerAuthRefresh(
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
 		c.baseURL,
-		"",
+		"https://api.mailmus.app",
 	)
 	endpointURL := internal.EncodeURL(
 		baseURL+"/projects/%v/auth/refresh",
@@ -378,7 +378,7 @@ func (c *Client) CustomerAuthSignOut(
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
 		c.baseURL,
-		"",
+		"https://api.mailmus.app",
 	)
 	endpointURL := internal.EncodeURL(
 		baseURL+"/projects/%v/auth/sign-out",
@@ -418,7 +418,7 @@ func (c *Client) CustomerAuthForgotPassword(
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
 		c.baseURL,
-		"",
+		"https://api.mailmus.app",
 	)
 	endpointURL := internal.EncodeURL(
 		baseURL+"/projects/%v/auth/forgot-password",
@@ -458,7 +458,7 @@ func (c *Client) CustomerAuthResetPassword(
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
 		c.baseURL,
-		"",
+		"https://api.mailmus.app",
 	)
 	endpointURL := internal.EncodeURL(
 		baseURL+"/projects/%v/auth/reset-password",
@@ -500,7 +500,7 @@ func (c *Client) CustomerAuthVerifyEmail(
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
 		c.baseURL,
-		"",
+		"https://api.mailmus.app",
 	)
 	endpointURL := internal.EncodeURL(
 		baseURL+"/projects/%v/auth/verify-email",
@@ -540,7 +540,7 @@ func (c *Client) CustomerAuthVerifyMfaChallenge(
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
 		c.baseURL,
-		"",
+		"https://api.mailmus.app",
 	)
 	endpointURL := internal.EncodeURL(
 		baseURL+"/projects/%v/auth/mfa/verify",
@@ -582,7 +582,7 @@ func (c *Client) CustomerAuthRequestMagicLink(
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
 		c.baseURL,
-		"",
+		"https://api.mailmus.app",
 	)
 	endpointURL := internal.EncodeURL(
 		baseURL+"/projects/%v/auth/magic-link",
@@ -622,7 +622,7 @@ func (c *Client) CustomerAuthVerifyMagicLink(
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
 		c.baseURL,
-		"",
+		"https://api.mailmus.app",
 	)
 	endpointURL := internal.EncodeURL(
 		baseURL+"/projects/%v/auth/magic-link/verify",
@@ -664,7 +664,7 @@ func (c *Client) CustomerAuthRequestOtp(
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
 		c.baseURL,
-		"",
+		"https://api.mailmus.app",
 	)
 	endpointURL := internal.EncodeURL(
 		baseURL+"/projects/%v/auth/otp",
@@ -704,7 +704,7 @@ func (c *Client) CustomerAuthVerifyOtp(
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
 		c.baseURL,
-		"",
+		"https://api.mailmus.app",
 	)
 	endpointURL := internal.EncodeURL(
 		baseURL+"/projects/%v/auth/otp/verify",
@@ -746,7 +746,7 @@ func (c *Client) CustomerAuthRequestPhoneOtp(
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
 		c.baseURL,
-		"",
+		"https://api.mailmus.app",
 	)
 	endpointURL := internal.EncodeURL(
 		baseURL+"/projects/%v/auth/phone-otp",
@@ -786,7 +786,7 @@ func (c *Client) CustomerAuthVerifyPhoneOtp(
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
 		c.baseURL,
-		"",
+		"https://api.mailmus.app",
 	)
 	endpointURL := internal.EncodeURL(
 		baseURL+"/projects/%v/auth/phone-otp/verify",
@@ -828,7 +828,7 @@ func (c *Client) CustomerAuthGoogleCallback(
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
 		c.baseURL,
-		"",
+		"https://api.mailmus.app",
 	)
 	endpointURL := internal.EncodeURL(
 		baseURL+"/projects/%v/auth/google/callback",
@@ -870,7 +870,7 @@ func (c *Client) CustomerAuthGithubCallback(
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
 		c.baseURL,
-		"",
+		"https://api.mailmus.app",
 	)
 	endpointURL := internal.EncodeURL(
 		baseURL+"/projects/%v/auth/github/callback",
@@ -912,7 +912,7 @@ func (c *Client) CustomerAuthAppleCallback(
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
 		c.baseURL,
-		"",
+		"https://api.mailmus.app",
 	)
 	endpointURL := internal.EncodeURL(
 		baseURL+"/projects/%v/auth/apple/callback",
@@ -954,7 +954,7 @@ func (c *Client) CustomerMfaEnroll(
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
 		c.baseURL,
-		"",
+		"https://api.mailmus.app",
 	)
 	endpointURL := internal.EncodeURL(
 		baseURL+"/projects/%v/auth/mfa/enroll",
@@ -996,7 +996,7 @@ func (c *Client) CustomerMfaConfirm(
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
 		c.baseURL,
-		"",
+		"https://api.mailmus.app",
 	)
 	endpointURL := internal.EncodeURL(
 		baseURL+"/projects/%v/auth/mfa/confirm",
@@ -1038,7 +1038,7 @@ func (c *Client) CustomerMfaDisable(
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
 		c.baseURL,
-		"",
+		"https://api.mailmus.app",
 	)
 	endpointURL := internal.EncodeURL(
 		baseURL+"/projects/%v/auth/mfa/disable",
@@ -1077,7 +1077,7 @@ func (c *Client) AuthSettingsGet(
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
 		c.baseURL,
-		"",
+		"https://api.mailmus.app",
 	)
 	endpointURL := internal.EncodeURL(
 		baseURL+"/projects/%v/auth-settings",
@@ -1117,7 +1117,7 @@ func (c *Client) AuthSettingsUpdate(
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
 		c.baseURL,
-		"",
+		"https://api.mailmus.app",
 	)
 	endpointURL := internal.EncodeURL(
 		baseURL+"/projects/%v/auth-settings",
@@ -1158,7 +1158,7 @@ func (c *Client) AuthSettingsRotateSigningKey(
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
 		c.baseURL,
-		"",
+		"https://api.mailmus.app",
 	)
 	endpointURL := internal.EncodeURL(
 		baseURL+"/projects/%v/auth-settings/rotate-signing-key",
@@ -1197,7 +1197,7 @@ func (c *Client) AuthSettingsVerifyDomain(
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
 		c.baseURL,
-		"",
+		"https://api.mailmus.app",
 	)
 	endpointURL := internal.EncodeURL(
 		baseURL+"/projects/%v/auth-settings/verify-domain",
@@ -1237,7 +1237,7 @@ func (c *Client) AuthSettingsRequestTestPhone(
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
 		c.baseURL,
-		"",
+		"https://api.mailmus.app",
 	)
 	endpointURL := internal.EncodeURL(
 		baseURL+"/projects/%v/auth-settings/test-phone/request",
@@ -1277,7 +1277,7 @@ func (c *Client) AuthSettingsVerifyTestPhone(
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
 		c.baseURL,
-		"",
+		"https://api.mailmus.app",
 	)
 	endpointURL := internal.EncodeURL(
 		baseURL+"/projects/%v/auth-settings/test-phone/verify",
@@ -1318,7 +1318,7 @@ func (c *Client) HostedDomainsResolve(
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
 		c.baseURL,
-		"",
+		"https://api.mailmus.app",
 	)
 	endpointURL := internal.EncodeURL(
 		baseURL+"/hosted-domains/%v",
@@ -1357,7 +1357,7 @@ func (c *Client) CustomerSessionsList(
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
 		c.baseURL,
-		"",
+		"https://api.mailmus.app",
 	)
 	endpointURL := internal.EncodeURL(
 		baseURL+"/projects/%v/auth/sessions",
@@ -1397,7 +1397,7 @@ func (c *Client) CustomerSessionsRevoke(
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
 		c.baseURL,
-		"",
+		"https://api.mailmus.app",
 	)
 	endpointURL := internal.EncodeURL(
 		baseURL+"/projects/%v/auth/sessions/%v",
@@ -1435,7 +1435,7 @@ func (c *Client) CustomerOrganizationsListMine(
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
 		c.baseURL,
-		"",
+		"https://api.mailmus.app",
 	)
 	endpointURL := internal.EncodeURL(
 		baseURL+"/projects/%v/auth/organizations/mine",
@@ -1475,7 +1475,7 @@ func (c *Client) CustomerOrganizationsSetActive(
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
 		c.baseURL,
-		"",
+		"https://api.mailmus.app",
 	)
 	endpointURL := internal.EncodeURL(
 		baseURL+"/projects/%v/auth/organizations/active",
@@ -1514,7 +1514,7 @@ func (c *Client) CustomerOrganizationsClearActive(
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
 		c.baseURL,
-		"",
+		"https://api.mailmus.app",
 	)
 	endpointURL := internal.EncodeURL(
 		baseURL+"/projects/%v/auth/organizations/active",
@@ -1552,7 +1552,7 @@ func (c *Client) CustomerOrganizationsLeave(
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
 		c.baseURL,
-		"",
+		"https://api.mailmus.app",
 	)
 	endpointURL := internal.EncodeURL(
 		baseURL+"/projects/%v/auth/organizations/%v/members/me",
@@ -1590,7 +1590,7 @@ func (c *Client) CustomerOrganizationsJoinByDomain(
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
 		c.baseURL,
-		"",
+		"https://api.mailmus.app",
 	)
 	endpointURL := internal.EncodeURL(
 		baseURL+"/projects/%v/auth/organizations/domain-join",
@@ -1630,7 +1630,7 @@ func (c *Client) CustomerOrganizationsAcceptInvitation(
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
 		c.baseURL,
-		"",
+		"https://api.mailmus.app",
 	)
 	endpointURL := internal.EncodeURL(
 		baseURL+"/projects/%v/auth/organizations/invitations/accept",
@@ -1672,7 +1672,7 @@ func (c *Client) OrganizationInvitationPreviewPreview(
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
 		c.baseURL,
-		"",
+		"https://api.mailmus.app",
 	)
 	endpointURL := internal.EncodeURL(
 		baseURL+"/projects/%v/auth/organizations/invitations/%v",
@@ -1713,7 +1713,7 @@ func (c *Client) SSOAuthStart(
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
 		c.baseURL,
-		"",
+		"https://api.mailmus.app",
 	)
 	endpointURL := internal.EncodeURL(
 		baseURL+"/projects/%v/auth/sso/start",
@@ -1756,7 +1756,7 @@ func (c *Client) SSOAuthAcs(
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
 		c.baseURL,
-		"",
+		"https://api.mailmus.app",
 	)
 	endpointURL := internal.EncodeURL(
 		baseURL+"/projects/%v/auth/sso/%v/acs",
@@ -1800,7 +1800,7 @@ func (c *Client) SSOAuthCallback(
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
 		c.baseURL,
-		"",
+		"https://api.mailmus.app",
 	)
 	endpointURL := internal.EncodeURL(
 		baseURL+"/projects/%v/auth/sso/%v/callback",

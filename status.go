@@ -167,6 +167,7 @@ type ServiceStatusDtoService string
 const (
 	ServiceStatusDtoServiceAPI       ServiceStatusDtoService = "api"
 	ServiceStatusDtoServiceDashboard ServiceStatusDtoService = "dashboard"
+	ServiceStatusDtoServiceSMTP      ServiceStatusDtoService = "smtp"
 )
 
 func NewServiceStatusDtoServiceFromString(s string) (ServiceStatusDtoService, error) {
@@ -175,6 +176,8 @@ func NewServiceStatusDtoServiceFromString(s string) (ServiceStatusDtoService, er
 		return ServiceStatusDtoServiceAPI, nil
 	case "dashboard":
 		return ServiceStatusDtoServiceDashboard, nil
+	case "smtp":
+		return ServiceStatusDtoServiceSMTP, nil
 	}
 	var t ServiceStatusDtoService
 	return "", fmt.Errorf("%s is not a valid %T", s, t)

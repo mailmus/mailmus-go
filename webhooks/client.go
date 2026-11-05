@@ -40,7 +40,7 @@ func (c *Client) WebhookSubscriptionsList(
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
 		c.baseURL,
-		"",
+		"https://api.mailmus.app",
 	)
 	endpointURL := internal.EncodeURL(
 		baseURL+"/projects/%v/webhooks",
@@ -80,7 +80,7 @@ func (c *Client) WebhookSubscriptionsCreate(
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
 		c.baseURL,
-		"",
+		"https://api.mailmus.app",
 	)
 	endpointURL := internal.EncodeURL(
 		baseURL+"/projects/%v/webhooks",
@@ -122,7 +122,7 @@ func (c *Client) WebhookSubscriptionsRemove(
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
 		c.baseURL,
-		"",
+		"https://api.mailmus.app",
 	)
 	endpointURL := internal.EncodeURL(
 		baseURL+"/projects/%v/webhooks/%v",
@@ -164,7 +164,7 @@ func (c *Client) WebhookSubscriptionsUpdate(
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
 		c.baseURL,
-		"",
+		"https://api.mailmus.app",
 	)
 	endpointURL := internal.EncodeURL(
 		baseURL+"/projects/%v/webhooks/%v",
@@ -207,7 +207,7 @@ func (c *Client) WebhookSubscriptionsRotateSecret(
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
 		c.baseURL,
-		"",
+		"https://api.mailmus.app",
 	)
 	endpointURL := internal.EncodeURL(
 		baseURL+"/projects/%v/webhooks/%v/rotate-secret",
@@ -248,7 +248,7 @@ func (c *Client) WebhookSubscriptionsListDeliveries(
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
 		c.baseURL,
-		"",
+		"https://api.mailmus.app",
 	)
 	endpointURL := internal.EncodeURL(
 		baseURL+"/projects/%v/webhooks/%v/deliveries",
@@ -290,7 +290,7 @@ func (c *Client) WebhookSubscriptionsReplayDelivery(
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
 		c.baseURL,
-		"",
+		"https://api.mailmus.app",
 	)
 	endpointURL := internal.EncodeURL(
 		baseURL+"/projects/%v/webhooks/%v/deliveries/%v/replay",
@@ -330,7 +330,7 @@ func (c *Client) WebhookSubscriptionsTest(
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
 		c.baseURL,
-		"",
+		"https://api.mailmus.app",
 	)
 	endpointURL := internal.EncodeURL(
 		baseURL+"/projects/%v/webhooks/%v/test",

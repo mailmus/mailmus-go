@@ -43,7 +43,7 @@ func (c *Client) AppMailAnalyticsGet(
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
 		c.baseURL,
-		"",
+		"https://api.mailmus.app",
 	)
 	endpointURL := internal.EncodeURL(
 		baseURL+"/projects/%v/analytics",
@@ -89,7 +89,7 @@ func (c *Client) AppMailAnalyticsExportCsv(
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
 		c.baseURL,
-		"",
+		"https://api.mailmus.app",
 	)
 	endpointURL := internal.EncodeURL(
 		baseURL+"/projects/%v/analytics/export",
@@ -128,7 +128,7 @@ func (c *Client) AppMailAnalyticsTimeSeries(
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
 		c.baseURL,
-		"",
+		"https://api.mailmus.app",
 	)
 	endpointURL := internal.EncodeURL(
 		baseURL+"/projects/%v/analytics/time-series",
@@ -167,7 +167,7 @@ func (c *Client) AppMailAnalyticsByDomain(
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
 		c.baseURL,
-		"",
+		"https://api.mailmus.app",
 	)
 	endpointURL := internal.EncodeURL(
 		baseURL+"/projects/%v/analytics/by-domain",

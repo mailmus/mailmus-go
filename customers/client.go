@@ -43,7 +43,7 @@ func (c *Client) CustomerAdminList(
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
 		c.baseURL,
-		"",
+		"https://api.mailmus.app",
 	)
 	endpointURL := internal.EncodeURL(
 		baseURL+"/projects/%v/customers",
@@ -89,7 +89,7 @@ func (c *Client) CustomerAdminStats(
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
 		c.baseURL,
-		"",
+		"https://api.mailmus.app",
 	)
 	endpointURL := internal.EncodeURL(
 		baseURL+"/projects/%v/customers/stats",
@@ -128,7 +128,7 @@ func (c *Client) CustomerAdminExportCsv(
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
 		c.baseURL,
-		"",
+		"https://api.mailmus.app",
 	)
 	endpointURL := internal.EncodeURL(
 		baseURL+"/projects/%v/customers/export",
@@ -168,7 +168,7 @@ func (c *Client) CustomerAdminFindOne(
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
 		c.baseURL,
-		"",
+		"https://api.mailmus.app",
 	)
 	endpointURL := internal.EncodeURL(
 		baseURL+"/projects/%v/customers/%v",
@@ -209,7 +209,7 @@ func (c *Client) CustomerAdminRemove(
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
 		c.baseURL,
-		"",
+		"https://api.mailmus.app",
 	)
 	endpointURL := internal.EncodeURL(
 		baseURL+"/projects/%v/customers/%v",
@@ -250,7 +250,7 @@ func (c *Client) CustomerAdminTimeline(
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
 		c.baseURL,
-		"",
+		"https://api.mailmus.app",
 	)
 	endpointURL := internal.EncodeURL(
 		baseURL+"/projects/%v/customers/%v/timeline",
@@ -290,7 +290,7 @@ func (c *Client) CustomerAdminEvents(
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
 		c.baseURL,
-		"",
+		"https://api.mailmus.app",
 	)
 	endpointURL := internal.EncodeURL(
 		baseURL+"/projects/%v/customers/%v/events",
@@ -338,7 +338,7 @@ func (c *Client) CustomerAdminAuditLog(
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
 		c.baseURL,
-		"",
+		"https://api.mailmus.app",
 	)
 	endpointURL := internal.EncodeURL(
 		baseURL+"/projects/%v/customers/%v/audit-log",
@@ -379,7 +379,7 @@ func (c *Client) CustomerAdminLink(
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
 		c.baseURL,
-		"",
+		"https://api.mailmus.app",
 	)
 	endpointURL := internal.EncodeURL(
 		baseURL+"/projects/%v/customers/link",
@@ -422,7 +422,7 @@ func (c *Client) CustomerAdminImpersonate(
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
 		c.baseURL,
-		"",
+		"https://api.mailmus.app",
 	)
 	endpointURL := internal.EncodeURL(
 		baseURL+"/projects/%v/customers/%v/impersonate",
@@ -465,7 +465,7 @@ func (c *Client) CustomerAdminBan(
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
 		c.baseURL,
-		"",
+		"https://api.mailmus.app",
 	)
 	endpointURL := internal.EncodeURL(
 		baseURL+"/projects/%v/customers/%v/ban",
@@ -506,7 +506,7 @@ func (c *Client) CustomerAdminUnban(
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
 		c.baseURL,
-		"",
+		"https://api.mailmus.app",
 	)
 	endpointURL := internal.EncodeURL(
 		baseURL+"/projects/%v/customers/%v/unban",
@@ -548,7 +548,7 @@ func (c *Client) CustomerAdminRevokeSession(
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
 		c.baseURL,
-		"",
+		"https://api.mailmus.app",
 	)
 	endpointURL := internal.EncodeURL(
 		baseURL+"/projects/%v/customers/%v/sessions/%v/revoke",
@@ -588,7 +588,7 @@ func (c *Client) CustomerAdminRevokeAllSessions(
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
 		c.baseURL,
-		"",
+		"https://api.mailmus.app",
 	)
 	endpointURL := internal.EncodeURL(
 		baseURL+"/projects/%v/customers/%v/sessions/revoke-all",
@@ -627,7 +627,7 @@ func (c *Client) CustomerAdminResetMfa(
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
 		c.baseURL,
-		"",
+		"https://api.mailmus.app",
 	)
 	endpointURL := internal.EncodeURL(
 		baseURL+"/projects/%v/customers/%v/mfa/reset",
@@ -667,7 +667,7 @@ func (c *Client) CustomerAdminUpdateMetadata(
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
 		c.baseURL,
-		"",
+		"https://api.mailmus.app",
 	)
 	endpointURL := internal.EncodeURL(
 		baseURL+"/projects/%v/customers/%v/metadata",
@@ -711,7 +711,7 @@ func (c *Client) CustomerAdminSetRoles(
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
 		c.baseURL,
-		"",
+		"https://api.mailmus.app",
 	)
 	endpointURL := internal.EncodeURL(
 		baseURL+"/projects/%v/customers/%v/roles",
@@ -755,7 +755,7 @@ func (c *Client) CustomerAdminUpdateRoles(
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
 		c.baseURL,
-		"",
+		"https://api.mailmus.app",
 	)
 	endpointURL := internal.EncodeURL(
 		baseURL+"/projects/%v/customers/%v/roles",

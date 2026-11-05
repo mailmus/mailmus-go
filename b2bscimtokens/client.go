@@ -41,7 +41,7 @@ func (c *Client) SCIMTokensList(
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
 		c.baseURL,
-		"",
+		"https://api.mailmus.app",
 	)
 	endpointURL := internal.EncodeURL(
 		baseURL+"/projects/%v/b2b/organizations/%v/scim-tokens",
@@ -83,7 +83,7 @@ func (c *Client) SCIMTokensCreate(
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
 		c.baseURL,
-		"",
+		"https://api.mailmus.app",
 	)
 	endpointURL := internal.EncodeURL(
 		baseURL+"/projects/%v/b2b/organizations/%v/scim-tokens",
@@ -127,7 +127,7 @@ func (c *Client) SCIMTokensRevoke(
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
 		c.baseURL,
-		"",
+		"https://api.mailmus.app",
 	)
 	endpointURL := internal.EncodeURL(
 		baseURL+"/projects/%v/b2b/organizations/%v/scim-tokens/%v",

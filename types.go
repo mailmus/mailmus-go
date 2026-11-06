@@ -280,6 +280,8 @@ func (d DomainJoinResponseDtoReason) Ptr() *DomainJoinResponseDtoReason {
 type OrganizationCustomerSummaryDto struct {
 	ID    string  `json:"id" url:"id"`
 	Email *string `json:"email,omitempty" url:"email,omitempty"`
+	// Phone number in E.164 format, for a member who signs in with an SMS code.
+	Phone *string `json:"phone,omitempty" url:"phone,omitempty"`
 	// Identifier of this person in your own system, when you authenticate them yourself. Null for a member who signs in with Mailmus.
 	ExternalID *string `json:"externalId,omitempty" url:"externalId,omitempty"`
 	// Who holds this identity. EXTERNAL means you authenticate this person yourself, and Mailmus only knows them as a member. It becomes MAILMUS_AUTH the first time they sign in with Mailmus.
@@ -301,6 +303,13 @@ func (o *OrganizationCustomerSummaryDto) GetEmail() *string {
 		return nil
 	}
 	return o.Email
+}
+
+func (o *OrganizationCustomerSummaryDto) GetPhone() *string {
+	if o == nil {
+		return nil
+	}
+	return o.Phone
 }
 
 func (o *OrganizationCustomerSummaryDto) GetExternalID() *string {

@@ -40,6 +40,24 @@ type UpdateAuthSettingsDto struct {
 	Locale *UpdateAuthSettingsDtoLocale `json:"locale,omitempty" url:"-"`
 	// Restricts PHONE_CODE sending to these countries (ISO 3166-1 alpha-2 codes, for example FR, US). An empty list means no restriction.
 	PhoneCodeAllowedCountries []string `json:"phoneCodeAllowedCountries,omitempty" url:"-"`
+	// Layout of the hosted pages: CENTERED (a card on a plain background), SPLIT (the form beside an image panel) or MINIMAL (the form alone, no card).
+	HostedLayout *UpdateAuthSettingsDtoHostedLayout `json:"hostedLayout,omitempty" url:"-"`
+	// With the SPLIT layout, the side the image panel sits on.
+	HostedPanelSide *UpdateAuthSettingsDtoHostedPanelSide `json:"hostedPanelSide,omitempty" url:"-"`
+	// With the SPLIT layout, the image shown in the panel (https only). Null removes it: the panel then shows your primary color.
+	HostedPanelImageURL *string `json:"hostedPanelImageUrl,omitempty" url:"-"`
+	// Background color of the hosted pages, in hex (#f8f7f4). Null restores the default background.
+	HostedBackgroundColor *string `json:"hostedBackgroundColor,omitempty" url:"-"`
+	// Corner rounding of fields, buttons and card.
+	HostedRadius *UpdateAuthSettingsDtoHostedRadius `json:"hostedRadius,omitempty" url:"-"`
+	// Typeface of the hosted pages.
+	HostedFont *UpdateAuthSettingsDtoHostedFont `json:"hostedFont,omitempty" url:"-"`
+	// Shows your logo, or your project name when there is no logo, above the form.
+	HostedShowBrandMark *bool `json:"hostedShowBrandMark,omitempty" url:"-"`
+	// Shows a country selector with flags in front of the phone field, so your end-users do not type the country code themselves.
+	PhoneCountryPicker *bool `json:"phoneCountryPicker,omitempty" url:"-"`
+	// Country preselected in the phone field (ISO 3166-1 alpha-2, for example FR). Must be one of phoneCodeAllowedCountries when that list is not empty. Null lets the page guess from the browser language.
+	PhoneDefaultCountry *string `json:"phoneDefaultCountry,omitempty" url:"-"`
 }
 
 type VerifyTestPhoneDto struct {
@@ -441,11 +459,21 @@ type AuthSettingsResponseDto struct {
 	TestPhoneSendCount        float64    `json:"testPhoneSendCount" url:"testPhoneSendCount"`
 	TestPhoneSendPeriodStart  *time.Time `json:"testPhoneSendPeriodStart,omitempty" url:"testPhoneSendPeriodStart,omitempty"`
 	// Country codes allowed for SMS codes. Empty means no restriction.
-	PhoneCodeAllowedCountries []string  `json:"phoneCodeAllowedCountries,omitempty" url:"phoneCodeAllowedCountries,omitempty"`
-	NewSignupCount            float64   `json:"newSignupCount" url:"newSignupCount"`
-	NewSignupPeriodStart      time.Time `json:"newSignupPeriodStart" url:"newSignupPeriodStart"`
-	CreatedAt                 time.Time `json:"createdAt" url:"createdAt"`
-	UpdatedAt                 time.Time `json:"updatedAt" url:"updatedAt"`
+	PhoneCodeAllowedCountries []string                               `json:"phoneCodeAllowedCountries,omitempty" url:"phoneCodeAllowedCountries,omitempty"`
+	HostedLayout              AuthSettingsResponseDtoHostedLayout    `json:"hostedLayout" url:"hostedLayout"`
+	HostedPanelSide           AuthSettingsResponseDtoHostedPanelSide `json:"hostedPanelSide" url:"hostedPanelSide"`
+	HostedPanelImageURL       *string                                `json:"hostedPanelImageUrl,omitempty" url:"hostedPanelImageUrl,omitempty"`
+	HostedBackgroundColor     *string                                `json:"hostedBackgroundColor,omitempty" url:"hostedBackgroundColor,omitempty"`
+	HostedRadius              AuthSettingsResponseDtoHostedRadius    `json:"hostedRadius" url:"hostedRadius"`
+	HostedFont                AuthSettingsResponseDtoHostedFont      `json:"hostedFont" url:"hostedFont"`
+	HostedShowBrandMark       bool                                   `json:"hostedShowBrandMark" url:"hostedShowBrandMark"`
+	// Shows a country selector in front of the phone field.
+	PhoneCountryPicker   bool      `json:"phoneCountryPicker" url:"phoneCountryPicker"`
+	PhoneDefaultCountry  *string   `json:"phoneDefaultCountry,omitempty" url:"phoneDefaultCountry,omitempty"`
+	NewSignupCount       float64   `json:"newSignupCount" url:"newSignupCount"`
+	NewSignupPeriodStart time.Time `json:"newSignupPeriodStart" url:"newSignupPeriodStart"`
+	CreatedAt            time.Time `json:"createdAt" url:"createdAt"`
+	UpdatedAt            time.Time `json:"updatedAt" url:"updatedAt"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -605,6 +633,69 @@ func (a *AuthSettingsResponseDto) GetPhoneCodeAllowedCountries() []string {
 	return a.PhoneCodeAllowedCountries
 }
 
+func (a *AuthSettingsResponseDto) GetHostedLayout() AuthSettingsResponseDtoHostedLayout {
+	if a == nil {
+		return ""
+	}
+	return a.HostedLayout
+}
+
+func (a *AuthSettingsResponseDto) GetHostedPanelSide() AuthSettingsResponseDtoHostedPanelSide {
+	if a == nil {
+		return ""
+	}
+	return a.HostedPanelSide
+}
+
+func (a *AuthSettingsResponseDto) GetHostedPanelImageURL() *string {
+	if a == nil {
+		return nil
+	}
+	return a.HostedPanelImageURL
+}
+
+func (a *AuthSettingsResponseDto) GetHostedBackgroundColor() *string {
+	if a == nil {
+		return nil
+	}
+	return a.HostedBackgroundColor
+}
+
+func (a *AuthSettingsResponseDto) GetHostedRadius() AuthSettingsResponseDtoHostedRadius {
+	if a == nil {
+		return ""
+	}
+	return a.HostedRadius
+}
+
+func (a *AuthSettingsResponseDto) GetHostedFont() AuthSettingsResponseDtoHostedFont {
+	if a == nil {
+		return ""
+	}
+	return a.HostedFont
+}
+
+func (a *AuthSettingsResponseDto) GetHostedShowBrandMark() bool {
+	if a == nil {
+		return false
+	}
+	return a.HostedShowBrandMark
+}
+
+func (a *AuthSettingsResponseDto) GetPhoneCountryPicker() bool {
+	if a == nil {
+		return false
+	}
+	return a.PhoneCountryPicker
+}
+
+func (a *AuthSettingsResponseDto) GetPhoneDefaultCountry() *string {
+	if a == nil {
+		return nil
+	}
+	return a.PhoneDefaultCountry
+}
+
 func (a *AuthSettingsResponseDto) GetNewSignupCount() float64 {
 	if a == nil {
 		return 0
@@ -725,6 +816,106 @@ func NewAuthSettingsResponseDtoCustomDomainStatusFromString(s string) (AuthSetti
 }
 
 func (a AuthSettingsResponseDtoCustomDomainStatus) Ptr() *AuthSettingsResponseDtoCustomDomainStatus {
+	return &a
+}
+
+type AuthSettingsResponseDtoHostedFont string
+
+const (
+	AuthSettingsResponseDtoHostedFontDefault AuthSettingsResponseDtoHostedFont = "DEFAULT"
+	AuthSettingsResponseDtoHostedFontInter   AuthSettingsResponseDtoHostedFont = "INTER"
+	AuthSettingsResponseDtoHostedFontDmSans  AuthSettingsResponseDtoHostedFont = "DM_SANS"
+	AuthSettingsResponseDtoHostedFontLora    AuthSettingsResponseDtoHostedFont = "LORA"
+)
+
+func NewAuthSettingsResponseDtoHostedFontFromString(s string) (AuthSettingsResponseDtoHostedFont, error) {
+	switch s {
+	case "DEFAULT":
+		return AuthSettingsResponseDtoHostedFontDefault, nil
+	case "INTER":
+		return AuthSettingsResponseDtoHostedFontInter, nil
+	case "DM_SANS":
+		return AuthSettingsResponseDtoHostedFontDmSans, nil
+	case "LORA":
+		return AuthSettingsResponseDtoHostedFontLora, nil
+	}
+	var t AuthSettingsResponseDtoHostedFont
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (a AuthSettingsResponseDtoHostedFont) Ptr() *AuthSettingsResponseDtoHostedFont {
+	return &a
+}
+
+type AuthSettingsResponseDtoHostedLayout string
+
+const (
+	AuthSettingsResponseDtoHostedLayoutCentered AuthSettingsResponseDtoHostedLayout = "CENTERED"
+	AuthSettingsResponseDtoHostedLayoutSplit    AuthSettingsResponseDtoHostedLayout = "SPLIT"
+	AuthSettingsResponseDtoHostedLayoutMinimal  AuthSettingsResponseDtoHostedLayout = "MINIMAL"
+)
+
+func NewAuthSettingsResponseDtoHostedLayoutFromString(s string) (AuthSettingsResponseDtoHostedLayout, error) {
+	switch s {
+	case "CENTERED":
+		return AuthSettingsResponseDtoHostedLayoutCentered, nil
+	case "SPLIT":
+		return AuthSettingsResponseDtoHostedLayoutSplit, nil
+	case "MINIMAL":
+		return AuthSettingsResponseDtoHostedLayoutMinimal, nil
+	}
+	var t AuthSettingsResponseDtoHostedLayout
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (a AuthSettingsResponseDtoHostedLayout) Ptr() *AuthSettingsResponseDtoHostedLayout {
+	return &a
+}
+
+type AuthSettingsResponseDtoHostedPanelSide string
+
+const (
+	AuthSettingsResponseDtoHostedPanelSideLeft  AuthSettingsResponseDtoHostedPanelSide = "LEFT"
+	AuthSettingsResponseDtoHostedPanelSideRight AuthSettingsResponseDtoHostedPanelSide = "RIGHT"
+)
+
+func NewAuthSettingsResponseDtoHostedPanelSideFromString(s string) (AuthSettingsResponseDtoHostedPanelSide, error) {
+	switch s {
+	case "LEFT":
+		return AuthSettingsResponseDtoHostedPanelSideLeft, nil
+	case "RIGHT":
+		return AuthSettingsResponseDtoHostedPanelSideRight, nil
+	}
+	var t AuthSettingsResponseDtoHostedPanelSide
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (a AuthSettingsResponseDtoHostedPanelSide) Ptr() *AuthSettingsResponseDtoHostedPanelSide {
+	return &a
+}
+
+type AuthSettingsResponseDtoHostedRadius string
+
+const (
+	AuthSettingsResponseDtoHostedRadiusSharp AuthSettingsResponseDtoHostedRadius = "SHARP"
+	AuthSettingsResponseDtoHostedRadiusSoft  AuthSettingsResponseDtoHostedRadius = "SOFT"
+	AuthSettingsResponseDtoHostedRadiusRound AuthSettingsResponseDtoHostedRadius = "ROUND"
+)
+
+func NewAuthSettingsResponseDtoHostedRadiusFromString(s string) (AuthSettingsResponseDtoHostedRadius, error) {
+	switch s {
+	case "SHARP":
+		return AuthSettingsResponseDtoHostedRadiusSharp, nil
+	case "SOFT":
+		return AuthSettingsResponseDtoHostedRadiusSoft, nil
+	case "ROUND":
+		return AuthSettingsResponseDtoHostedRadiusRound, nil
+	}
+	var t AuthSettingsResponseDtoHostedRadius
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (a AuthSettingsResponseDtoHostedRadius) Ptr() *AuthSettingsResponseDtoHostedRadius {
 	return &a
 }
 
@@ -1177,6 +1368,203 @@ func (e *EmailCodeRequestDto) String() string {
 	return fmt.Sprintf("%#v", e)
 }
 
+type HostedAppearanceDto struct {
+	Layout HostedAppearanceDtoLayout `json:"layout" url:"layout"`
+	// With the SPLIT layout, the side of the image panel.
+	PanelSide       HostedAppearanceDtoPanelSide `json:"panelSide" url:"panelSide"`
+	PanelImageURL   *string                      `json:"panelImageUrl,omitempty" url:"panelImageUrl,omitempty"`
+	BackgroundColor *string                      `json:"backgroundColor,omitempty" url:"backgroundColor,omitempty"`
+	Radius          HostedAppearanceDtoRadius    `json:"radius" url:"radius"`
+	Font            HostedAppearanceDtoFont      `json:"font" url:"font"`
+	// Shows the logo, or the project name, above the form.
+	ShowBrandMark bool `json:"showBrandMark" url:"showBrandMark"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (h *HostedAppearanceDto) GetLayout() HostedAppearanceDtoLayout {
+	if h == nil {
+		return ""
+	}
+	return h.Layout
+}
+
+func (h *HostedAppearanceDto) GetPanelSide() HostedAppearanceDtoPanelSide {
+	if h == nil {
+		return ""
+	}
+	return h.PanelSide
+}
+
+func (h *HostedAppearanceDto) GetPanelImageURL() *string {
+	if h == nil {
+		return nil
+	}
+	return h.PanelImageURL
+}
+
+func (h *HostedAppearanceDto) GetBackgroundColor() *string {
+	if h == nil {
+		return nil
+	}
+	return h.BackgroundColor
+}
+
+func (h *HostedAppearanceDto) GetRadius() HostedAppearanceDtoRadius {
+	if h == nil {
+		return ""
+	}
+	return h.Radius
+}
+
+func (h *HostedAppearanceDto) GetFont() HostedAppearanceDtoFont {
+	if h == nil {
+		return ""
+	}
+	return h.Font
+}
+
+func (h *HostedAppearanceDto) GetShowBrandMark() bool {
+	if h == nil {
+		return false
+	}
+	return h.ShowBrandMark
+}
+
+func (h *HostedAppearanceDto) GetExtraProperties() map[string]interface{} {
+	return h.extraProperties
+}
+
+func (h *HostedAppearanceDto) UnmarshalJSON(data []byte) error {
+	type unmarshaler HostedAppearanceDto
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*h = HostedAppearanceDto(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *h)
+	if err != nil {
+		return err
+	}
+	h.extraProperties = extraProperties
+	h.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (h *HostedAppearanceDto) String() string {
+	if len(h.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(h.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(h); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", h)
+}
+
+type HostedAppearanceDtoFont string
+
+const (
+	HostedAppearanceDtoFontDefault HostedAppearanceDtoFont = "DEFAULT"
+	HostedAppearanceDtoFontInter   HostedAppearanceDtoFont = "INTER"
+	HostedAppearanceDtoFontDmSans  HostedAppearanceDtoFont = "DM_SANS"
+	HostedAppearanceDtoFontLora    HostedAppearanceDtoFont = "LORA"
+)
+
+func NewHostedAppearanceDtoFontFromString(s string) (HostedAppearanceDtoFont, error) {
+	switch s {
+	case "DEFAULT":
+		return HostedAppearanceDtoFontDefault, nil
+	case "INTER":
+		return HostedAppearanceDtoFontInter, nil
+	case "DM_SANS":
+		return HostedAppearanceDtoFontDmSans, nil
+	case "LORA":
+		return HostedAppearanceDtoFontLora, nil
+	}
+	var t HostedAppearanceDtoFont
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (h HostedAppearanceDtoFont) Ptr() *HostedAppearanceDtoFont {
+	return &h
+}
+
+type HostedAppearanceDtoLayout string
+
+const (
+	HostedAppearanceDtoLayoutCentered HostedAppearanceDtoLayout = "CENTERED"
+	HostedAppearanceDtoLayoutSplit    HostedAppearanceDtoLayout = "SPLIT"
+	HostedAppearanceDtoLayoutMinimal  HostedAppearanceDtoLayout = "MINIMAL"
+)
+
+func NewHostedAppearanceDtoLayoutFromString(s string) (HostedAppearanceDtoLayout, error) {
+	switch s {
+	case "CENTERED":
+		return HostedAppearanceDtoLayoutCentered, nil
+	case "SPLIT":
+		return HostedAppearanceDtoLayoutSplit, nil
+	case "MINIMAL":
+		return HostedAppearanceDtoLayoutMinimal, nil
+	}
+	var t HostedAppearanceDtoLayout
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (h HostedAppearanceDtoLayout) Ptr() *HostedAppearanceDtoLayout {
+	return &h
+}
+
+// With the SPLIT layout, the side of the image panel.
+type HostedAppearanceDtoPanelSide string
+
+const (
+	HostedAppearanceDtoPanelSideLeft  HostedAppearanceDtoPanelSide = "LEFT"
+	HostedAppearanceDtoPanelSideRight HostedAppearanceDtoPanelSide = "RIGHT"
+)
+
+func NewHostedAppearanceDtoPanelSideFromString(s string) (HostedAppearanceDtoPanelSide, error) {
+	switch s {
+	case "LEFT":
+		return HostedAppearanceDtoPanelSideLeft, nil
+	case "RIGHT":
+		return HostedAppearanceDtoPanelSideRight, nil
+	}
+	var t HostedAppearanceDtoPanelSide
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (h HostedAppearanceDtoPanelSide) Ptr() *HostedAppearanceDtoPanelSide {
+	return &h
+}
+
+type HostedAppearanceDtoRadius string
+
+const (
+	HostedAppearanceDtoRadiusSharp HostedAppearanceDtoRadius = "SHARP"
+	HostedAppearanceDtoRadiusSoft  HostedAppearanceDtoRadius = "SOFT"
+	HostedAppearanceDtoRadiusRound HostedAppearanceDtoRadius = "ROUND"
+)
+
+func NewHostedAppearanceDtoRadiusFromString(s string) (HostedAppearanceDtoRadius, error) {
+	switch s {
+	case "SHARP":
+		return HostedAppearanceDtoRadiusSharp, nil
+	case "SOFT":
+		return HostedAppearanceDtoRadiusSoft, nil
+	case "ROUND":
+		return HostedAppearanceDtoRadiusRound, nil
+	}
+	var t HostedAppearanceDtoRadius
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (h HostedAppearanceDtoRadius) Ptr() *HostedAppearanceDtoRadius {
+	return &h
+}
+
 type HostedAuthConfigResponseDto struct {
 	// Project name, shown on the hosted pages.
 	ProjectName string `json:"projectName" url:"projectName"`
@@ -1195,6 +1583,9 @@ type HostedAuthConfigResponseDto struct {
 	Oauth  *OAuthBridgeConfigDto             `json:"oauth,omitempty" url:"oauth,omitempty"`
 	// True if the hosted pages show a small "Secured by Mailmus" badge. Removed from the Pro plan up.
 	ShowMailmusBadge bool `json:"showMailmusBadge" url:"showMailmusBadge"`
+	// Look of the hosted pages, chosen in the dashboard.
+	Appearance *HostedAppearanceDto  `json:"appearance,omitempty" url:"appearance,omitempty"`
+	Phone      *HostedPhoneConfigDto `json:"phone,omitempty" url:"phone,omitempty"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -1268,6 +1659,20 @@ func (h *HostedAuthConfigResponseDto) GetShowMailmusBadge() bool {
 		return false
 	}
 	return h.ShowMailmusBadge
+}
+
+func (h *HostedAuthConfigResponseDto) GetAppearance() *HostedAppearanceDto {
+	if h == nil {
+		return nil
+	}
+	return h.Appearance
+}
+
+func (h *HostedAuthConfigResponseDto) GetPhone() *HostedPhoneConfigDto {
+	if h == nil {
+		return nil
+	}
+	return h.Phone
 }
 
 func (h *HostedAuthConfigResponseDto) GetExtraProperties() map[string]interface{} {
@@ -1361,6 +1766,71 @@ func (h *HostedDomainResolveResponseDto) UnmarshalJSON(data []byte) error {
 }
 
 func (h *HostedDomainResolveResponseDto) String() string {
+	if len(h.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(h.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(h); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", h)
+}
+
+type HostedPhoneConfigDto struct {
+	// Shows a country selector in front of the phone field.
+	CountryPicker bool `json:"countryPicker" url:"countryPicker"`
+	// Country preselected in the phone field.
+	DefaultCountry *string `json:"defaultCountry,omitempty" url:"defaultCountry,omitempty"`
+	// Countries SMS codes can be sent to. Empty means no restriction.
+	AllowedCountries []string `json:"allowedCountries,omitempty" url:"allowedCountries,omitempty"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (h *HostedPhoneConfigDto) GetCountryPicker() bool {
+	if h == nil {
+		return false
+	}
+	return h.CountryPicker
+}
+
+func (h *HostedPhoneConfigDto) GetDefaultCountry() *string {
+	if h == nil {
+		return nil
+	}
+	return h.DefaultCountry
+}
+
+func (h *HostedPhoneConfigDto) GetAllowedCountries() []string {
+	if h == nil {
+		return nil
+	}
+	return h.AllowedCountries
+}
+
+func (h *HostedPhoneConfigDto) GetExtraProperties() map[string]interface{} {
+	return h.extraProperties
+}
+
+func (h *HostedPhoneConfigDto) UnmarshalJSON(data []byte) error {
+	type unmarshaler HostedPhoneConfigDto
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*h = HostedPhoneConfigDto(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *h)
+	if err != nil {
+		return err
+	}
+	h.extraProperties = extraProperties
+	h.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (h *HostedPhoneConfigDto) String() string {
 	if len(h.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(h.rawJSON); err == nil {
 			return value
@@ -3377,6 +3847,110 @@ func NewUpdateAuthSettingsDtoAllowedProvidersItemFromString(s string) (UpdateAut
 }
 
 func (u UpdateAuthSettingsDtoAllowedProvidersItem) Ptr() *UpdateAuthSettingsDtoAllowedProvidersItem {
+	return &u
+}
+
+// Typeface of the hosted pages.
+type UpdateAuthSettingsDtoHostedFont string
+
+const (
+	UpdateAuthSettingsDtoHostedFontDefault UpdateAuthSettingsDtoHostedFont = "DEFAULT"
+	UpdateAuthSettingsDtoHostedFontInter   UpdateAuthSettingsDtoHostedFont = "INTER"
+	UpdateAuthSettingsDtoHostedFontDmSans  UpdateAuthSettingsDtoHostedFont = "DM_SANS"
+	UpdateAuthSettingsDtoHostedFontLora    UpdateAuthSettingsDtoHostedFont = "LORA"
+)
+
+func NewUpdateAuthSettingsDtoHostedFontFromString(s string) (UpdateAuthSettingsDtoHostedFont, error) {
+	switch s {
+	case "DEFAULT":
+		return UpdateAuthSettingsDtoHostedFontDefault, nil
+	case "INTER":
+		return UpdateAuthSettingsDtoHostedFontInter, nil
+	case "DM_SANS":
+		return UpdateAuthSettingsDtoHostedFontDmSans, nil
+	case "LORA":
+		return UpdateAuthSettingsDtoHostedFontLora, nil
+	}
+	var t UpdateAuthSettingsDtoHostedFont
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (u UpdateAuthSettingsDtoHostedFont) Ptr() *UpdateAuthSettingsDtoHostedFont {
+	return &u
+}
+
+// Layout of the hosted pages: CENTERED (a card on a plain background), SPLIT (the form beside an image panel) or MINIMAL (the form alone, no card).
+type UpdateAuthSettingsDtoHostedLayout string
+
+const (
+	UpdateAuthSettingsDtoHostedLayoutCentered UpdateAuthSettingsDtoHostedLayout = "CENTERED"
+	UpdateAuthSettingsDtoHostedLayoutSplit    UpdateAuthSettingsDtoHostedLayout = "SPLIT"
+	UpdateAuthSettingsDtoHostedLayoutMinimal  UpdateAuthSettingsDtoHostedLayout = "MINIMAL"
+)
+
+func NewUpdateAuthSettingsDtoHostedLayoutFromString(s string) (UpdateAuthSettingsDtoHostedLayout, error) {
+	switch s {
+	case "CENTERED":
+		return UpdateAuthSettingsDtoHostedLayoutCentered, nil
+	case "SPLIT":
+		return UpdateAuthSettingsDtoHostedLayoutSplit, nil
+	case "MINIMAL":
+		return UpdateAuthSettingsDtoHostedLayoutMinimal, nil
+	}
+	var t UpdateAuthSettingsDtoHostedLayout
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (u UpdateAuthSettingsDtoHostedLayout) Ptr() *UpdateAuthSettingsDtoHostedLayout {
+	return &u
+}
+
+// With the SPLIT layout, the side the image panel sits on.
+type UpdateAuthSettingsDtoHostedPanelSide string
+
+const (
+	UpdateAuthSettingsDtoHostedPanelSideLeft  UpdateAuthSettingsDtoHostedPanelSide = "LEFT"
+	UpdateAuthSettingsDtoHostedPanelSideRight UpdateAuthSettingsDtoHostedPanelSide = "RIGHT"
+)
+
+func NewUpdateAuthSettingsDtoHostedPanelSideFromString(s string) (UpdateAuthSettingsDtoHostedPanelSide, error) {
+	switch s {
+	case "LEFT":
+		return UpdateAuthSettingsDtoHostedPanelSideLeft, nil
+	case "RIGHT":
+		return UpdateAuthSettingsDtoHostedPanelSideRight, nil
+	}
+	var t UpdateAuthSettingsDtoHostedPanelSide
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (u UpdateAuthSettingsDtoHostedPanelSide) Ptr() *UpdateAuthSettingsDtoHostedPanelSide {
+	return &u
+}
+
+// Corner rounding of fields, buttons and card.
+type UpdateAuthSettingsDtoHostedRadius string
+
+const (
+	UpdateAuthSettingsDtoHostedRadiusSharp UpdateAuthSettingsDtoHostedRadius = "SHARP"
+	UpdateAuthSettingsDtoHostedRadiusSoft  UpdateAuthSettingsDtoHostedRadius = "SOFT"
+	UpdateAuthSettingsDtoHostedRadiusRound UpdateAuthSettingsDtoHostedRadius = "ROUND"
+)
+
+func NewUpdateAuthSettingsDtoHostedRadiusFromString(s string) (UpdateAuthSettingsDtoHostedRadius, error) {
+	switch s {
+	case "SHARP":
+		return UpdateAuthSettingsDtoHostedRadiusSharp, nil
+	case "SOFT":
+		return UpdateAuthSettingsDtoHostedRadiusSoft, nil
+	case "ROUND":
+		return UpdateAuthSettingsDtoHostedRadiusRound, nil
+	}
+	var t UpdateAuthSettingsDtoHostedRadius
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (u UpdateAuthSettingsDtoHostedRadius) Ptr() *UpdateAuthSettingsDtoHostedRadius {
 	return &u
 }
 

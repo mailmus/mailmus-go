@@ -142,7 +142,7 @@ type SendingDomainResponseDto struct {
 	DkimVerified          bool       `json:"dkimVerified" url:"dkimVerified"`
 	DmarcVerified         bool       `json:"dmarcVerified" url:"dmarcVerified"`
 	VerifiedAt            *time.Time `json:"verifiedAt,omitempty" url:"verifiedAt,omitempty"`
-	AppID                 string     `json:"appId" url:"appId"`
+	ProjectID             string     `json:"projectId" url:"projectId"`
 	CreatedAt             time.Time  `json:"createdAt" url:"createdAt"`
 	UpdatedAt             time.Time  `json:"updatedAt" url:"updatedAt"`
 
@@ -227,11 +227,11 @@ func (s *SendingDomainResponseDto) GetVerifiedAt() *time.Time {
 	return s.VerifiedAt
 }
 
-func (s *SendingDomainResponseDto) GetAppID() string {
+func (s *SendingDomainResponseDto) GetProjectID() string {
 	if s == nil {
 		return ""
 	}
-	return s.AppID
+	return s.ProjectID
 }
 
 func (s *SendingDomainResponseDto) GetCreatedAt() time.Time {

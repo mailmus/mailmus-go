@@ -31,7 +31,7 @@ func NewClient(opts ...option.RequestOption) *Client {
 	}
 }
 
-func (c *Client) WebhookSubscriptionsList(
+func (c *Client) List(
 	ctx context.Context,
 	projectID string,
 	opts ...option.RequestOption,
@@ -70,7 +70,7 @@ func (c *Client) WebhookSubscriptionsList(
 	return response, nil
 }
 
-func (c *Client) WebhookSubscriptionsCreate(
+func (c *Client) Create(
 	ctx context.Context,
 	projectID string,
 	request *mailmusgo.CreateWebhookDto,
@@ -112,7 +112,7 @@ func (c *Client) WebhookSubscriptionsCreate(
 	return response, nil
 }
 
-func (c *Client) WebhookSubscriptionsRemove(
+func (c *Client) Remove(
 	ctx context.Context,
 	projectID string,
 	id string,
@@ -153,7 +153,7 @@ func (c *Client) WebhookSubscriptionsRemove(
 	return response, nil
 }
 
-func (c *Client) WebhookSubscriptionsUpdate(
+func (c *Client) Update(
 	ctx context.Context,
 	projectID string,
 	id string,
@@ -197,7 +197,7 @@ func (c *Client) WebhookSubscriptionsUpdate(
 	return response, nil
 }
 
-func (c *Client) WebhookSubscriptionsRotateSecret(
+func (c *Client) RotateSecret(
 	ctx context.Context,
 	projectID string,
 	id string,
@@ -238,7 +238,7 @@ func (c *Client) WebhookSubscriptionsRotateSecret(
 	return response, nil
 }
 
-func (c *Client) WebhookSubscriptionsListDeliveries(
+func (c *Client) ListDeliveries(
 	ctx context.Context,
 	projectID string,
 	id string,
@@ -279,7 +279,7 @@ func (c *Client) WebhookSubscriptionsListDeliveries(
 	return response, nil
 }
 
-func (c *Client) WebhookSubscriptionsReplayDelivery(
+func (c *Client) ReplayDelivery(
 	ctx context.Context,
 	projectID string,
 	id string,
@@ -320,7 +320,7 @@ func (c *Client) WebhookSubscriptionsReplayDelivery(
 	return nil
 }
 
-func (c *Client) WebhookSubscriptionsTest(
+func (c *Client) Test(
 	ctx context.Context,
 	projectID string,
 	id string,

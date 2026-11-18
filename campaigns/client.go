@@ -37,7 +37,7 @@ func (c *Client) List(
 	ctx context.Context,
 	projectID string,
 	opts ...option.RequestOption,
-) ([]*mailmusgo.CampaignResponseDto, error) {
+) ([]*mailmusgo.CampaignListItemResponseDto, error) {
 	options := core.NewRequestOptions(opts...)
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
@@ -53,7 +53,7 @@ func (c *Client) List(
 		options.ToHeader(),
 	)
 
-	var response []*mailmusgo.CampaignResponseDto
+	var response []*mailmusgo.CampaignListItemResponseDto
 	if err := c.caller.Call(
 		ctx,
 		&internal.CallParams{
@@ -114,7 +114,7 @@ func (c *Client) Create(
 	return response, nil
 }
 
-func (c *Client) Findone(
+func (c *Client) FindOne(
 	ctx context.Context,
 	projectID string,
 	id string,
@@ -281,7 +281,7 @@ func (c *Client) Cancel(
 	return response, nil
 }
 
-func (c *Client) Cancelabtest(
+func (c *Client) CancelAbTest(
 	ctx context.Context,
 	projectID string,
 	id string,
@@ -322,7 +322,7 @@ func (c *Client) Cancelabtest(
 	return response, nil
 }
 
-func (c *Client) Selectabtestwinner(
+func (c *Client) SelectAbTestWinner(
 	ctx context.Context,
 	projectID string,
 	id string,
@@ -371,7 +371,7 @@ func (c *Client) Send(
 	projectID string,
 	id string,
 	opts ...option.RequestOption,
-) (*mailmusgo.CampaignActionResultDto, error) {
+) (*mailmusgo.CampaignDetailResponseDto, error) {
 	options := core.NewRequestOptions(opts...)
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
@@ -388,7 +388,7 @@ func (c *Client) Send(
 		options.ToHeader(),
 	)
 
-	var response *mailmusgo.CampaignActionResultDto
+	var response *mailmusgo.CampaignDetailResponseDto
 	if err := c.caller.Call(
 		ctx,
 		&internal.CallParams{
@@ -407,13 +407,13 @@ func (c *Client) Send(
 	return response, nil
 }
 
-func (c *Client) Testsend(
+func (c *Client) TestSend(
 	ctx context.Context,
 	projectID string,
 	id string,
 	request *mailmusgo.TestCampaignDto,
 	opts ...option.RequestOption,
-) (*mailmusgo.CampaignTestResultDto, error) {
+) (*mailmusgo.CampaignActionResultDto, error) {
 	options := core.NewRequestOptions(opts...)
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
@@ -431,7 +431,7 @@ func (c *Client) Testsend(
 	)
 	headers.Set("Content-Type", "application/json")
 
-	var response *mailmusgo.CampaignTestResultDto
+	var response *mailmusgo.CampaignActionResultDto
 	if err := c.caller.Call(
 		ctx,
 		&internal.CallParams{
@@ -451,7 +451,7 @@ func (c *Client) Testsend(
 	return response, nil
 }
 
-func (c *Client) Testsendtoseedlist(
+func (c *Client) TestSendToSeedList(
 	ctx context.Context,
 	projectID string,
 	id string,
@@ -533,7 +533,7 @@ func (c *Client) Duplicate(
 	return response, nil
 }
 
-func (c *Client) Exportsends(
+func (c *Client) ExportSends(
 	ctx context.Context,
 	projectID string,
 	id string,
@@ -574,11 +574,11 @@ func (c *Client) Exportsends(
 	return response, nil
 }
 
-func (c *Client) Getsends(
+func (c *Client) GetSends(
 	ctx context.Context,
 	projectID string,
 	id string,
-	request *mailmusgo.CampaignsGetSendsRequest,
+	request *mailmusgo.GetSendsCampaignsRequest,
 	opts ...option.RequestOption,
 ) (*mailmusgo.CampaignSendListResponseDto, error) {
 	options := core.NewRequestOptions(opts...)

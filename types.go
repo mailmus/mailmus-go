@@ -9,6 +9,1302 @@ import (
 	time "time"
 )
 
+type AccessDeletedResponseDto struct {
+	Deleted bool `json:"deleted" url:"deleted"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (a *AccessDeletedResponseDto) GetDeleted() bool {
+	if a == nil {
+		return false
+	}
+	return a.Deleted
+}
+
+func (a *AccessDeletedResponseDto) GetExtraProperties() map[string]interface{} {
+	return a.extraProperties
+}
+
+func (a *AccessDeletedResponseDto) UnmarshalJSON(data []byte) error {
+	type unmarshaler AccessDeletedResponseDto
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*a = AccessDeletedResponseDto(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *a)
+	if err != nil {
+		return err
+	}
+	a.extraProperties = extraProperties
+	a.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (a *AccessDeletedResponseDto) String() string {
+	if len(a.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(a.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(a); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", a)
+}
+
+type AccessPermissionResponseDto struct {
+	Key         string    `json:"key" url:"key"`
+	Description *string   `json:"description,omitempty" url:"description,omitempty"`
+	CreatedAt   time.Time `json:"createdAt" url:"createdAt"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (a *AccessPermissionResponseDto) GetKey() string {
+	if a == nil {
+		return ""
+	}
+	return a.Key
+}
+
+func (a *AccessPermissionResponseDto) GetDescription() *string {
+	if a == nil {
+		return nil
+	}
+	return a.Description
+}
+
+func (a *AccessPermissionResponseDto) GetCreatedAt() time.Time {
+	if a == nil {
+		return time.Time{}
+	}
+	return a.CreatedAt
+}
+
+func (a *AccessPermissionResponseDto) GetExtraProperties() map[string]interface{} {
+	return a.extraProperties
+}
+
+func (a *AccessPermissionResponseDto) UnmarshalJSON(data []byte) error {
+	type embed AccessPermissionResponseDto
+	var unmarshaler = struct {
+		embed
+		CreatedAt *internal.DateTime `json:"createdAt"`
+	}{
+		embed: embed(*a),
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
+		return err
+	}
+	*a = AccessPermissionResponseDto(unmarshaler.embed)
+	a.CreatedAt = unmarshaler.CreatedAt.Time()
+	extraProperties, err := internal.ExtractExtraProperties(data, *a)
+	if err != nil {
+		return err
+	}
+	a.extraProperties = extraProperties
+	a.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (a *AccessPermissionResponseDto) MarshalJSON() ([]byte, error) {
+	type embed AccessPermissionResponseDto
+	var marshaler = struct {
+		embed
+		CreatedAt *internal.DateTime `json:"createdAt"`
+	}{
+		embed:     embed(*a),
+		CreatedAt: internal.NewDateTime(a.CreatedAt),
+	}
+	return json.Marshal(marshaler)
+}
+
+func (a *AccessPermissionResponseDto) String() string {
+	if len(a.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(a.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(a); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", a)
+}
+
+type AccessRoleResponseDto struct {
+	Key                       string                     `json:"key" url:"key"`
+	Name                      string                     `json:"name" url:"name"`
+	Description               *string                    `json:"description,omitempty" url:"description,omitempty"`
+	Scope                     AccessRoleResponseDtoScope `json:"scope" url:"scope"`
+	AppliesToAllOrganizations bool                       `json:"appliesToAllOrganizations" url:"appliesToAllOrganizations"`
+	// Built-in organization roles (org:owner, org:admin, org:member). They cannot be deleted.
+	System      bool      `json:"system" url:"system"`
+	Permissions []string  `json:"permissions,omitempty" url:"permissions,omitempty"`
+	CreatedAt   time.Time `json:"createdAt" url:"createdAt"`
+	UpdatedAt   time.Time `json:"updatedAt" url:"updatedAt"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (a *AccessRoleResponseDto) GetKey() string {
+	if a == nil {
+		return ""
+	}
+	return a.Key
+}
+
+func (a *AccessRoleResponseDto) GetName() string {
+	if a == nil {
+		return ""
+	}
+	return a.Name
+}
+
+func (a *AccessRoleResponseDto) GetDescription() *string {
+	if a == nil {
+		return nil
+	}
+	return a.Description
+}
+
+func (a *AccessRoleResponseDto) GetScope() AccessRoleResponseDtoScope {
+	if a == nil {
+		return ""
+	}
+	return a.Scope
+}
+
+func (a *AccessRoleResponseDto) GetAppliesToAllOrganizations() bool {
+	if a == nil {
+		return false
+	}
+	return a.AppliesToAllOrganizations
+}
+
+func (a *AccessRoleResponseDto) GetSystem() bool {
+	if a == nil {
+		return false
+	}
+	return a.System
+}
+
+func (a *AccessRoleResponseDto) GetPermissions() []string {
+	if a == nil {
+		return nil
+	}
+	return a.Permissions
+}
+
+func (a *AccessRoleResponseDto) GetCreatedAt() time.Time {
+	if a == nil {
+		return time.Time{}
+	}
+	return a.CreatedAt
+}
+
+func (a *AccessRoleResponseDto) GetUpdatedAt() time.Time {
+	if a == nil {
+		return time.Time{}
+	}
+	return a.UpdatedAt
+}
+
+func (a *AccessRoleResponseDto) GetExtraProperties() map[string]interface{} {
+	return a.extraProperties
+}
+
+func (a *AccessRoleResponseDto) UnmarshalJSON(data []byte) error {
+	type embed AccessRoleResponseDto
+	var unmarshaler = struct {
+		embed
+		CreatedAt *internal.DateTime `json:"createdAt"`
+		UpdatedAt *internal.DateTime `json:"updatedAt"`
+	}{
+		embed: embed(*a),
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
+		return err
+	}
+	*a = AccessRoleResponseDto(unmarshaler.embed)
+	a.CreatedAt = unmarshaler.CreatedAt.Time()
+	a.UpdatedAt = unmarshaler.UpdatedAt.Time()
+	extraProperties, err := internal.ExtractExtraProperties(data, *a)
+	if err != nil {
+		return err
+	}
+	a.extraProperties = extraProperties
+	a.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (a *AccessRoleResponseDto) MarshalJSON() ([]byte, error) {
+	type embed AccessRoleResponseDto
+	var marshaler = struct {
+		embed
+		CreatedAt *internal.DateTime `json:"createdAt"`
+		UpdatedAt *internal.DateTime `json:"updatedAt"`
+	}{
+		embed:     embed(*a),
+		CreatedAt: internal.NewDateTime(a.CreatedAt),
+		UpdatedAt: internal.NewDateTime(a.UpdatedAt),
+	}
+	return json.Marshal(marshaler)
+}
+
+func (a *AccessRoleResponseDto) String() string {
+	if len(a.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(a.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(a); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", a)
+}
+
+type AccessRoleResponseDtoScope string
+
+const (
+	AccessRoleResponseDtoScopeProject      AccessRoleResponseDtoScope = "PROJECT"
+	AccessRoleResponseDtoScopeOrganization AccessRoleResponseDtoScope = "ORGANIZATION"
+)
+
+func NewAccessRoleResponseDtoScopeFromString(s string) (AccessRoleResponseDtoScope, error) {
+	switch s {
+	case "PROJECT":
+		return AccessRoleResponseDtoScopeProject, nil
+	case "ORGANIZATION":
+		return AccessRoleResponseDtoScopeOrganization, nil
+	}
+	var t AccessRoleResponseDtoScope
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (a AccessRoleResponseDtoScope) Ptr() *AccessRoleResponseDtoScope {
+	return &a
+}
+
+type AuthProviderIncidentDto struct {
+	// Identifier of the incident.
+	ID string `json:"id" url:"id"`
+	// The provider concerned.
+	Provider string `json:"provider" url:"provider"`
+	// Where the sign-in gave way: CONFIGURATION, CODE_EXCHANGE, TOKEN_VERIFICATION, PROFILE_READ or DELIVERY. CONFIGURATION points at a setting to fix; DELIVERY means Mailmus could not deliver the SMS code, with nothing to change on your side; the others usually concern a single attempt.
+	Stage string `json:"stage" url:"stage"`
+	// Stable reason, comparable over time.
+	Reason string `json:"reason" url:"reason"`
+	// Number of attempts hit by the incident.
+	Occurrences float64 `json:"occurrences" url:"occurrences"`
+	// When the incident started.
+	StartedAt time.Time `json:"startedAt" url:"startedAt"`
+	// Last attempt hit.
+	LastSeenAt time.Time `json:"lastSeenAt" url:"lastSeenAt"`
+	// End of the incident, set by the first successful sign-in. Null while it lasts.
+	ResolvedAt *string `json:"resolvedAt,omitempty" url:"resolvedAt,omitempty"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (a *AuthProviderIncidentDto) GetID() string {
+	if a == nil {
+		return ""
+	}
+	return a.ID
+}
+
+func (a *AuthProviderIncidentDto) GetProvider() string {
+	if a == nil {
+		return ""
+	}
+	return a.Provider
+}
+
+func (a *AuthProviderIncidentDto) GetStage() string {
+	if a == nil {
+		return ""
+	}
+	return a.Stage
+}
+
+func (a *AuthProviderIncidentDto) GetReason() string {
+	if a == nil {
+		return ""
+	}
+	return a.Reason
+}
+
+func (a *AuthProviderIncidentDto) GetOccurrences() float64 {
+	if a == nil {
+		return 0
+	}
+	return a.Occurrences
+}
+
+func (a *AuthProviderIncidentDto) GetStartedAt() time.Time {
+	if a == nil {
+		return time.Time{}
+	}
+	return a.StartedAt
+}
+
+func (a *AuthProviderIncidentDto) GetLastSeenAt() time.Time {
+	if a == nil {
+		return time.Time{}
+	}
+	return a.LastSeenAt
+}
+
+func (a *AuthProviderIncidentDto) GetResolvedAt() *string {
+	if a == nil {
+		return nil
+	}
+	return a.ResolvedAt
+}
+
+func (a *AuthProviderIncidentDto) GetExtraProperties() map[string]interface{} {
+	return a.extraProperties
+}
+
+func (a *AuthProviderIncidentDto) UnmarshalJSON(data []byte) error {
+	type embed AuthProviderIncidentDto
+	var unmarshaler = struct {
+		embed
+		StartedAt  *internal.DateTime `json:"startedAt"`
+		LastSeenAt *internal.DateTime `json:"lastSeenAt"`
+	}{
+		embed: embed(*a),
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
+		return err
+	}
+	*a = AuthProviderIncidentDto(unmarshaler.embed)
+	a.StartedAt = unmarshaler.StartedAt.Time()
+	a.LastSeenAt = unmarshaler.LastSeenAt.Time()
+	extraProperties, err := internal.ExtractExtraProperties(data, *a)
+	if err != nil {
+		return err
+	}
+	a.extraProperties = extraProperties
+	a.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (a *AuthProviderIncidentDto) MarshalJSON() ([]byte, error) {
+	type embed AuthProviderIncidentDto
+	var marshaler = struct {
+		embed
+		StartedAt  *internal.DateTime `json:"startedAt"`
+		LastSeenAt *internal.DateTime `json:"lastSeenAt"`
+	}{
+		embed:      embed(*a),
+		StartedAt:  internal.NewDateTime(a.StartedAt),
+		LastSeenAt: internal.NewDateTime(a.LastSeenAt),
+	}
+	return json.Marshal(marshaler)
+}
+
+func (a *AuthProviderIncidentDto) String() string {
+	if len(a.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(a.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(a); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", a)
+}
+
+type AuthSettingsResponseDto struct {
+	ID        string `json:"id" url:"id"`
+	ProjectID string `json:"projectId" url:"projectId"`
+	// False until Auth is enabled: the sign-in routes then refuse calls.
+	Enabled bool `json:"enabled" url:"enabled"`
+	// Sign-in methods open to the users of this project.
+	AllowedProviders []string `json:"allowedProviders,omitempty" url:"allowedProviders,omitempty"`
+	// Return addresses allowed after sign-in. Any other one is refused, which stops a third party from diverting the tokens.
+	RedirectURLAllowlist []string `json:"redirectUrlAllowlist,omitempty" url:"redirectUrlAllowlist,omitempty"`
+	// Lifetime of an accessToken, in seconds.
+	AccessTokenTTLSeconds float64 `json:"accessTokenTtlSeconds" url:"accessTokenTtlSeconds"`
+	// Lifetime of a refreshToken, in days.
+	RefreshTokenTTLDays float64 `json:"refreshTokenTtlDays" url:"refreshTokenTtlDays"`
+	LogoURL             *string `json:"logoUrl,omitempty" url:"logoUrl,omitempty"`
+	PrimaryColor        *string `json:"primaryColor,omitempty" url:"primaryColor,omitempty"`
+	// Domain your authentication pages are served from.
+	CustomDomain       *string                                    `json:"customDomain,omitempty" url:"customDomain,omitempty"`
+	CustomDomainStatus *AuthSettingsResponseDtoCustomDomainStatus `json:"customDomainStatus,omitempty" url:"customDomainStatus,omitempty"`
+	// Deprecated: read GET /projects/{projectId}/b2b/settings. Same value, kept here for existing integrations.
+	OrganizationsEnabled bool `json:"organizationsEnabled" url:"organizationsEnabled"`
+	// Language your users are served in: hosted sign-in pages and authentication emails.
+	Locale AuthSettingsResponseDtoLocale `json:"locale" url:"locale"`
+	// On the free tier, only this number can receive an SMS code. The Pro tier lifts that restriction.
+	TestPhoneNumber     *string    `json:"testPhoneNumber,omitempty" url:"testPhoneNumber,omitempty"`
+	TestPhoneVerifiedAt *time.Time `json:"testPhoneVerifiedAt,omitempty" url:"testPhoneVerifiedAt,omitempty"`
+	// Test number changes already used.
+	TestPhoneChangesUsed      float64    `json:"testPhoneChangesUsed" url:"testPhoneChangesUsed"`
+	TestPhonePendingNumber    *string    `json:"testPhonePendingNumber,omitempty" url:"testPhonePendingNumber,omitempty"`
+	TestPhonePendingExpiresAt *time.Time `json:"testPhonePendingExpiresAt,omitempty" url:"testPhonePendingExpiresAt,omitempty"`
+	TestPhonePendingAttempts  float64    `json:"testPhonePendingAttempts" url:"testPhonePendingAttempts"`
+	TestPhoneSendCount        float64    `json:"testPhoneSendCount" url:"testPhoneSendCount"`
+	TestPhoneSendPeriodStart  *time.Time `json:"testPhoneSendPeriodStart,omitempty" url:"testPhoneSendPeriodStart,omitempty"`
+	// Country codes allowed for SMS codes. Empty means no restriction.
+	PhoneCodeAllowedCountries []string                               `json:"phoneCodeAllowedCountries,omitempty" url:"phoneCodeAllowedCountries,omitempty"`
+	HostedLayout              AuthSettingsResponseDtoHostedLayout    `json:"hostedLayout" url:"hostedLayout"`
+	HostedPanelSide           AuthSettingsResponseDtoHostedPanelSide `json:"hostedPanelSide" url:"hostedPanelSide"`
+	HostedPanelImageURL       *string                                `json:"hostedPanelImageUrl,omitempty" url:"hostedPanelImageUrl,omitempty"`
+	HostedBackgroundColor     *string                                `json:"hostedBackgroundColor,omitempty" url:"hostedBackgroundColor,omitempty"`
+	HostedRadius              AuthSettingsResponseDtoHostedRadius    `json:"hostedRadius" url:"hostedRadius"`
+	HostedFont                AuthSettingsResponseDtoHostedFont      `json:"hostedFont" url:"hostedFont"`
+	HostedShowBrandMark       bool                                   `json:"hostedShowBrandMark" url:"hostedShowBrandMark"`
+	// Shows a country selector in front of the phone field.
+	PhoneCountryPicker   bool      `json:"phoneCountryPicker" url:"phoneCountryPicker"`
+	PhoneDefaultCountry  *string   `json:"phoneDefaultCountry,omitempty" url:"phoneDefaultCountry,omitempty"`
+	NewSignupCount       float64   `json:"newSignupCount" url:"newSignupCount"`
+	NewSignupPeriodStart time.Time `json:"newSignupPeriodStart" url:"newSignupPeriodStart"`
+	CreatedAt            time.Time `json:"createdAt" url:"createdAt"`
+	UpdatedAt            time.Time `json:"updatedAt" url:"updatedAt"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (a *AuthSettingsResponseDto) GetID() string {
+	if a == nil {
+		return ""
+	}
+	return a.ID
+}
+
+func (a *AuthSettingsResponseDto) GetProjectID() string {
+	if a == nil {
+		return ""
+	}
+	return a.ProjectID
+}
+
+func (a *AuthSettingsResponseDto) GetEnabled() bool {
+	if a == nil {
+		return false
+	}
+	return a.Enabled
+}
+
+func (a *AuthSettingsResponseDto) GetAllowedProviders() []string {
+	if a == nil {
+		return nil
+	}
+	return a.AllowedProviders
+}
+
+func (a *AuthSettingsResponseDto) GetRedirectURLAllowlist() []string {
+	if a == nil {
+		return nil
+	}
+	return a.RedirectURLAllowlist
+}
+
+func (a *AuthSettingsResponseDto) GetAccessTokenTTLSeconds() float64 {
+	if a == nil {
+		return 0
+	}
+	return a.AccessTokenTTLSeconds
+}
+
+func (a *AuthSettingsResponseDto) GetRefreshTokenTTLDays() float64 {
+	if a == nil {
+		return 0
+	}
+	return a.RefreshTokenTTLDays
+}
+
+func (a *AuthSettingsResponseDto) GetLogoURL() *string {
+	if a == nil {
+		return nil
+	}
+	return a.LogoURL
+}
+
+func (a *AuthSettingsResponseDto) GetPrimaryColor() *string {
+	if a == nil {
+		return nil
+	}
+	return a.PrimaryColor
+}
+
+func (a *AuthSettingsResponseDto) GetCustomDomain() *string {
+	if a == nil {
+		return nil
+	}
+	return a.CustomDomain
+}
+
+func (a *AuthSettingsResponseDto) GetCustomDomainStatus() *AuthSettingsResponseDtoCustomDomainStatus {
+	if a == nil {
+		return nil
+	}
+	return a.CustomDomainStatus
+}
+
+func (a *AuthSettingsResponseDto) GetOrganizationsEnabled() bool {
+	if a == nil {
+		return false
+	}
+	return a.OrganizationsEnabled
+}
+
+func (a *AuthSettingsResponseDto) GetLocale() AuthSettingsResponseDtoLocale {
+	if a == nil {
+		return ""
+	}
+	return a.Locale
+}
+
+func (a *AuthSettingsResponseDto) GetTestPhoneNumber() *string {
+	if a == nil {
+		return nil
+	}
+	return a.TestPhoneNumber
+}
+
+func (a *AuthSettingsResponseDto) GetTestPhoneVerifiedAt() *time.Time {
+	if a == nil {
+		return nil
+	}
+	return a.TestPhoneVerifiedAt
+}
+
+func (a *AuthSettingsResponseDto) GetTestPhoneChangesUsed() float64 {
+	if a == nil {
+		return 0
+	}
+	return a.TestPhoneChangesUsed
+}
+
+func (a *AuthSettingsResponseDto) GetTestPhonePendingNumber() *string {
+	if a == nil {
+		return nil
+	}
+	return a.TestPhonePendingNumber
+}
+
+func (a *AuthSettingsResponseDto) GetTestPhonePendingExpiresAt() *time.Time {
+	if a == nil {
+		return nil
+	}
+	return a.TestPhonePendingExpiresAt
+}
+
+func (a *AuthSettingsResponseDto) GetTestPhonePendingAttempts() float64 {
+	if a == nil {
+		return 0
+	}
+	return a.TestPhonePendingAttempts
+}
+
+func (a *AuthSettingsResponseDto) GetTestPhoneSendCount() float64 {
+	if a == nil {
+		return 0
+	}
+	return a.TestPhoneSendCount
+}
+
+func (a *AuthSettingsResponseDto) GetTestPhoneSendPeriodStart() *time.Time {
+	if a == nil {
+		return nil
+	}
+	return a.TestPhoneSendPeriodStart
+}
+
+func (a *AuthSettingsResponseDto) GetPhoneCodeAllowedCountries() []string {
+	if a == nil {
+		return nil
+	}
+	return a.PhoneCodeAllowedCountries
+}
+
+func (a *AuthSettingsResponseDto) GetHostedLayout() AuthSettingsResponseDtoHostedLayout {
+	if a == nil {
+		return ""
+	}
+	return a.HostedLayout
+}
+
+func (a *AuthSettingsResponseDto) GetHostedPanelSide() AuthSettingsResponseDtoHostedPanelSide {
+	if a == nil {
+		return ""
+	}
+	return a.HostedPanelSide
+}
+
+func (a *AuthSettingsResponseDto) GetHostedPanelImageURL() *string {
+	if a == nil {
+		return nil
+	}
+	return a.HostedPanelImageURL
+}
+
+func (a *AuthSettingsResponseDto) GetHostedBackgroundColor() *string {
+	if a == nil {
+		return nil
+	}
+	return a.HostedBackgroundColor
+}
+
+func (a *AuthSettingsResponseDto) GetHostedRadius() AuthSettingsResponseDtoHostedRadius {
+	if a == nil {
+		return ""
+	}
+	return a.HostedRadius
+}
+
+func (a *AuthSettingsResponseDto) GetHostedFont() AuthSettingsResponseDtoHostedFont {
+	if a == nil {
+		return ""
+	}
+	return a.HostedFont
+}
+
+func (a *AuthSettingsResponseDto) GetHostedShowBrandMark() bool {
+	if a == nil {
+		return false
+	}
+	return a.HostedShowBrandMark
+}
+
+func (a *AuthSettingsResponseDto) GetPhoneCountryPicker() bool {
+	if a == nil {
+		return false
+	}
+	return a.PhoneCountryPicker
+}
+
+func (a *AuthSettingsResponseDto) GetPhoneDefaultCountry() *string {
+	if a == nil {
+		return nil
+	}
+	return a.PhoneDefaultCountry
+}
+
+func (a *AuthSettingsResponseDto) GetNewSignupCount() float64 {
+	if a == nil {
+		return 0
+	}
+	return a.NewSignupCount
+}
+
+func (a *AuthSettingsResponseDto) GetNewSignupPeriodStart() time.Time {
+	if a == nil {
+		return time.Time{}
+	}
+	return a.NewSignupPeriodStart
+}
+
+func (a *AuthSettingsResponseDto) GetCreatedAt() time.Time {
+	if a == nil {
+		return time.Time{}
+	}
+	return a.CreatedAt
+}
+
+func (a *AuthSettingsResponseDto) GetUpdatedAt() time.Time {
+	if a == nil {
+		return time.Time{}
+	}
+	return a.UpdatedAt
+}
+
+func (a *AuthSettingsResponseDto) GetExtraProperties() map[string]interface{} {
+	return a.extraProperties
+}
+
+func (a *AuthSettingsResponseDto) UnmarshalJSON(data []byte) error {
+	type embed AuthSettingsResponseDto
+	var unmarshaler = struct {
+		embed
+		TestPhoneVerifiedAt       *internal.DateTime `json:"testPhoneVerifiedAt,omitempty"`
+		TestPhonePendingExpiresAt *internal.DateTime `json:"testPhonePendingExpiresAt,omitempty"`
+		TestPhoneSendPeriodStart  *internal.DateTime `json:"testPhoneSendPeriodStart,omitempty"`
+		NewSignupPeriodStart      *internal.DateTime `json:"newSignupPeriodStart"`
+		CreatedAt                 *internal.DateTime `json:"createdAt"`
+		UpdatedAt                 *internal.DateTime `json:"updatedAt"`
+	}{
+		embed: embed(*a),
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
+		return err
+	}
+	*a = AuthSettingsResponseDto(unmarshaler.embed)
+	a.TestPhoneVerifiedAt = unmarshaler.TestPhoneVerifiedAt.TimePtr()
+	a.TestPhonePendingExpiresAt = unmarshaler.TestPhonePendingExpiresAt.TimePtr()
+	a.TestPhoneSendPeriodStart = unmarshaler.TestPhoneSendPeriodStart.TimePtr()
+	a.NewSignupPeriodStart = unmarshaler.NewSignupPeriodStart.Time()
+	a.CreatedAt = unmarshaler.CreatedAt.Time()
+	a.UpdatedAt = unmarshaler.UpdatedAt.Time()
+	extraProperties, err := internal.ExtractExtraProperties(data, *a)
+	if err != nil {
+		return err
+	}
+	a.extraProperties = extraProperties
+	a.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (a *AuthSettingsResponseDto) MarshalJSON() ([]byte, error) {
+	type embed AuthSettingsResponseDto
+	var marshaler = struct {
+		embed
+		TestPhoneVerifiedAt       *internal.DateTime `json:"testPhoneVerifiedAt,omitempty"`
+		TestPhonePendingExpiresAt *internal.DateTime `json:"testPhonePendingExpiresAt,omitempty"`
+		TestPhoneSendPeriodStart  *internal.DateTime `json:"testPhoneSendPeriodStart,omitempty"`
+		NewSignupPeriodStart      *internal.DateTime `json:"newSignupPeriodStart"`
+		CreatedAt                 *internal.DateTime `json:"createdAt"`
+		UpdatedAt                 *internal.DateTime `json:"updatedAt"`
+	}{
+		embed:                     embed(*a),
+		TestPhoneVerifiedAt:       internal.NewOptionalDateTime(a.TestPhoneVerifiedAt),
+		TestPhonePendingExpiresAt: internal.NewOptionalDateTime(a.TestPhonePendingExpiresAt),
+		TestPhoneSendPeriodStart:  internal.NewOptionalDateTime(a.TestPhoneSendPeriodStart),
+		NewSignupPeriodStart:      internal.NewDateTime(a.NewSignupPeriodStart),
+		CreatedAt:                 internal.NewDateTime(a.CreatedAt),
+		UpdatedAt:                 internal.NewDateTime(a.UpdatedAt),
+	}
+	return json.Marshal(marshaler)
+}
+
+func (a *AuthSettingsResponseDto) String() string {
+	if len(a.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(a.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(a); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", a)
+}
+
+type AuthSettingsResponseDtoCustomDomainStatus string
+
+const (
+	AuthSettingsResponseDtoCustomDomainStatusPending  AuthSettingsResponseDtoCustomDomainStatus = "PENDING"
+	AuthSettingsResponseDtoCustomDomainStatusVerified AuthSettingsResponseDtoCustomDomainStatus = "VERIFIED"
+	AuthSettingsResponseDtoCustomDomainStatusFailed   AuthSettingsResponseDtoCustomDomainStatus = "FAILED"
+)
+
+func NewAuthSettingsResponseDtoCustomDomainStatusFromString(s string) (AuthSettingsResponseDtoCustomDomainStatus, error) {
+	switch s {
+	case "PENDING":
+		return AuthSettingsResponseDtoCustomDomainStatusPending, nil
+	case "VERIFIED":
+		return AuthSettingsResponseDtoCustomDomainStatusVerified, nil
+	case "FAILED":
+		return AuthSettingsResponseDtoCustomDomainStatusFailed, nil
+	}
+	var t AuthSettingsResponseDtoCustomDomainStatus
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (a AuthSettingsResponseDtoCustomDomainStatus) Ptr() *AuthSettingsResponseDtoCustomDomainStatus {
+	return &a
+}
+
+type AuthSettingsResponseDtoHostedFont string
+
+const (
+	AuthSettingsResponseDtoHostedFontDefault AuthSettingsResponseDtoHostedFont = "DEFAULT"
+	AuthSettingsResponseDtoHostedFontInter   AuthSettingsResponseDtoHostedFont = "INTER"
+	AuthSettingsResponseDtoHostedFontDmSans  AuthSettingsResponseDtoHostedFont = "DM_SANS"
+	AuthSettingsResponseDtoHostedFontLora    AuthSettingsResponseDtoHostedFont = "LORA"
+)
+
+func NewAuthSettingsResponseDtoHostedFontFromString(s string) (AuthSettingsResponseDtoHostedFont, error) {
+	switch s {
+	case "DEFAULT":
+		return AuthSettingsResponseDtoHostedFontDefault, nil
+	case "INTER":
+		return AuthSettingsResponseDtoHostedFontInter, nil
+	case "DM_SANS":
+		return AuthSettingsResponseDtoHostedFontDmSans, nil
+	case "LORA":
+		return AuthSettingsResponseDtoHostedFontLora, nil
+	}
+	var t AuthSettingsResponseDtoHostedFont
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (a AuthSettingsResponseDtoHostedFont) Ptr() *AuthSettingsResponseDtoHostedFont {
+	return &a
+}
+
+type AuthSettingsResponseDtoHostedLayout string
+
+const (
+	AuthSettingsResponseDtoHostedLayoutCentered AuthSettingsResponseDtoHostedLayout = "CENTERED"
+	AuthSettingsResponseDtoHostedLayoutSplit    AuthSettingsResponseDtoHostedLayout = "SPLIT"
+	AuthSettingsResponseDtoHostedLayoutMinimal  AuthSettingsResponseDtoHostedLayout = "MINIMAL"
+)
+
+func NewAuthSettingsResponseDtoHostedLayoutFromString(s string) (AuthSettingsResponseDtoHostedLayout, error) {
+	switch s {
+	case "CENTERED":
+		return AuthSettingsResponseDtoHostedLayoutCentered, nil
+	case "SPLIT":
+		return AuthSettingsResponseDtoHostedLayoutSplit, nil
+	case "MINIMAL":
+		return AuthSettingsResponseDtoHostedLayoutMinimal, nil
+	}
+	var t AuthSettingsResponseDtoHostedLayout
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (a AuthSettingsResponseDtoHostedLayout) Ptr() *AuthSettingsResponseDtoHostedLayout {
+	return &a
+}
+
+type AuthSettingsResponseDtoHostedPanelSide string
+
+const (
+	AuthSettingsResponseDtoHostedPanelSideLeft  AuthSettingsResponseDtoHostedPanelSide = "LEFT"
+	AuthSettingsResponseDtoHostedPanelSideRight AuthSettingsResponseDtoHostedPanelSide = "RIGHT"
+)
+
+func NewAuthSettingsResponseDtoHostedPanelSideFromString(s string) (AuthSettingsResponseDtoHostedPanelSide, error) {
+	switch s {
+	case "LEFT":
+		return AuthSettingsResponseDtoHostedPanelSideLeft, nil
+	case "RIGHT":
+		return AuthSettingsResponseDtoHostedPanelSideRight, nil
+	}
+	var t AuthSettingsResponseDtoHostedPanelSide
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (a AuthSettingsResponseDtoHostedPanelSide) Ptr() *AuthSettingsResponseDtoHostedPanelSide {
+	return &a
+}
+
+type AuthSettingsResponseDtoHostedRadius string
+
+const (
+	AuthSettingsResponseDtoHostedRadiusSharp AuthSettingsResponseDtoHostedRadius = "SHARP"
+	AuthSettingsResponseDtoHostedRadiusSoft  AuthSettingsResponseDtoHostedRadius = "SOFT"
+	AuthSettingsResponseDtoHostedRadiusRound AuthSettingsResponseDtoHostedRadius = "ROUND"
+)
+
+func NewAuthSettingsResponseDtoHostedRadiusFromString(s string) (AuthSettingsResponseDtoHostedRadius, error) {
+	switch s {
+	case "SHARP":
+		return AuthSettingsResponseDtoHostedRadiusSharp, nil
+	case "SOFT":
+		return AuthSettingsResponseDtoHostedRadiusSoft, nil
+	case "ROUND":
+		return AuthSettingsResponseDtoHostedRadiusRound, nil
+	}
+	var t AuthSettingsResponseDtoHostedRadius
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (a AuthSettingsResponseDtoHostedRadius) Ptr() *AuthSettingsResponseDtoHostedRadius {
+	return &a
+}
+
+// Language your users are served in: hosted sign-in pages and authentication emails.
+type AuthSettingsResponseDtoLocale string
+
+const (
+	AuthSettingsResponseDtoLocaleEn AuthSettingsResponseDtoLocale = "en"
+	AuthSettingsResponseDtoLocaleFr AuthSettingsResponseDtoLocale = "fr"
+)
+
+func NewAuthSettingsResponseDtoLocaleFromString(s string) (AuthSettingsResponseDtoLocale, error) {
+	switch s {
+	case "en":
+		return AuthSettingsResponseDtoLocaleEn, nil
+	case "fr":
+		return AuthSettingsResponseDtoLocaleFr, nil
+	}
+	var t AuthSettingsResponseDtoLocale
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (a AuthSettingsResponseDtoLocale) Ptr() *AuthSettingsResponseDtoLocale {
+	return &a
+}
+
+type B2BFeatureResponseDto struct {
+	Key            string                    `json:"key" url:"key"`
+	Name           string                    `json:"name" url:"name"`
+	Type           B2BFeatureResponseDtoType `json:"type" url:"type"`
+	DefaultEnabled bool                      `json:"defaultEnabled" url:"defaultEnabled"`
+	// LIMIT features only: a whole number, or null for no limit.
+	DefaultLimit *float64  `json:"defaultLimit,omitempty" url:"defaultLimit,omitempty"`
+	CreatedAt    time.Time `json:"createdAt" url:"createdAt"`
+	UpdatedAt    time.Time `json:"updatedAt" url:"updatedAt"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (b *B2BFeatureResponseDto) GetKey() string {
+	if b == nil {
+		return ""
+	}
+	return b.Key
+}
+
+func (b *B2BFeatureResponseDto) GetName() string {
+	if b == nil {
+		return ""
+	}
+	return b.Name
+}
+
+func (b *B2BFeatureResponseDto) GetType() B2BFeatureResponseDtoType {
+	if b == nil {
+		return ""
+	}
+	return b.Type
+}
+
+func (b *B2BFeatureResponseDto) GetDefaultEnabled() bool {
+	if b == nil {
+		return false
+	}
+	return b.DefaultEnabled
+}
+
+func (b *B2BFeatureResponseDto) GetDefaultLimit() *float64 {
+	if b == nil {
+		return nil
+	}
+	return b.DefaultLimit
+}
+
+func (b *B2BFeatureResponseDto) GetCreatedAt() time.Time {
+	if b == nil {
+		return time.Time{}
+	}
+	return b.CreatedAt
+}
+
+func (b *B2BFeatureResponseDto) GetUpdatedAt() time.Time {
+	if b == nil {
+		return time.Time{}
+	}
+	return b.UpdatedAt
+}
+
+func (b *B2BFeatureResponseDto) GetExtraProperties() map[string]interface{} {
+	return b.extraProperties
+}
+
+func (b *B2BFeatureResponseDto) UnmarshalJSON(data []byte) error {
+	type embed B2BFeatureResponseDto
+	var unmarshaler = struct {
+		embed
+		CreatedAt *internal.DateTime `json:"createdAt"`
+		UpdatedAt *internal.DateTime `json:"updatedAt"`
+	}{
+		embed: embed(*b),
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
+		return err
+	}
+	*b = B2BFeatureResponseDto(unmarshaler.embed)
+	b.CreatedAt = unmarshaler.CreatedAt.Time()
+	b.UpdatedAt = unmarshaler.UpdatedAt.Time()
+	extraProperties, err := internal.ExtractExtraProperties(data, *b)
+	if err != nil {
+		return err
+	}
+	b.extraProperties = extraProperties
+	b.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (b *B2BFeatureResponseDto) MarshalJSON() ([]byte, error) {
+	type embed B2BFeatureResponseDto
+	var marshaler = struct {
+		embed
+		CreatedAt *internal.DateTime `json:"createdAt"`
+		UpdatedAt *internal.DateTime `json:"updatedAt"`
+	}{
+		embed:     embed(*b),
+		CreatedAt: internal.NewDateTime(b.CreatedAt),
+		UpdatedAt: internal.NewDateTime(b.UpdatedAt),
+	}
+	return json.Marshal(marshaler)
+}
+
+func (b *B2BFeatureResponseDto) String() string {
+	if len(b.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(b.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(b); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", b)
+}
+
+type B2BFeatureResponseDtoType string
+
+const (
+	B2BFeatureResponseDtoTypeBoolean B2BFeatureResponseDtoType = "BOOLEAN"
+	B2BFeatureResponseDtoTypeLimit   B2BFeatureResponseDtoType = "LIMIT"
+)
+
+func NewB2BFeatureResponseDtoTypeFromString(s string) (B2BFeatureResponseDtoType, error) {
+	switch s {
+	case "BOOLEAN":
+		return B2BFeatureResponseDtoTypeBoolean, nil
+	case "LIMIT":
+		return B2BFeatureResponseDtoTypeLimit, nil
+	}
+	var t B2BFeatureResponseDtoType
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (b B2BFeatureResponseDtoType) Ptr() *B2BFeatureResponseDtoType {
+	return &b
+}
+
+type B2BPlanFeatureDto struct {
+	FeatureKey string `json:"featureKey" url:"featureKey"`
+	Enabled    *bool  `json:"enabled,omitempty" url:"enabled,omitempty"`
+	// LIMIT features only: a whole number, or null for no limit.
+	Limit *float64 `json:"limit,omitempty" url:"limit,omitempty"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (b *B2BPlanFeatureDto) GetFeatureKey() string {
+	if b == nil {
+		return ""
+	}
+	return b.FeatureKey
+}
+
+func (b *B2BPlanFeatureDto) GetEnabled() *bool {
+	if b == nil {
+		return nil
+	}
+	return b.Enabled
+}
+
+func (b *B2BPlanFeatureDto) GetLimit() *float64 {
+	if b == nil {
+		return nil
+	}
+	return b.Limit
+}
+
+func (b *B2BPlanFeatureDto) GetExtraProperties() map[string]interface{} {
+	return b.extraProperties
+}
+
+func (b *B2BPlanFeatureDto) UnmarshalJSON(data []byte) error {
+	type unmarshaler B2BPlanFeatureDto
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*b = B2BPlanFeatureDto(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *b)
+	if err != nil {
+		return err
+	}
+	b.extraProperties = extraProperties
+	b.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (b *B2BPlanFeatureDto) String() string {
+	if len(b.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(b.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(b); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", b)
+}
+
+type B2BPlanResponseDto struct {
+	Key       string               `json:"key" url:"key"`
+	Name      string               `json:"name" url:"name"`
+	Features  []*B2BPlanFeatureDto `json:"features,omitempty" url:"features,omitempty"`
+	CreatedAt time.Time            `json:"createdAt" url:"createdAt"`
+	UpdatedAt time.Time            `json:"updatedAt" url:"updatedAt"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (b *B2BPlanResponseDto) GetKey() string {
+	if b == nil {
+		return ""
+	}
+	return b.Key
+}
+
+func (b *B2BPlanResponseDto) GetName() string {
+	if b == nil {
+		return ""
+	}
+	return b.Name
+}
+
+func (b *B2BPlanResponseDto) GetFeatures() []*B2BPlanFeatureDto {
+	if b == nil {
+		return nil
+	}
+	return b.Features
+}
+
+func (b *B2BPlanResponseDto) GetCreatedAt() time.Time {
+	if b == nil {
+		return time.Time{}
+	}
+	return b.CreatedAt
+}
+
+func (b *B2BPlanResponseDto) GetUpdatedAt() time.Time {
+	if b == nil {
+		return time.Time{}
+	}
+	return b.UpdatedAt
+}
+
+func (b *B2BPlanResponseDto) GetExtraProperties() map[string]interface{} {
+	return b.extraProperties
+}
+
+func (b *B2BPlanResponseDto) UnmarshalJSON(data []byte) error {
+	type embed B2BPlanResponseDto
+	var unmarshaler = struct {
+		embed
+		CreatedAt *internal.DateTime `json:"createdAt"`
+		UpdatedAt *internal.DateTime `json:"updatedAt"`
+	}{
+		embed: embed(*b),
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
+		return err
+	}
+	*b = B2BPlanResponseDto(unmarshaler.embed)
+	b.CreatedAt = unmarshaler.CreatedAt.Time()
+	b.UpdatedAt = unmarshaler.UpdatedAt.Time()
+	extraProperties, err := internal.ExtractExtraProperties(data, *b)
+	if err != nil {
+		return err
+	}
+	b.extraProperties = extraProperties
+	b.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (b *B2BPlanResponseDto) MarshalJSON() ([]byte, error) {
+	type embed B2BPlanResponseDto
+	var marshaler = struct {
+		embed
+		CreatedAt *internal.DateTime `json:"createdAt"`
+		UpdatedAt *internal.DateTime `json:"updatedAt"`
+	}{
+		embed:     embed(*b),
+		CreatedAt: internal.NewDateTime(b.CreatedAt),
+		UpdatedAt: internal.NewDateTime(b.UpdatedAt),
+	}
+	return json.Marshal(marshaler)
+}
+
+func (b *B2BPlanResponseDto) String() string {
+	if len(b.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(b.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(b); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", b)
+}
+
+type B2BSettingsResponseDto struct {
+	// True if organizations are turned on for this project. While off, every organization route answers 403.
+	OrganizationsEnabled bool `json:"organizationsEnabled" url:"organizationsEnabled"`
+	// Where invitation emails link to, with {token} replaced by the invitation token. Null: the Mailmus invitation page.
+	InvitationURL *string `json:"invitationUrl,omitempty" url:"invitationUrl,omitempty"`
+	// Addresses allowed to receive the one-time code of an enterprise sign-in when you sign people in yourself (POST /projects/{projectId}/b2b/sso/start).
+	SSORedirectURLs []string `json:"ssoRedirectUrls,omitempty" url:"ssoRedirectUrls,omitempty"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (b *B2BSettingsResponseDto) GetOrganizationsEnabled() bool {
+	if b == nil {
+		return false
+	}
+	return b.OrganizationsEnabled
+}
+
+func (b *B2BSettingsResponseDto) GetInvitationURL() *string {
+	if b == nil {
+		return nil
+	}
+	return b.InvitationURL
+}
+
+func (b *B2BSettingsResponseDto) GetSSORedirectURLs() []string {
+	if b == nil {
+		return nil
+	}
+	return b.SSORedirectURLs
+}
+
+func (b *B2BSettingsResponseDto) GetExtraProperties() map[string]interface{} {
+	return b.extraProperties
+}
+
+func (b *B2BSettingsResponseDto) UnmarshalJSON(data []byte) error {
+	type unmarshaler B2BSettingsResponseDto
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*b = B2BSettingsResponseDto(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *b)
+	if err != nil {
+		return err
+	}
+	b.extraProperties = extraProperties
+	b.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (b *B2BSettingsResponseDto) String() string {
+	if len(b.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(b.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(b); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", b)
+}
+
 type ContactResponseDto struct {
 	ID    string `json:"id" url:"id"`
 	Email string `json:"email" url:"email"`
@@ -17,7 +1313,7 @@ type ContactResponseDto struct {
 	// True if the contact unsubscribed. An unsubscribed contact is excluded from every marketing send, never from transactional ones.
 	Unsubscribed bool `json:"unsubscribed" url:"unsubscribed"`
 	// Projet auquel ce contact appartient.
-	AppID     string    `json:"appId" url:"appId"`
+	ProjectID string    `json:"projectId" url:"projectId"`
 	CreatedAt time.Time `json:"createdAt" url:"createdAt"`
 	UpdatedAt time.Time `json:"updatedAt" url:"updatedAt"`
 
@@ -53,11 +1349,11 @@ func (c *ContactResponseDto) GetUnsubscribed() bool {
 	return c.Unsubscribed
 }
 
-func (c *ContactResponseDto) GetAppID() string {
+func (c *ContactResponseDto) GetProjectID() string {
 	if c == nil {
 		return ""
 	}
-	return c.AppID
+	return c.ProjectID
 }
 
 func (c *ContactResponseDto) GetCreatedAt() time.Time {
@@ -277,66 +1573,459 @@ func (d DomainJoinResponseDtoReason) Ptr() *DomainJoinResponseDtoReason {
 	return &d
 }
 
-type OrganizationCustomerSummaryDto struct {
-	ID    string  `json:"id" url:"id"`
-	Email *string `json:"email,omitempty" url:"email,omitempty"`
-	// Phone number in E.164 format, for a member who signs in with an SMS code.
-	Phone *string `json:"phone,omitempty" url:"phone,omitempty"`
-	// Identifier of this person in your own system, when you authenticate them yourself. Null for a member who signs in with Mailmus.
-	ExternalID *string `json:"externalId,omitempty" url:"externalId,omitempty"`
-	// Who holds this identity. EXTERNAL means you authenticate this person yourself, and Mailmus only knows them as a member. It becomes MAILMUS_AUTH the first time they sign in with Mailmus.
-	IdentitySource OrganizationCustomerSummaryDtoIdentitySource `json:"identitySource" url:"identitySource"`
+type EntitlementResponseDto struct {
+	FeatureKey string                      `json:"featureKey" url:"featureKey"`
+	Type       *EntitlementResponseDtoType `json:"type,omitempty" url:"type,omitempty"`
+	// BOOLEAN features: whether the organization has it.
+	Enabled bool `json:"enabled" url:"enabled"`
+	// LIMIT features only: a whole number, or null for no limit.
+	Limit *float64 `json:"limit,omitempty" url:"limit,omitempty"`
+	// Where the value comes from: an override, the B2B plan, the feature default, or UNKNOWN_FEATURE when no such feature is declared.
+	Source  EntitlementResponseDtoSource `json:"source" url:"source"`
+	PlanKey *string                      `json:"planKey,omitempty" url:"planKey,omitempty"`
+	// Override only: why it was granted.
+	Reason *string `json:"reason,omitempty" url:"reason,omitempty"`
+	// Override only: when it stops applying.
+	ExpiresAt *time.Time `json:"expiresAt,omitempty" url:"expiresAt,omitempty"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
 }
 
-func (o *OrganizationCustomerSummaryDto) GetID() string {
-	if o == nil {
+func (e *EntitlementResponseDto) GetFeatureKey() string {
+	if e == nil {
 		return ""
 	}
-	return o.ID
+	return e.FeatureKey
 }
 
-func (o *OrganizationCustomerSummaryDto) GetEmail() *string {
-	if o == nil {
+func (e *EntitlementResponseDto) GetType() *EntitlementResponseDtoType {
+	if e == nil {
 		return nil
 	}
-	return o.Email
+	return e.Type
 }
 
-func (o *OrganizationCustomerSummaryDto) GetPhone() *string {
-	if o == nil {
+func (e *EntitlementResponseDto) GetEnabled() bool {
+	if e == nil {
+		return false
+	}
+	return e.Enabled
+}
+
+func (e *EntitlementResponseDto) GetLimit() *float64 {
+	if e == nil {
 		return nil
 	}
-	return o.Phone
+	return e.Limit
 }
 
-func (o *OrganizationCustomerSummaryDto) GetExternalID() *string {
-	if o == nil {
-		return nil
-	}
-	return o.ExternalID
-}
-
-func (o *OrganizationCustomerSummaryDto) GetIdentitySource() OrganizationCustomerSummaryDtoIdentitySource {
-	if o == nil {
+func (e *EntitlementResponseDto) GetSource() EntitlementResponseDtoSource {
+	if e == nil {
 		return ""
 	}
-	return o.IdentitySource
+	return e.Source
 }
 
-func (o *OrganizationCustomerSummaryDto) GetExtraProperties() map[string]interface{} {
-	return o.extraProperties
+func (e *EntitlementResponseDto) GetPlanKey() *string {
+	if e == nil {
+		return nil
+	}
+	return e.PlanKey
 }
 
-func (o *OrganizationCustomerSummaryDto) UnmarshalJSON(data []byte) error {
-	type unmarshaler OrganizationCustomerSummaryDto
+func (e *EntitlementResponseDto) GetReason() *string {
+	if e == nil {
+		return nil
+	}
+	return e.Reason
+}
+
+func (e *EntitlementResponseDto) GetExpiresAt() *time.Time {
+	if e == nil {
+		return nil
+	}
+	return e.ExpiresAt
+}
+
+func (e *EntitlementResponseDto) GetExtraProperties() map[string]interface{} {
+	return e.extraProperties
+}
+
+func (e *EntitlementResponseDto) UnmarshalJSON(data []byte) error {
+	type embed EntitlementResponseDto
+	var unmarshaler = struct {
+		embed
+		ExpiresAt *internal.DateTime `json:"expiresAt,omitempty"`
+	}{
+		embed: embed(*e),
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
+		return err
+	}
+	*e = EntitlementResponseDto(unmarshaler.embed)
+	e.ExpiresAt = unmarshaler.ExpiresAt.TimePtr()
+	extraProperties, err := internal.ExtractExtraProperties(data, *e)
+	if err != nil {
+		return err
+	}
+	e.extraProperties = extraProperties
+	e.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (e *EntitlementResponseDto) MarshalJSON() ([]byte, error) {
+	type embed EntitlementResponseDto
+	var marshaler = struct {
+		embed
+		ExpiresAt *internal.DateTime `json:"expiresAt,omitempty"`
+	}{
+		embed:     embed(*e),
+		ExpiresAt: internal.NewOptionalDateTime(e.ExpiresAt),
+	}
+	return json.Marshal(marshaler)
+}
+
+func (e *EntitlementResponseDto) String() string {
+	if len(e.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(e.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(e); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", e)
+}
+
+// Where the value comes from: an override, the B2B plan, the feature default, or UNKNOWN_FEATURE when no such feature is declared.
+type EntitlementResponseDtoSource string
+
+const (
+	EntitlementResponseDtoSourceOverride       EntitlementResponseDtoSource = "OVERRIDE"
+	EntitlementResponseDtoSourceB2BPlan        EntitlementResponseDtoSource = "B2B_PLAN"
+	EntitlementResponseDtoSourceDefault        EntitlementResponseDtoSource = "DEFAULT"
+	EntitlementResponseDtoSourceUnknownFeature EntitlementResponseDtoSource = "UNKNOWN_FEATURE"
+)
+
+func NewEntitlementResponseDtoSourceFromString(s string) (EntitlementResponseDtoSource, error) {
+	switch s {
+	case "OVERRIDE":
+		return EntitlementResponseDtoSourceOverride, nil
+	case "B2B_PLAN":
+		return EntitlementResponseDtoSourceB2BPlan, nil
+	case "DEFAULT":
+		return EntitlementResponseDtoSourceDefault, nil
+	case "UNKNOWN_FEATURE":
+		return EntitlementResponseDtoSourceUnknownFeature, nil
+	}
+	var t EntitlementResponseDtoSource
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (e EntitlementResponseDtoSource) Ptr() *EntitlementResponseDtoSource {
+	return &e
+}
+
+type EntitlementResponseDtoType string
+
+const (
+	EntitlementResponseDtoTypeBoolean EntitlementResponseDtoType = "BOOLEAN"
+	EntitlementResponseDtoTypeLimit   EntitlementResponseDtoType = "LIMIT"
+)
+
+func NewEntitlementResponseDtoTypeFromString(s string) (EntitlementResponseDtoType, error) {
+	switch s {
+	case "BOOLEAN":
+		return EntitlementResponseDtoTypeBoolean, nil
+	case "LIMIT":
+		return EntitlementResponseDtoTypeLimit, nil
+	}
+	var t EntitlementResponseDtoType
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (e EntitlementResponseDtoType) Ptr() *EntitlementResponseDtoType {
+	return &e
+}
+
+type HostedDomainResolveResponseDto struct {
+	// Project this domain is attached to.
+	ProjectID string `json:"projectId" url:"projectId"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (h *HostedDomainResolveResponseDto) GetProjectID() string {
+	if h == nil {
+		return ""
+	}
+	return h.ProjectID
+}
+
+func (h *HostedDomainResolveResponseDto) GetExtraProperties() map[string]interface{} {
+	return h.extraProperties
+}
+
+func (h *HostedDomainResolveResponseDto) UnmarshalJSON(data []byte) error {
+	type unmarshaler HostedDomainResolveResponseDto
 	var value unmarshaler
 	if err := json.Unmarshal(data, &value); err != nil {
 		return err
 	}
-	*o = OrganizationCustomerSummaryDto(value)
+	*h = HostedDomainResolveResponseDto(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *h)
+	if err != nil {
+		return err
+	}
+	h.extraProperties = extraProperties
+	h.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (h *HostedDomainResolveResponseDto) String() string {
+	if len(h.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(h.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(h); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", h)
+}
+
+type MfaChallengeResponseDto struct {
+	MfaRequired bool `json:"mfaRequired" url:"mfaRequired"`
+	// Pass to exchange for a real session via POST auth/mfa/verify. It is not an accessToken: it grants access to nothing.
+	ChallengeToken string `json:"challengeToken" url:"challengeToken"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (m *MfaChallengeResponseDto) GetMfaRequired() bool {
+	if m == nil {
+		return false
+	}
+	return m.MfaRequired
+}
+
+func (m *MfaChallengeResponseDto) GetChallengeToken() string {
+	if m == nil {
+		return ""
+	}
+	return m.ChallengeToken
+}
+
+func (m *MfaChallengeResponseDto) GetExtraProperties() map[string]interface{} {
+	return m.extraProperties
+}
+
+func (m *MfaChallengeResponseDto) UnmarshalJSON(data []byte) error {
+	type unmarshaler MfaChallengeResponseDto
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*m = MfaChallengeResponseDto(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *m)
+	if err != nil {
+		return err
+	}
+	m.extraProperties = extraProperties
+	m.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (m *MfaChallengeResponseDto) String() string {
+	if len(m.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(m.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(m); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", m)
+}
+
+type MfaCodeDto struct {
+	// 6-digit TOTP code, or a 10-character backup code.
+	Code string `json:"code" url:"code"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (m *MfaCodeDto) GetCode() string {
+	if m == nil {
+		return ""
+	}
+	return m.Code
+}
+
+func (m *MfaCodeDto) GetExtraProperties() map[string]interface{} {
+	return m.extraProperties
+}
+
+func (m *MfaCodeDto) UnmarshalJSON(data []byte) error {
+	type unmarshaler MfaCodeDto
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*m = MfaCodeDto(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *m)
+	if err != nil {
+		return err
+	}
+	m.extraProperties = extraProperties
+	m.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (m *MfaCodeDto) String() string {
+	if len(m.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(m.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(m); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", m)
+}
+
+type MfaConfirmResponseDto struct {
+	// Single-use codes, shown here and nowhere else.
+	BackupCodes []string `json:"backupCodes,omitempty" url:"backupCodes,omitempty"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (m *MfaConfirmResponseDto) GetBackupCodes() []string {
+	if m == nil {
+		return nil
+	}
+	return m.BackupCodes
+}
+
+func (m *MfaConfirmResponseDto) GetExtraProperties() map[string]interface{} {
+	return m.extraProperties
+}
+
+func (m *MfaConfirmResponseDto) UnmarshalJSON(data []byte) error {
+	type unmarshaler MfaConfirmResponseDto
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*m = MfaConfirmResponseDto(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *m)
+	if err != nil {
+		return err
+	}
+	m.extraProperties = extraProperties
+	m.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (m *MfaConfirmResponseDto) String() string {
+	if len(m.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(m.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(m); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", m)
+}
+
+type MfaEnrollResponseDto struct {
+	// Shared secret, in base32. To type by hand into an authenticator app that cannot read QR codes.
+	Secret string `json:"secret" url:"secret"`
+	// The same thing as a URL, to encode as a QR code.
+	OtpauthURL string `json:"otpauthUrl" url:"otpauthUrl"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (m *MfaEnrollResponseDto) GetSecret() string {
+	if m == nil {
+		return ""
+	}
+	return m.Secret
+}
+
+func (m *MfaEnrollResponseDto) GetOtpauthURL() string {
+	if m == nil {
+		return ""
+	}
+	return m.OtpauthURL
+}
+
+func (m *MfaEnrollResponseDto) GetExtraProperties() map[string]interface{} {
+	return m.extraProperties
+}
+
+func (m *MfaEnrollResponseDto) UnmarshalJSON(data []byte) error {
+	type unmarshaler MfaEnrollResponseDto
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*m = MfaEnrollResponseDto(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *m)
+	if err != nil {
+		return err
+	}
+	m.extraProperties = extraProperties
+	m.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (m *MfaEnrollResponseDto) String() string {
+	if len(m.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(m.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(m); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", m)
+}
+
+type OrganizationDomainRemovedResponseDto struct {
+	Removed bool `json:"removed" url:"removed"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (o *OrganizationDomainRemovedResponseDto) GetRemoved() bool {
+	if o == nil {
+		return false
+	}
+	return o.Removed
+}
+
+func (o *OrganizationDomainRemovedResponseDto) GetExtraProperties() map[string]interface{} {
+	return o.extraProperties
+}
+
+func (o *OrganizationDomainRemovedResponseDto) UnmarshalJSON(data []byte) error {
+	type unmarshaler OrganizationDomainRemovedResponseDto
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*o = OrganizationDomainRemovedResponseDto(value)
 	extraProperties, err := internal.ExtractExtraProperties(data, *o)
 	if err != nil {
 		return err
@@ -346,7 +2035,7 @@ func (o *OrganizationCustomerSummaryDto) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-func (o *OrganizationCustomerSummaryDto) String() string {
+func (o *OrganizationDomainRemovedResponseDto) String() string {
 	if len(o.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(o.rawJSON); err == nil {
 			return value
@@ -358,26 +2047,699 @@ func (o *OrganizationCustomerSummaryDto) String() string {
 	return fmt.Sprintf("%#v", o)
 }
 
-// Who holds this identity. EXTERNAL means you authenticate this person yourself, and Mailmus only knows them as a member. It becomes MAILMUS_AUTH the first time they sign in with Mailmus.
-type OrganizationCustomerSummaryDtoIdentitySource string
+type OrganizationDomainResponseDto struct {
+	ID             string `json:"id" url:"id"`
+	OrganizationID string `json:"organizationId" url:"organizationId"`
+	ProjectID      string `json:"projectId" url:"projectId"`
+	Domain         string `json:"domain" url:"domain"`
+	// PENDING while the TXT record is not visible, VERIFIED once it is, FAILED if it stopped being visible.
+	Status OrganizationDomainResponseDtoStatus `json:"status" url:"status"`
+	// The exact TXT record to publish at the root of the domain.
+	Record string `json:"record" url:"record"`
+	// First time the record was seen. Kept even if the record later disappears.
+	VerifiedAt *time.Time `json:"verifiedAt,omitempty" url:"verifiedAt,omitempty"`
+	// True if anyone signing in with an address at this domain is put into this organization. Off until you turn it on, and it only has an effect once the domain is verified.
+	AutoJoinEnabled bool       `json:"autoJoinEnabled" url:"autoJoinEnabled"`
+	LastCheckedAt   *time.Time `json:"lastCheckedAt,omitempty" url:"lastCheckedAt,omitempty"`
+	CreatedAt       time.Time  `json:"createdAt" url:"createdAt"`
+	UpdatedAt       time.Time  `json:"updatedAt" url:"updatedAt"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (o *OrganizationDomainResponseDto) GetID() string {
+	if o == nil {
+		return ""
+	}
+	return o.ID
+}
+
+func (o *OrganizationDomainResponseDto) GetOrganizationID() string {
+	if o == nil {
+		return ""
+	}
+	return o.OrganizationID
+}
+
+func (o *OrganizationDomainResponseDto) GetProjectID() string {
+	if o == nil {
+		return ""
+	}
+	return o.ProjectID
+}
+
+func (o *OrganizationDomainResponseDto) GetDomain() string {
+	if o == nil {
+		return ""
+	}
+	return o.Domain
+}
+
+func (o *OrganizationDomainResponseDto) GetStatus() OrganizationDomainResponseDtoStatus {
+	if o == nil {
+		return ""
+	}
+	return o.Status
+}
+
+func (o *OrganizationDomainResponseDto) GetRecord() string {
+	if o == nil {
+		return ""
+	}
+	return o.Record
+}
+
+func (o *OrganizationDomainResponseDto) GetVerifiedAt() *time.Time {
+	if o == nil {
+		return nil
+	}
+	return o.VerifiedAt
+}
+
+func (o *OrganizationDomainResponseDto) GetAutoJoinEnabled() bool {
+	if o == nil {
+		return false
+	}
+	return o.AutoJoinEnabled
+}
+
+func (o *OrganizationDomainResponseDto) GetLastCheckedAt() *time.Time {
+	if o == nil {
+		return nil
+	}
+	return o.LastCheckedAt
+}
+
+func (o *OrganizationDomainResponseDto) GetCreatedAt() time.Time {
+	if o == nil {
+		return time.Time{}
+	}
+	return o.CreatedAt
+}
+
+func (o *OrganizationDomainResponseDto) GetUpdatedAt() time.Time {
+	if o == nil {
+		return time.Time{}
+	}
+	return o.UpdatedAt
+}
+
+func (o *OrganizationDomainResponseDto) GetExtraProperties() map[string]interface{} {
+	return o.extraProperties
+}
+
+func (o *OrganizationDomainResponseDto) UnmarshalJSON(data []byte) error {
+	type embed OrganizationDomainResponseDto
+	var unmarshaler = struct {
+		embed
+		VerifiedAt    *internal.DateTime `json:"verifiedAt,omitempty"`
+		LastCheckedAt *internal.DateTime `json:"lastCheckedAt,omitempty"`
+		CreatedAt     *internal.DateTime `json:"createdAt"`
+		UpdatedAt     *internal.DateTime `json:"updatedAt"`
+	}{
+		embed: embed(*o),
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
+		return err
+	}
+	*o = OrganizationDomainResponseDto(unmarshaler.embed)
+	o.VerifiedAt = unmarshaler.VerifiedAt.TimePtr()
+	o.LastCheckedAt = unmarshaler.LastCheckedAt.TimePtr()
+	o.CreatedAt = unmarshaler.CreatedAt.Time()
+	o.UpdatedAt = unmarshaler.UpdatedAt.Time()
+	extraProperties, err := internal.ExtractExtraProperties(data, *o)
+	if err != nil {
+		return err
+	}
+	o.extraProperties = extraProperties
+	o.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (o *OrganizationDomainResponseDto) MarshalJSON() ([]byte, error) {
+	type embed OrganizationDomainResponseDto
+	var marshaler = struct {
+		embed
+		VerifiedAt    *internal.DateTime `json:"verifiedAt,omitempty"`
+		LastCheckedAt *internal.DateTime `json:"lastCheckedAt,omitempty"`
+		CreatedAt     *internal.DateTime `json:"createdAt"`
+		UpdatedAt     *internal.DateTime `json:"updatedAt"`
+	}{
+		embed:         embed(*o),
+		VerifiedAt:    internal.NewOptionalDateTime(o.VerifiedAt),
+		LastCheckedAt: internal.NewOptionalDateTime(o.LastCheckedAt),
+		CreatedAt:     internal.NewDateTime(o.CreatedAt),
+		UpdatedAt:     internal.NewDateTime(o.UpdatedAt),
+	}
+	return json.Marshal(marshaler)
+}
+
+func (o *OrganizationDomainResponseDto) String() string {
+	if len(o.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(o.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(o); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", o)
+}
+
+// PENDING while the TXT record is not visible, VERIFIED once it is, FAILED if it stopped being visible.
+type OrganizationDomainResponseDtoStatus string
 
 const (
-	OrganizationCustomerSummaryDtoIdentitySourceMailmusAuth OrganizationCustomerSummaryDtoIdentitySource = "MAILMUS_AUTH"
-	OrganizationCustomerSummaryDtoIdentitySourceExternal    OrganizationCustomerSummaryDtoIdentitySource = "EXTERNAL"
+	OrganizationDomainResponseDtoStatusPending  OrganizationDomainResponseDtoStatus = "PENDING"
+	OrganizationDomainResponseDtoStatusVerified OrganizationDomainResponseDtoStatus = "VERIFIED"
+	OrganizationDomainResponseDtoStatusFailed   OrganizationDomainResponseDtoStatus = "FAILED"
 )
 
-func NewOrganizationCustomerSummaryDtoIdentitySourceFromString(s string) (OrganizationCustomerSummaryDtoIdentitySource, error) {
+func NewOrganizationDomainResponseDtoStatusFromString(s string) (OrganizationDomainResponseDtoStatus, error) {
 	switch s {
-	case "MAILMUS_AUTH":
-		return OrganizationCustomerSummaryDtoIdentitySourceMailmusAuth, nil
-	case "EXTERNAL":
-		return OrganizationCustomerSummaryDtoIdentitySourceExternal, nil
+	case "PENDING":
+		return OrganizationDomainResponseDtoStatusPending, nil
+	case "VERIFIED":
+		return OrganizationDomainResponseDtoStatusVerified, nil
+	case "FAILED":
+		return OrganizationDomainResponseDtoStatusFailed, nil
 	}
-	var t OrganizationCustomerSummaryDtoIdentitySource
+	var t OrganizationDomainResponseDtoStatus
 	return "", fmt.Errorf("%s is not a valid %T", s, t)
 }
 
-func (o OrganizationCustomerSummaryDtoIdentitySource) Ptr() *OrganizationCustomerSummaryDtoIdentitySource {
+func (o OrganizationDomainResponseDtoStatus) Ptr() *OrganizationDomainResponseDtoStatus {
+	return &o
+}
+
+type OrganizationEventDto struct {
+	ID string `json:"id" url:"id"`
+	// What happened. Same name as the matching webhook event, so one fact has one name.
+	Type string `json:"type" url:"type"`
+	// Who acted: someone on your team from the dashboard, your server with its secret key, one of your users, or Mailmus itself.
+	ActorType OrganizationEventDtoActorType `json:"actorType" url:"actorType"`
+	// Identifier of the actor, when the actor has one.
+	ActorID *string `json:"actorId,omitempty" url:"actorId,omitempty"`
+	// How to name the actor without a lookup, as they were known at the time.
+	ActorLabel *string `json:"actorLabel,omitempty" url:"actorLabel,omitempty"`
+	// The person this event is about, when it is about someone.
+	SubjectUserID *string `json:"subjectUserId,omitempty" url:"subjectUserId,omitempty"`
+	// What else the event carries. Its shape follows the type.
+	Metadata   map[string]interface{} `json:"metadata,omitempty" url:"metadata,omitempty"`
+	OccurredAt time.Time              `json:"occurredAt" url:"occurredAt"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (o *OrganizationEventDto) GetID() string {
+	if o == nil {
+		return ""
+	}
+	return o.ID
+}
+
+func (o *OrganizationEventDto) GetType() string {
+	if o == nil {
+		return ""
+	}
+	return o.Type
+}
+
+func (o *OrganizationEventDto) GetActorType() OrganizationEventDtoActorType {
+	if o == nil {
+		return ""
+	}
+	return o.ActorType
+}
+
+func (o *OrganizationEventDto) GetActorID() *string {
+	if o == nil {
+		return nil
+	}
+	return o.ActorID
+}
+
+func (o *OrganizationEventDto) GetActorLabel() *string {
+	if o == nil {
+		return nil
+	}
+	return o.ActorLabel
+}
+
+func (o *OrganizationEventDto) GetSubjectUserID() *string {
+	if o == nil {
+		return nil
+	}
+	return o.SubjectUserID
+}
+
+func (o *OrganizationEventDto) GetMetadata() map[string]interface{} {
+	if o == nil {
+		return nil
+	}
+	return o.Metadata
+}
+
+func (o *OrganizationEventDto) GetOccurredAt() time.Time {
+	if o == nil {
+		return time.Time{}
+	}
+	return o.OccurredAt
+}
+
+func (o *OrganizationEventDto) GetExtraProperties() map[string]interface{} {
+	return o.extraProperties
+}
+
+func (o *OrganizationEventDto) UnmarshalJSON(data []byte) error {
+	type embed OrganizationEventDto
+	var unmarshaler = struct {
+		embed
+		OccurredAt *internal.DateTime `json:"occurredAt"`
+	}{
+		embed: embed(*o),
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
+		return err
+	}
+	*o = OrganizationEventDto(unmarshaler.embed)
+	o.OccurredAt = unmarshaler.OccurredAt.Time()
+	extraProperties, err := internal.ExtractExtraProperties(data, *o)
+	if err != nil {
+		return err
+	}
+	o.extraProperties = extraProperties
+	o.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (o *OrganizationEventDto) MarshalJSON() ([]byte, error) {
+	type embed OrganizationEventDto
+	var marshaler = struct {
+		embed
+		OccurredAt *internal.DateTime `json:"occurredAt"`
+	}{
+		embed:      embed(*o),
+		OccurredAt: internal.NewDateTime(o.OccurredAt),
+	}
+	return json.Marshal(marshaler)
+}
+
+func (o *OrganizationEventDto) String() string {
+	if len(o.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(o.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(o); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", o)
+}
+
+// Who acted: someone on your team from the dashboard, your server with its secret key, one of your users, or Mailmus itself.
+type OrganizationEventDtoActorType string
+
+const (
+	OrganizationEventDtoActorTypeMailmusCustomerMember OrganizationEventDtoActorType = "MAILMUS_CUSTOMER_MEMBER"
+	OrganizationEventDtoActorTypeAPIKey                OrganizationEventDtoActorType = "API_KEY"
+	OrganizationEventDtoActorTypeUser                  OrganizationEventDtoActorType = "USER"
+	OrganizationEventDtoActorTypeSystem                OrganizationEventDtoActorType = "SYSTEM"
+	OrganizationEventDtoActorTypeSCIM                  OrganizationEventDtoActorType = "SCIM"
+)
+
+func NewOrganizationEventDtoActorTypeFromString(s string) (OrganizationEventDtoActorType, error) {
+	switch s {
+	case "MAILMUS_CUSTOMER_MEMBER":
+		return OrganizationEventDtoActorTypeMailmusCustomerMember, nil
+	case "API_KEY":
+		return OrganizationEventDtoActorTypeAPIKey, nil
+	case "USER":
+		return OrganizationEventDtoActorTypeUser, nil
+	case "SYSTEM":
+		return OrganizationEventDtoActorTypeSystem, nil
+	case "SCIM":
+		return OrganizationEventDtoActorTypeSCIM, nil
+	}
+	var t OrganizationEventDtoActorType
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (o OrganizationEventDtoActorType) Ptr() *OrganizationEventDtoActorType {
+	return &o
+}
+
+type OrganizationEventsPageDto struct {
+	Data []*OrganizationEventDto `json:"data,omitempty" url:"data,omitempty"`
+	// Pass this back as `cursor` to read the page before. Null when you have reached the beginning.
+	NextCursor *string `json:"nextCursor,omitempty" url:"nextCursor,omitempty"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (o *OrganizationEventsPageDto) GetData() []*OrganizationEventDto {
+	if o == nil {
+		return nil
+	}
+	return o.Data
+}
+
+func (o *OrganizationEventsPageDto) GetNextCursor() *string {
+	if o == nil {
+		return nil
+	}
+	return o.NextCursor
+}
+
+func (o *OrganizationEventsPageDto) GetExtraProperties() map[string]interface{} {
+	return o.extraProperties
+}
+
+func (o *OrganizationEventsPageDto) UnmarshalJSON(data []byte) error {
+	type unmarshaler OrganizationEventsPageDto
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*o = OrganizationEventsPageDto(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *o)
+	if err != nil {
+		return err
+	}
+	o.extraProperties = extraProperties
+	o.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (o *OrganizationEventsPageDto) String() string {
+	if len(o.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(o.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(o); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", o)
+}
+
+type OrganizationInvitationPreviewDto struct {
+	OrganizationName string `json:"organizationName" url:"organizationName"`
+	// Address this invitation was issued to.
+	Email string                               `json:"email" url:"email"`
+	Role  OrganizationInvitationPreviewDtoRole `json:"role" url:"role"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (o *OrganizationInvitationPreviewDto) GetOrganizationName() string {
+	if o == nil {
+		return ""
+	}
+	return o.OrganizationName
+}
+
+func (o *OrganizationInvitationPreviewDto) GetEmail() string {
+	if o == nil {
+		return ""
+	}
+	return o.Email
+}
+
+func (o *OrganizationInvitationPreviewDto) GetRole() OrganizationInvitationPreviewDtoRole {
+	if o == nil {
+		return ""
+	}
+	return o.Role
+}
+
+func (o *OrganizationInvitationPreviewDto) GetExtraProperties() map[string]interface{} {
+	return o.extraProperties
+}
+
+func (o *OrganizationInvitationPreviewDto) UnmarshalJSON(data []byte) error {
+	type unmarshaler OrganizationInvitationPreviewDto
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*o = OrganizationInvitationPreviewDto(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *o)
+	if err != nil {
+		return err
+	}
+	o.extraProperties = extraProperties
+	o.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (o *OrganizationInvitationPreviewDto) String() string {
+	if len(o.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(o.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(o); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", o)
+}
+
+type OrganizationInvitationPreviewDtoRole string
+
+const (
+	OrganizationInvitationPreviewDtoRoleOwner  OrganizationInvitationPreviewDtoRole = "OWNER"
+	OrganizationInvitationPreviewDtoRoleAdmin  OrganizationInvitationPreviewDtoRole = "ADMIN"
+	OrganizationInvitationPreviewDtoRoleMember OrganizationInvitationPreviewDtoRole = "MEMBER"
+)
+
+func NewOrganizationInvitationPreviewDtoRoleFromString(s string) (OrganizationInvitationPreviewDtoRole, error) {
+	switch s {
+	case "OWNER":
+		return OrganizationInvitationPreviewDtoRoleOwner, nil
+	case "ADMIN":
+		return OrganizationInvitationPreviewDtoRoleAdmin, nil
+	case "MEMBER":
+		return OrganizationInvitationPreviewDtoRoleMember, nil
+	}
+	var t OrganizationInvitationPreviewDtoRole
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (o OrganizationInvitationPreviewDtoRole) Ptr() *OrganizationInvitationPreviewDtoRole {
+	return &o
+}
+
+type OrganizationInvitationResponseDto struct {
+	ID              string                                  `json:"id" url:"id"`
+	OrganizationID  string                                  `json:"organizationId" url:"organizationId"`
+	ProjectID       string                                  `json:"projectId" url:"projectId"`
+	Email           string                                  `json:"email" url:"email"`
+	Role            OrganizationInvitationResponseDtoRole   `json:"role" url:"role"`
+	Status          OrganizationInvitationResponseDtoStatus `json:"status" url:"status"`
+	InvitedByUserID *string                                 `json:"invitedByUserId,omitempty" url:"invitedByUserId,omitempty"`
+	ExpiresAt       time.Time                               `json:"expiresAt" url:"expiresAt"`
+	AcceptedAt      *time.Time                              `json:"acceptedAt,omitempty" url:"acceptedAt,omitempty"`
+	RevokedAt       *time.Time                              `json:"revokedAt,omitempty" url:"revokedAt,omitempty"`
+	CreatedAt       time.Time                               `json:"createdAt" url:"createdAt"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (o *OrganizationInvitationResponseDto) GetID() string {
+	if o == nil {
+		return ""
+	}
+	return o.ID
+}
+
+func (o *OrganizationInvitationResponseDto) GetOrganizationID() string {
+	if o == nil {
+		return ""
+	}
+	return o.OrganizationID
+}
+
+func (o *OrganizationInvitationResponseDto) GetProjectID() string {
+	if o == nil {
+		return ""
+	}
+	return o.ProjectID
+}
+
+func (o *OrganizationInvitationResponseDto) GetEmail() string {
+	if o == nil {
+		return ""
+	}
+	return o.Email
+}
+
+func (o *OrganizationInvitationResponseDto) GetRole() OrganizationInvitationResponseDtoRole {
+	if o == nil {
+		return ""
+	}
+	return o.Role
+}
+
+func (o *OrganizationInvitationResponseDto) GetStatus() OrganizationInvitationResponseDtoStatus {
+	if o == nil {
+		return ""
+	}
+	return o.Status
+}
+
+func (o *OrganizationInvitationResponseDto) GetInvitedByUserID() *string {
+	if o == nil {
+		return nil
+	}
+	return o.InvitedByUserID
+}
+
+func (o *OrganizationInvitationResponseDto) GetExpiresAt() time.Time {
+	if o == nil {
+		return time.Time{}
+	}
+	return o.ExpiresAt
+}
+
+func (o *OrganizationInvitationResponseDto) GetAcceptedAt() *time.Time {
+	if o == nil {
+		return nil
+	}
+	return o.AcceptedAt
+}
+
+func (o *OrganizationInvitationResponseDto) GetRevokedAt() *time.Time {
+	if o == nil {
+		return nil
+	}
+	return o.RevokedAt
+}
+
+func (o *OrganizationInvitationResponseDto) GetCreatedAt() time.Time {
+	if o == nil {
+		return time.Time{}
+	}
+	return o.CreatedAt
+}
+
+func (o *OrganizationInvitationResponseDto) GetExtraProperties() map[string]interface{} {
+	return o.extraProperties
+}
+
+func (o *OrganizationInvitationResponseDto) UnmarshalJSON(data []byte) error {
+	type embed OrganizationInvitationResponseDto
+	var unmarshaler = struct {
+		embed
+		ExpiresAt  *internal.DateTime `json:"expiresAt"`
+		AcceptedAt *internal.DateTime `json:"acceptedAt,omitempty"`
+		RevokedAt  *internal.DateTime `json:"revokedAt,omitempty"`
+		CreatedAt  *internal.DateTime `json:"createdAt"`
+	}{
+		embed: embed(*o),
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
+		return err
+	}
+	*o = OrganizationInvitationResponseDto(unmarshaler.embed)
+	o.ExpiresAt = unmarshaler.ExpiresAt.Time()
+	o.AcceptedAt = unmarshaler.AcceptedAt.TimePtr()
+	o.RevokedAt = unmarshaler.RevokedAt.TimePtr()
+	o.CreatedAt = unmarshaler.CreatedAt.Time()
+	extraProperties, err := internal.ExtractExtraProperties(data, *o)
+	if err != nil {
+		return err
+	}
+	o.extraProperties = extraProperties
+	o.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (o *OrganizationInvitationResponseDto) MarshalJSON() ([]byte, error) {
+	type embed OrganizationInvitationResponseDto
+	var marshaler = struct {
+		embed
+		ExpiresAt  *internal.DateTime `json:"expiresAt"`
+		AcceptedAt *internal.DateTime `json:"acceptedAt,omitempty"`
+		RevokedAt  *internal.DateTime `json:"revokedAt,omitempty"`
+		CreatedAt  *internal.DateTime `json:"createdAt"`
+	}{
+		embed:      embed(*o),
+		ExpiresAt:  internal.NewDateTime(o.ExpiresAt),
+		AcceptedAt: internal.NewOptionalDateTime(o.AcceptedAt),
+		RevokedAt:  internal.NewOptionalDateTime(o.RevokedAt),
+		CreatedAt:  internal.NewDateTime(o.CreatedAt),
+	}
+	return json.Marshal(marshaler)
+}
+
+func (o *OrganizationInvitationResponseDto) String() string {
+	if len(o.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(o.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(o); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", o)
+}
+
+type OrganizationInvitationResponseDtoRole string
+
+const (
+	OrganizationInvitationResponseDtoRoleOwner  OrganizationInvitationResponseDtoRole = "OWNER"
+	OrganizationInvitationResponseDtoRoleAdmin  OrganizationInvitationResponseDtoRole = "ADMIN"
+	OrganizationInvitationResponseDtoRoleMember OrganizationInvitationResponseDtoRole = "MEMBER"
+)
+
+func NewOrganizationInvitationResponseDtoRoleFromString(s string) (OrganizationInvitationResponseDtoRole, error) {
+	switch s {
+	case "OWNER":
+		return OrganizationInvitationResponseDtoRoleOwner, nil
+	case "ADMIN":
+		return OrganizationInvitationResponseDtoRoleAdmin, nil
+	case "MEMBER":
+		return OrganizationInvitationResponseDtoRoleMember, nil
+	}
+	var t OrganizationInvitationResponseDtoRole
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (o OrganizationInvitationResponseDtoRole) Ptr() *OrganizationInvitationResponseDtoRole {
+	return &o
+}
+
+type OrganizationInvitationResponseDtoStatus string
+
+const (
+	OrganizationInvitationResponseDtoStatusPending  OrganizationInvitationResponseDtoStatus = "PENDING"
+	OrganizationInvitationResponseDtoStatusAccepted OrganizationInvitationResponseDtoStatus = "ACCEPTED"
+	OrganizationInvitationResponseDtoStatusRevoked  OrganizationInvitationResponseDtoStatus = "REVOKED"
+	OrganizationInvitationResponseDtoStatusExpired  OrganizationInvitationResponseDtoStatus = "EXPIRED"
+)
+
+func NewOrganizationInvitationResponseDtoStatusFromString(s string) (OrganizationInvitationResponseDtoStatus, error) {
+	switch s {
+	case "PENDING":
+		return OrganizationInvitationResponseDtoStatusPending, nil
+	case "ACCEPTED":
+		return OrganizationInvitationResponseDtoStatusAccepted, nil
+	case "REVOKED":
+		return OrganizationInvitationResponseDtoStatusRevoked, nil
+	case "EXPIRED":
+		return OrganizationInvitationResponseDtoStatusExpired, nil
+	}
+	var t OrganizationInvitationResponseDtoStatus
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (o OrganizationInvitationResponseDtoStatus) Ptr() *OrganizationInvitationResponseDtoStatus {
 	return &o
 }
 
@@ -430,15 +2792,17 @@ func (o *OrganizationMemberRemovedResponseDto) String() string {
 type OrganizationMembershipResponseDto struct {
 	ID             string `json:"id" url:"id"`
 	OrganizationID string `json:"organizationId" url:"organizationId"`
-	CustomerID     string `json:"customerId" url:"customerId"`
+	UserID         string `json:"userId" url:"userId"`
 	// The highest built-in role among roles. Use roles.
 	Role  OrganizationMembershipResponseDtoRole `json:"role" url:"role"`
 	Roles []string                              `json:"roles,omitempty" url:"roles,omitempty"`
 	// How this person joined: API when your server or the dashboard added them, INVITATION when they accepted an invitation, SSO when they signed in through the organization's single sign-on, DOMAIN when they signed up with an email on a domain this organization has verified.
-	Source    OrganizationMembershipResponseDtoSource `json:"source" url:"source"`
+	Source OrganizationMembershipResponseDtoSource `json:"source" url:"source"`
+	// SUSPENDED when the company's directory deactivated this person (SCIM `active: false`): they keep their place but lose access until reactivated.
+	Status    OrganizationMembershipResponseDtoStatus `json:"status" url:"status"`
 	CreatedAt time.Time                               `json:"createdAt" url:"createdAt"`
 	UpdatedAt time.Time                               `json:"updatedAt" url:"updatedAt"`
-	Customer  *OrganizationCustomerSummaryDto         `json:"customer,omitempty" url:"customer,omitempty"`
+	User      *OrganizationUserSummaryDto             `json:"user,omitempty" url:"user,omitempty"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -458,11 +2822,11 @@ func (o *OrganizationMembershipResponseDto) GetOrganizationID() string {
 	return o.OrganizationID
 }
 
-func (o *OrganizationMembershipResponseDto) GetCustomerID() string {
+func (o *OrganizationMembershipResponseDto) GetUserID() string {
 	if o == nil {
 		return ""
 	}
-	return o.CustomerID
+	return o.UserID
 }
 
 func (o *OrganizationMembershipResponseDto) GetRole() OrganizationMembershipResponseDtoRole {
@@ -486,6 +2850,13 @@ func (o *OrganizationMembershipResponseDto) GetSource() OrganizationMembershipRe
 	return o.Source
 }
 
+func (o *OrganizationMembershipResponseDto) GetStatus() OrganizationMembershipResponseDtoStatus {
+	if o == nil {
+		return ""
+	}
+	return o.Status
+}
+
 func (o *OrganizationMembershipResponseDto) GetCreatedAt() time.Time {
 	if o == nil {
 		return time.Time{}
@@ -500,11 +2871,11 @@ func (o *OrganizationMembershipResponseDto) GetUpdatedAt() time.Time {
 	return o.UpdatedAt
 }
 
-func (o *OrganizationMembershipResponseDto) GetCustomer() *OrganizationCustomerSummaryDto {
+func (o *OrganizationMembershipResponseDto) GetUser() *OrganizationUserSummaryDto {
 	if o == nil {
 		return nil
 	}
-	return o.Customer
+	return o.User
 }
 
 func (o *OrganizationMembershipResponseDto) GetExtraProperties() map[string]interface{} {
@@ -619,6 +2990,1185 @@ func (o OrganizationMembershipResponseDtoSource) Ptr() *OrganizationMembershipRe
 	return &o
 }
 
+// SUSPENDED when the company's directory deactivated this person (SCIM `active: false`): they keep their place but lose access until reactivated.
+type OrganizationMembershipResponseDtoStatus string
+
+const (
+	OrganizationMembershipResponseDtoStatusActive    OrganizationMembershipResponseDtoStatus = "ACTIVE"
+	OrganizationMembershipResponseDtoStatusSuspended OrganizationMembershipResponseDtoStatus = "SUSPENDED"
+)
+
+func NewOrganizationMembershipResponseDtoStatusFromString(s string) (OrganizationMembershipResponseDtoStatus, error) {
+	switch s {
+	case "ACTIVE":
+		return OrganizationMembershipResponseDtoStatusActive, nil
+	case "SUSPENDED":
+		return OrganizationMembershipResponseDtoStatusSuspended, nil
+	}
+	var t OrganizationMembershipResponseDtoStatus
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (o OrganizationMembershipResponseDtoStatus) Ptr() *OrganizationMembershipResponseDtoStatus {
+	return &o
+}
+
+type OrganizationResponseDto struct {
+	ID        string                 `json:"id" url:"id"`
+	ProjectID string                 `json:"projectId" url:"projectId"`
+	Name      string                 `json:"name" url:"name"`
+	Slug      string                 `json:"slug" url:"slug"`
+	Metadata  map[string]interface{} `json:"metadata,omitempty" url:"metadata,omitempty"`
+	// Identifier of this company in your own system.
+	ExternalID             *string                       `json:"externalId,omitempty" url:"externalId,omitempty"`
+	Status                 OrganizationResponseDtoStatus `json:"status" url:"status"`
+	CreatedAt              time.Time                     `json:"createdAt" url:"createdAt"`
+	UpdatedAt              time.Time                     `json:"updatedAt" url:"updatedAt"`
+	MemberCount            *float64                      `json:"memberCount,omitempty" url:"memberCount,omitempty"`
+	PendingInvitationCount *float64                      `json:"pendingInvitationCount,omitempty" url:"pendingInvitationCount,omitempty"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (o *OrganizationResponseDto) GetID() string {
+	if o == nil {
+		return ""
+	}
+	return o.ID
+}
+
+func (o *OrganizationResponseDto) GetProjectID() string {
+	if o == nil {
+		return ""
+	}
+	return o.ProjectID
+}
+
+func (o *OrganizationResponseDto) GetName() string {
+	if o == nil {
+		return ""
+	}
+	return o.Name
+}
+
+func (o *OrganizationResponseDto) GetSlug() string {
+	if o == nil {
+		return ""
+	}
+	return o.Slug
+}
+
+func (o *OrganizationResponseDto) GetMetadata() map[string]interface{} {
+	if o == nil {
+		return nil
+	}
+	return o.Metadata
+}
+
+func (o *OrganizationResponseDto) GetExternalID() *string {
+	if o == nil {
+		return nil
+	}
+	return o.ExternalID
+}
+
+func (o *OrganizationResponseDto) GetStatus() OrganizationResponseDtoStatus {
+	if o == nil {
+		return ""
+	}
+	return o.Status
+}
+
+func (o *OrganizationResponseDto) GetCreatedAt() time.Time {
+	if o == nil {
+		return time.Time{}
+	}
+	return o.CreatedAt
+}
+
+func (o *OrganizationResponseDto) GetUpdatedAt() time.Time {
+	if o == nil {
+		return time.Time{}
+	}
+	return o.UpdatedAt
+}
+
+func (o *OrganizationResponseDto) GetMemberCount() *float64 {
+	if o == nil {
+		return nil
+	}
+	return o.MemberCount
+}
+
+func (o *OrganizationResponseDto) GetPendingInvitationCount() *float64 {
+	if o == nil {
+		return nil
+	}
+	return o.PendingInvitationCount
+}
+
+func (o *OrganizationResponseDto) GetExtraProperties() map[string]interface{} {
+	return o.extraProperties
+}
+
+func (o *OrganizationResponseDto) UnmarshalJSON(data []byte) error {
+	type embed OrganizationResponseDto
+	var unmarshaler = struct {
+		embed
+		CreatedAt *internal.DateTime `json:"createdAt"`
+		UpdatedAt *internal.DateTime `json:"updatedAt"`
+	}{
+		embed: embed(*o),
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
+		return err
+	}
+	*o = OrganizationResponseDto(unmarshaler.embed)
+	o.CreatedAt = unmarshaler.CreatedAt.Time()
+	o.UpdatedAt = unmarshaler.UpdatedAt.Time()
+	extraProperties, err := internal.ExtractExtraProperties(data, *o)
+	if err != nil {
+		return err
+	}
+	o.extraProperties = extraProperties
+	o.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (o *OrganizationResponseDto) MarshalJSON() ([]byte, error) {
+	type embed OrganizationResponseDto
+	var marshaler = struct {
+		embed
+		CreatedAt *internal.DateTime `json:"createdAt"`
+		UpdatedAt *internal.DateTime `json:"updatedAt"`
+	}{
+		embed:     embed(*o),
+		CreatedAt: internal.NewDateTime(o.CreatedAt),
+		UpdatedAt: internal.NewDateTime(o.UpdatedAt),
+	}
+	return json.Marshal(marshaler)
+}
+
+func (o *OrganizationResponseDto) String() string {
+	if len(o.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(o.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(o); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", o)
+}
+
+type OrganizationResponseDtoStatus string
+
+const (
+	OrganizationResponseDtoStatusActive    OrganizationResponseDtoStatus = "ACTIVE"
+	OrganizationResponseDtoStatusSuspended OrganizationResponseDtoStatus = "SUSPENDED"
+)
+
+func NewOrganizationResponseDtoStatusFromString(s string) (OrganizationResponseDtoStatus, error) {
+	switch s {
+	case "ACTIVE":
+		return OrganizationResponseDtoStatusActive, nil
+	case "SUSPENDED":
+		return OrganizationResponseDtoStatusSuspended, nil
+	}
+	var t OrganizationResponseDtoStatus
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (o OrganizationResponseDtoStatus) Ptr() *OrganizationResponseDtoStatus {
+	return &o
+}
+
+type OrganizationUserSummaryDto struct {
+	ID    string  `json:"id" url:"id"`
+	Email *string `json:"email,omitempty" url:"email,omitempty"`
+	// Phone number in E.164 format, for a member who signs in with an SMS code.
+	Phone *string `json:"phone,omitempty" url:"phone,omitempty"`
+	// Identifier of this person in your own system, when you authenticate them yourself. Null for a member who signs in with Mailmus.
+	ExternalID *string `json:"externalId,omitempty" url:"externalId,omitempty"`
+	// Who holds this identity. EXTERNAL means you authenticate this person yourself, and Mailmus only knows them as a member. It becomes MAILMUS_AUTH the first time they sign in with Mailmus.
+	IdentitySource OrganizationUserSummaryDtoIdentitySource `json:"identitySource" url:"identitySource"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (o *OrganizationUserSummaryDto) GetID() string {
+	if o == nil {
+		return ""
+	}
+	return o.ID
+}
+
+func (o *OrganizationUserSummaryDto) GetEmail() *string {
+	if o == nil {
+		return nil
+	}
+	return o.Email
+}
+
+func (o *OrganizationUserSummaryDto) GetPhone() *string {
+	if o == nil {
+		return nil
+	}
+	return o.Phone
+}
+
+func (o *OrganizationUserSummaryDto) GetExternalID() *string {
+	if o == nil {
+		return nil
+	}
+	return o.ExternalID
+}
+
+func (o *OrganizationUserSummaryDto) GetIdentitySource() OrganizationUserSummaryDtoIdentitySource {
+	if o == nil {
+		return ""
+	}
+	return o.IdentitySource
+}
+
+func (o *OrganizationUserSummaryDto) GetExtraProperties() map[string]interface{} {
+	return o.extraProperties
+}
+
+func (o *OrganizationUserSummaryDto) UnmarshalJSON(data []byte) error {
+	type unmarshaler OrganizationUserSummaryDto
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*o = OrganizationUserSummaryDto(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *o)
+	if err != nil {
+		return err
+	}
+	o.extraProperties = extraProperties
+	o.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (o *OrganizationUserSummaryDto) String() string {
+	if len(o.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(o.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(o); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", o)
+}
+
+// Who holds this identity. EXTERNAL means you authenticate this person yourself, and Mailmus only knows them as a member. It becomes MAILMUS_AUTH the first time they sign in with Mailmus.
+type OrganizationUserSummaryDtoIdentitySource string
+
+const (
+	OrganizationUserSummaryDtoIdentitySourceMailmusAuth OrganizationUserSummaryDtoIdentitySource = "MAILMUS_AUTH"
+	OrganizationUserSummaryDtoIdentitySourceExternal    OrganizationUserSummaryDtoIdentitySource = "EXTERNAL"
+)
+
+func NewOrganizationUserSummaryDtoIdentitySourceFromString(s string) (OrganizationUserSummaryDtoIdentitySource, error) {
+	switch s {
+	case "MAILMUS_AUTH":
+		return OrganizationUserSummaryDtoIdentitySourceMailmusAuth, nil
+	case "EXTERNAL":
+		return OrganizationUserSummaryDtoIdentitySourceExternal, nil
+	}
+	var t OrganizationUserSummaryDtoIdentitySource
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (o OrganizationUserSummaryDtoIdentitySource) Ptr() *OrganizationUserSummaryDtoIdentitySource {
+	return &o
+}
+
+type ProjectSSOConnectionResponseDto struct {
+	ID             string                                `json:"id" url:"id"`
+	OrganizationID string                                `json:"organizationId" url:"organizationId"`
+	ProjectID      string                                `json:"projectId" url:"projectId"`
+	Name           string                                `json:"name" url:"name"`
+	Domain         string                                `json:"domain" url:"domain"`
+	Status         ProjectSSOConnectionResponseDtoStatus `json:"status" url:"status"`
+	IdpEntityID    *string                               `json:"idpEntityId,omitempty" url:"idpEntityId,omitempty"`
+	IdpSsoUrl      *string                               `json:"idpSsoUrl,omitempty" url:"idpSsoUrl,omitempty"`
+	// How this company signs in. SAML fields are null on an OpenID Connect connection, and the reverse.
+	Protocol       ProjectSSOConnectionResponseDtoProtocol `json:"protocol" url:"protocol"`
+	IdpCertificate []string                                `json:"idpCertificate,omitempty" url:"idpCertificate,omitempty"`
+	// The certificate your identity provider uses to check requests signed by Mailmus. SAML only: null on an OpenID Connect connection.
+	SpCertificate *string `json:"spCertificate,omitempty" url:"spCertificate,omitempty"`
+	OidcIssuer    *string `json:"oidcIssuer,omitempty" url:"oidcIssuer,omitempty"`
+	OidcClientID  *string `json:"oidcClientId,omitempty" url:"oidcClientId,omitempty"`
+	// Whether a client secret is saved. The secret itself is never returned.
+	OidcClientSecretSet bool `json:"oidcClientSecretSet" url:"oidcClientSecretSet"`
+	// Read from your provider’s discovery document when the issuer is saved. Null until that succeeds.
+	OidcAuthorizationEndpoint *string  `json:"oidcAuthorizationEndpoint,omitempty" url:"oidcAuthorizationEndpoint,omitempty"`
+	OidcTokenEndpoint         *string  `json:"oidcTokenEndpoint,omitempty" url:"oidcTokenEndpoint,omitempty"`
+	OidcJwksURI               *string  `json:"oidcJwksUri,omitempty" url:"oidcJwksUri,omitempty"`
+	OidcScopes                []string `json:"oidcScopes,omitempty" url:"oidcScopes,omitempty"`
+	// Failures of the identity provider still going on, most recent first. Empty when sign-in works.
+	Incidents    []*SSOConnectionIncidentDto   `json:"incidents,omitempty" url:"incidents,omitempty"`
+	CreatedAt    time.Time                     `json:"createdAt" url:"createdAt"`
+	UpdatedAt    time.Time                     `json:"updatedAt" url:"updatedAt"`
+	Organization *SSOConnectionOrganizationDto `json:"organization,omitempty" url:"organization,omitempty"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (p *ProjectSSOConnectionResponseDto) GetID() string {
+	if p == nil {
+		return ""
+	}
+	return p.ID
+}
+
+func (p *ProjectSSOConnectionResponseDto) GetOrganizationID() string {
+	if p == nil {
+		return ""
+	}
+	return p.OrganizationID
+}
+
+func (p *ProjectSSOConnectionResponseDto) GetProjectID() string {
+	if p == nil {
+		return ""
+	}
+	return p.ProjectID
+}
+
+func (p *ProjectSSOConnectionResponseDto) GetName() string {
+	if p == nil {
+		return ""
+	}
+	return p.Name
+}
+
+func (p *ProjectSSOConnectionResponseDto) GetDomain() string {
+	if p == nil {
+		return ""
+	}
+	return p.Domain
+}
+
+func (p *ProjectSSOConnectionResponseDto) GetStatus() ProjectSSOConnectionResponseDtoStatus {
+	if p == nil {
+		return ""
+	}
+	return p.Status
+}
+
+func (p *ProjectSSOConnectionResponseDto) GetIdpEntityID() *string {
+	if p == nil {
+		return nil
+	}
+	return p.IdpEntityID
+}
+
+func (p *ProjectSSOConnectionResponseDto) GetIdpSsoUrl() *string {
+	if p == nil {
+		return nil
+	}
+	return p.IdpSsoUrl
+}
+
+func (p *ProjectSSOConnectionResponseDto) GetProtocol() ProjectSSOConnectionResponseDtoProtocol {
+	if p == nil {
+		return ""
+	}
+	return p.Protocol
+}
+
+func (p *ProjectSSOConnectionResponseDto) GetIdpCertificate() []string {
+	if p == nil {
+		return nil
+	}
+	return p.IdpCertificate
+}
+
+func (p *ProjectSSOConnectionResponseDto) GetSpCertificate() *string {
+	if p == nil {
+		return nil
+	}
+	return p.SpCertificate
+}
+
+func (p *ProjectSSOConnectionResponseDto) GetOidcIssuer() *string {
+	if p == nil {
+		return nil
+	}
+	return p.OidcIssuer
+}
+
+func (p *ProjectSSOConnectionResponseDto) GetOidcClientID() *string {
+	if p == nil {
+		return nil
+	}
+	return p.OidcClientID
+}
+
+func (p *ProjectSSOConnectionResponseDto) GetOidcClientSecretSet() bool {
+	if p == nil {
+		return false
+	}
+	return p.OidcClientSecretSet
+}
+
+func (p *ProjectSSOConnectionResponseDto) GetOidcAuthorizationEndpoint() *string {
+	if p == nil {
+		return nil
+	}
+	return p.OidcAuthorizationEndpoint
+}
+
+func (p *ProjectSSOConnectionResponseDto) GetOidcTokenEndpoint() *string {
+	if p == nil {
+		return nil
+	}
+	return p.OidcTokenEndpoint
+}
+
+func (p *ProjectSSOConnectionResponseDto) GetOidcJwksURI() *string {
+	if p == nil {
+		return nil
+	}
+	return p.OidcJwksURI
+}
+
+func (p *ProjectSSOConnectionResponseDto) GetOidcScopes() []string {
+	if p == nil {
+		return nil
+	}
+	return p.OidcScopes
+}
+
+func (p *ProjectSSOConnectionResponseDto) GetIncidents() []*SSOConnectionIncidentDto {
+	if p == nil {
+		return nil
+	}
+	return p.Incidents
+}
+
+func (p *ProjectSSOConnectionResponseDto) GetCreatedAt() time.Time {
+	if p == nil {
+		return time.Time{}
+	}
+	return p.CreatedAt
+}
+
+func (p *ProjectSSOConnectionResponseDto) GetUpdatedAt() time.Time {
+	if p == nil {
+		return time.Time{}
+	}
+	return p.UpdatedAt
+}
+
+func (p *ProjectSSOConnectionResponseDto) GetOrganization() *SSOConnectionOrganizationDto {
+	if p == nil {
+		return nil
+	}
+	return p.Organization
+}
+
+func (p *ProjectSSOConnectionResponseDto) GetExtraProperties() map[string]interface{} {
+	return p.extraProperties
+}
+
+func (p *ProjectSSOConnectionResponseDto) UnmarshalJSON(data []byte) error {
+	type embed ProjectSSOConnectionResponseDto
+	var unmarshaler = struct {
+		embed
+		CreatedAt *internal.DateTime `json:"createdAt"`
+		UpdatedAt *internal.DateTime `json:"updatedAt"`
+	}{
+		embed: embed(*p),
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
+		return err
+	}
+	*p = ProjectSSOConnectionResponseDto(unmarshaler.embed)
+	p.CreatedAt = unmarshaler.CreatedAt.Time()
+	p.UpdatedAt = unmarshaler.UpdatedAt.Time()
+	extraProperties, err := internal.ExtractExtraProperties(data, *p)
+	if err != nil {
+		return err
+	}
+	p.extraProperties = extraProperties
+	p.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (p *ProjectSSOConnectionResponseDto) MarshalJSON() ([]byte, error) {
+	type embed ProjectSSOConnectionResponseDto
+	var marshaler = struct {
+		embed
+		CreatedAt *internal.DateTime `json:"createdAt"`
+		UpdatedAt *internal.DateTime `json:"updatedAt"`
+	}{
+		embed:     embed(*p),
+		CreatedAt: internal.NewDateTime(p.CreatedAt),
+		UpdatedAt: internal.NewDateTime(p.UpdatedAt),
+	}
+	return json.Marshal(marshaler)
+}
+
+func (p *ProjectSSOConnectionResponseDto) String() string {
+	if len(p.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(p.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(p); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", p)
+}
+
+// How this company signs in. SAML fields are null on an OpenID Connect connection, and the reverse.
+type ProjectSSOConnectionResponseDtoProtocol string
+
+const (
+	ProjectSSOConnectionResponseDtoProtocolSAML ProjectSSOConnectionResponseDtoProtocol = "SAML"
+	ProjectSSOConnectionResponseDtoProtocolOidc ProjectSSOConnectionResponseDtoProtocol = "OIDC"
+)
+
+func NewProjectSSOConnectionResponseDtoProtocolFromString(s string) (ProjectSSOConnectionResponseDtoProtocol, error) {
+	switch s {
+	case "SAML":
+		return ProjectSSOConnectionResponseDtoProtocolSAML, nil
+	case "OIDC":
+		return ProjectSSOConnectionResponseDtoProtocolOidc, nil
+	}
+	var t ProjectSSOConnectionResponseDtoProtocol
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (p ProjectSSOConnectionResponseDtoProtocol) Ptr() *ProjectSSOConnectionResponseDtoProtocol {
+	return &p
+}
+
+type ProjectSSOConnectionResponseDtoStatus string
+
+const (
+	ProjectSSOConnectionResponseDtoStatusDraft    ProjectSSOConnectionResponseDtoStatus = "DRAFT"
+	ProjectSSOConnectionResponseDtoStatusActive   ProjectSSOConnectionResponseDtoStatus = "ACTIVE"
+	ProjectSSOConnectionResponseDtoStatusDisabled ProjectSSOConnectionResponseDtoStatus = "DISABLED"
+)
+
+func NewProjectSSOConnectionResponseDtoStatusFromString(s string) (ProjectSSOConnectionResponseDtoStatus, error) {
+	switch s {
+	case "DRAFT":
+		return ProjectSSOConnectionResponseDtoStatusDraft, nil
+	case "ACTIVE":
+		return ProjectSSOConnectionResponseDtoStatusActive, nil
+	case "DISABLED":
+		return ProjectSSOConnectionResponseDtoStatusDisabled, nil
+	}
+	var t ProjectSSOConnectionResponseDtoStatus
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (p ProjectSSOConnectionResponseDtoStatus) Ptr() *ProjectSSOConnectionResponseDtoStatus {
+	return &p
+}
+
+type ProviderDayDto struct {
+	// The day, in YYYY-MM-DD format.
+	Day string `json:"day" url:"day"`
+	// Incidents opened that day.
+	Incidents float64 `json:"incidents" url:"incidents"`
+	// At least one blocking incident that day, meaning sign-in was impossible for all of your users.
+	Blocking bool `json:"blocking" url:"blocking"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (p *ProviderDayDto) GetDay() string {
+	if p == nil {
+		return ""
+	}
+	return p.Day
+}
+
+func (p *ProviderDayDto) GetIncidents() float64 {
+	if p == nil {
+		return 0
+	}
+	return p.Incidents
+}
+
+func (p *ProviderDayDto) GetBlocking() bool {
+	if p == nil {
+		return false
+	}
+	return p.Blocking
+}
+
+func (p *ProviderDayDto) GetExtraProperties() map[string]interface{} {
+	return p.extraProperties
+}
+
+func (p *ProviderDayDto) UnmarshalJSON(data []byte) error {
+	type unmarshaler ProviderDayDto
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*p = ProviderDayDto(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *p)
+	if err != nil {
+		return err
+	}
+	p.extraProperties = extraProperties
+	p.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (p *ProviderDayDto) String() string {
+	if len(p.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(p.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(p); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", p)
+}
+
+type ProviderTimelineDto struct {
+	// The provider concerned.
+	Provider string            `json:"provider" url:"provider"`
+	Days     []*ProviderDayDto `json:"days,omitempty" url:"days,omitempty"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (p *ProviderTimelineDto) GetProvider() string {
+	if p == nil {
+		return ""
+	}
+	return p.Provider
+}
+
+func (p *ProviderTimelineDto) GetDays() []*ProviderDayDto {
+	if p == nil {
+		return nil
+	}
+	return p.Days
+}
+
+func (p *ProviderTimelineDto) GetExtraProperties() map[string]interface{} {
+	return p.extraProperties
+}
+
+func (p *ProviderTimelineDto) UnmarshalJSON(data []byte) error {
+	type unmarshaler ProviderTimelineDto
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*p = ProviderTimelineDto(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *p)
+	if err != nil {
+		return err
+	}
+	p.extraProperties = extraProperties
+	p.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (p *ProviderTimelineDto) String() string {
+	if len(p.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(p.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(p); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", p)
+}
+
+type PublicUserResponseDto struct {
+	ID string `json:"id" url:"id"`
+	// Identifier of the project this user belongs to. A user exists only inside a project: the same address in two projects means two users.
+	ProjectID       string     `json:"projectId" url:"projectId"`
+	Email           *string    `json:"email,omitempty" url:"email,omitempty"`
+	EmailVerifiedAt *time.Time `json:"emailVerifiedAt,omitempty" url:"emailVerifiedAt,omitempty"`
+	Phone           *string    `json:"phone,omitempty" url:"phone,omitempty"`
+	PhoneVerifiedAt *time.Time `json:"phoneVerifiedAt,omitempty" url:"phoneVerifiedAt,omitempty"`
+	// Free-form metadata you attach to the user.
+	Metadata map[string]interface{} `json:"metadata,omitempty" url:"metadata,omitempty"`
+	// Application roles, carried in the token `roles` claim.
+	Roles        []string   `json:"roles,omitempty" url:"roles,omitempty"`
+	LastSignInAt *time.Time `json:"lastSignInAt,omitempty" url:"lastSignInAt,omitempty"`
+	// Non-null if the user is banned: they can no longer sign in.
+	BannedAt *time.Time `json:"bannedAt,omitempty" url:"bannedAt,omitempty"`
+	// True if a second factor is active on this user.
+	MfaEnabled   bool                      `json:"mfaEnabled" url:"mfaEnabled"`
+	MfaEnabledAt *time.Time                `json:"mfaEnabledAt,omitempty" url:"mfaEnabledAt,omitempty"`
+	CreatedAt    time.Time                 `json:"createdAt" url:"createdAt"`
+	UpdatedAt    time.Time                 `json:"updatedAt" url:"updatedAt"`
+	Identities   []*UserIdentitySummaryDto `json:"identities,omitempty" url:"identities,omitempty"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (p *PublicUserResponseDto) GetID() string {
+	if p == nil {
+		return ""
+	}
+	return p.ID
+}
+
+func (p *PublicUserResponseDto) GetProjectID() string {
+	if p == nil {
+		return ""
+	}
+	return p.ProjectID
+}
+
+func (p *PublicUserResponseDto) GetEmail() *string {
+	if p == nil {
+		return nil
+	}
+	return p.Email
+}
+
+func (p *PublicUserResponseDto) GetEmailVerifiedAt() *time.Time {
+	if p == nil {
+		return nil
+	}
+	return p.EmailVerifiedAt
+}
+
+func (p *PublicUserResponseDto) GetPhone() *string {
+	if p == nil {
+		return nil
+	}
+	return p.Phone
+}
+
+func (p *PublicUserResponseDto) GetPhoneVerifiedAt() *time.Time {
+	if p == nil {
+		return nil
+	}
+	return p.PhoneVerifiedAt
+}
+
+func (p *PublicUserResponseDto) GetMetadata() map[string]interface{} {
+	if p == nil {
+		return nil
+	}
+	return p.Metadata
+}
+
+func (p *PublicUserResponseDto) GetRoles() []string {
+	if p == nil {
+		return nil
+	}
+	return p.Roles
+}
+
+func (p *PublicUserResponseDto) GetLastSignInAt() *time.Time {
+	if p == nil {
+		return nil
+	}
+	return p.LastSignInAt
+}
+
+func (p *PublicUserResponseDto) GetBannedAt() *time.Time {
+	if p == nil {
+		return nil
+	}
+	return p.BannedAt
+}
+
+func (p *PublicUserResponseDto) GetMfaEnabled() bool {
+	if p == nil {
+		return false
+	}
+	return p.MfaEnabled
+}
+
+func (p *PublicUserResponseDto) GetMfaEnabledAt() *time.Time {
+	if p == nil {
+		return nil
+	}
+	return p.MfaEnabledAt
+}
+
+func (p *PublicUserResponseDto) GetCreatedAt() time.Time {
+	if p == nil {
+		return time.Time{}
+	}
+	return p.CreatedAt
+}
+
+func (p *PublicUserResponseDto) GetUpdatedAt() time.Time {
+	if p == nil {
+		return time.Time{}
+	}
+	return p.UpdatedAt
+}
+
+func (p *PublicUserResponseDto) GetIdentities() []*UserIdentitySummaryDto {
+	if p == nil {
+		return nil
+	}
+	return p.Identities
+}
+
+func (p *PublicUserResponseDto) GetExtraProperties() map[string]interface{} {
+	return p.extraProperties
+}
+
+func (p *PublicUserResponseDto) UnmarshalJSON(data []byte) error {
+	type embed PublicUserResponseDto
+	var unmarshaler = struct {
+		embed
+		EmailVerifiedAt *internal.DateTime `json:"emailVerifiedAt,omitempty"`
+		PhoneVerifiedAt *internal.DateTime `json:"phoneVerifiedAt,omitempty"`
+		LastSignInAt    *internal.DateTime `json:"lastSignInAt,omitempty"`
+		BannedAt        *internal.DateTime `json:"bannedAt,omitempty"`
+		MfaEnabledAt    *internal.DateTime `json:"mfaEnabledAt,omitempty"`
+		CreatedAt       *internal.DateTime `json:"createdAt"`
+		UpdatedAt       *internal.DateTime `json:"updatedAt"`
+	}{
+		embed: embed(*p),
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
+		return err
+	}
+	*p = PublicUserResponseDto(unmarshaler.embed)
+	p.EmailVerifiedAt = unmarshaler.EmailVerifiedAt.TimePtr()
+	p.PhoneVerifiedAt = unmarshaler.PhoneVerifiedAt.TimePtr()
+	p.LastSignInAt = unmarshaler.LastSignInAt.TimePtr()
+	p.BannedAt = unmarshaler.BannedAt.TimePtr()
+	p.MfaEnabledAt = unmarshaler.MfaEnabledAt.TimePtr()
+	p.CreatedAt = unmarshaler.CreatedAt.Time()
+	p.UpdatedAt = unmarshaler.UpdatedAt.Time()
+	extraProperties, err := internal.ExtractExtraProperties(data, *p)
+	if err != nil {
+		return err
+	}
+	p.extraProperties = extraProperties
+	p.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (p *PublicUserResponseDto) MarshalJSON() ([]byte, error) {
+	type embed PublicUserResponseDto
+	var marshaler = struct {
+		embed
+		EmailVerifiedAt *internal.DateTime `json:"emailVerifiedAt,omitempty"`
+		PhoneVerifiedAt *internal.DateTime `json:"phoneVerifiedAt,omitempty"`
+		LastSignInAt    *internal.DateTime `json:"lastSignInAt,omitempty"`
+		BannedAt        *internal.DateTime `json:"bannedAt,omitempty"`
+		MfaEnabledAt    *internal.DateTime `json:"mfaEnabledAt,omitempty"`
+		CreatedAt       *internal.DateTime `json:"createdAt"`
+		UpdatedAt       *internal.DateTime `json:"updatedAt"`
+	}{
+		embed:           embed(*p),
+		EmailVerifiedAt: internal.NewOptionalDateTime(p.EmailVerifiedAt),
+		PhoneVerifiedAt: internal.NewOptionalDateTime(p.PhoneVerifiedAt),
+		LastSignInAt:    internal.NewOptionalDateTime(p.LastSignInAt),
+		BannedAt:        internal.NewOptionalDateTime(p.BannedAt),
+		MfaEnabledAt:    internal.NewOptionalDateTime(p.MfaEnabledAt),
+		CreatedAt:       internal.NewDateTime(p.CreatedAt),
+		UpdatedAt:       internal.NewDateTime(p.UpdatedAt),
+	}
+	return json.Marshal(marshaler)
+}
+
+func (p *PublicUserResponseDto) String() string {
+	if len(p.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(p.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(p); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", p)
+}
+
+type SCIMTokenCreatedResponseDto struct {
+	ID   string `json:"id" url:"id"`
+	Name string `json:"name" url:"name"`
+	// Last time a directory presented this token. Written at most once a minute, so it can lag slightly behind.
+	LastUsedAt *time.Time `json:"lastUsedAt,omitempty" url:"lastUsedAt,omitempty"`
+	// Set once the token has been revoked. Revoked tokens are kept, never deleted, so the record of which directory was connected and when stays readable.
+	RevokedAt *time.Time `json:"revokedAt,omitempty" url:"revokedAt,omitempty"`
+	CreatedAt time.Time  `json:"createdAt" url:"createdAt"`
+	// The secret to paste into the directory. Returned once, at creation, and never again: only a fingerprint of it is kept.
+	Token string `json:"token" url:"token"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (s *SCIMTokenCreatedResponseDto) GetID() string {
+	if s == nil {
+		return ""
+	}
+	return s.ID
+}
+
+func (s *SCIMTokenCreatedResponseDto) GetName() string {
+	if s == nil {
+		return ""
+	}
+	return s.Name
+}
+
+func (s *SCIMTokenCreatedResponseDto) GetLastUsedAt() *time.Time {
+	if s == nil {
+		return nil
+	}
+	return s.LastUsedAt
+}
+
+func (s *SCIMTokenCreatedResponseDto) GetRevokedAt() *time.Time {
+	if s == nil {
+		return nil
+	}
+	return s.RevokedAt
+}
+
+func (s *SCIMTokenCreatedResponseDto) GetCreatedAt() time.Time {
+	if s == nil {
+		return time.Time{}
+	}
+	return s.CreatedAt
+}
+
+func (s *SCIMTokenCreatedResponseDto) GetToken() string {
+	if s == nil {
+		return ""
+	}
+	return s.Token
+}
+
+func (s *SCIMTokenCreatedResponseDto) GetExtraProperties() map[string]interface{} {
+	return s.extraProperties
+}
+
+func (s *SCIMTokenCreatedResponseDto) UnmarshalJSON(data []byte) error {
+	type embed SCIMTokenCreatedResponseDto
+	var unmarshaler = struct {
+		embed
+		LastUsedAt *internal.DateTime `json:"lastUsedAt,omitempty"`
+		RevokedAt  *internal.DateTime `json:"revokedAt,omitempty"`
+		CreatedAt  *internal.DateTime `json:"createdAt"`
+	}{
+		embed: embed(*s),
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
+		return err
+	}
+	*s = SCIMTokenCreatedResponseDto(unmarshaler.embed)
+	s.LastUsedAt = unmarshaler.LastUsedAt.TimePtr()
+	s.RevokedAt = unmarshaler.RevokedAt.TimePtr()
+	s.CreatedAt = unmarshaler.CreatedAt.Time()
+	extraProperties, err := internal.ExtractExtraProperties(data, *s)
+	if err != nil {
+		return err
+	}
+	s.extraProperties = extraProperties
+	s.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (s *SCIMTokenCreatedResponseDto) MarshalJSON() ([]byte, error) {
+	type embed SCIMTokenCreatedResponseDto
+	var marshaler = struct {
+		embed
+		LastUsedAt *internal.DateTime `json:"lastUsedAt,omitempty"`
+		RevokedAt  *internal.DateTime `json:"revokedAt,omitempty"`
+		CreatedAt  *internal.DateTime `json:"createdAt"`
+	}{
+		embed:      embed(*s),
+		LastUsedAt: internal.NewOptionalDateTime(s.LastUsedAt),
+		RevokedAt:  internal.NewOptionalDateTime(s.RevokedAt),
+		CreatedAt:  internal.NewDateTime(s.CreatedAt),
+	}
+	return json.Marshal(marshaler)
+}
+
+func (s *SCIMTokenCreatedResponseDto) String() string {
+	if len(s.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(s.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(s); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", s)
+}
+
+type SCIMTokenResponseDto struct {
+	ID   string `json:"id" url:"id"`
+	Name string `json:"name" url:"name"`
+	// Last time a directory presented this token. Written at most once a minute, so it can lag slightly behind.
+	LastUsedAt *time.Time `json:"lastUsedAt,omitempty" url:"lastUsedAt,omitempty"`
+	// Set once the token has been revoked. Revoked tokens are kept, never deleted, so the record of which directory was connected and when stays readable.
+	RevokedAt *time.Time `json:"revokedAt,omitempty" url:"revokedAt,omitempty"`
+	CreatedAt time.Time  `json:"createdAt" url:"createdAt"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (s *SCIMTokenResponseDto) GetID() string {
+	if s == nil {
+		return ""
+	}
+	return s.ID
+}
+
+func (s *SCIMTokenResponseDto) GetName() string {
+	if s == nil {
+		return ""
+	}
+	return s.Name
+}
+
+func (s *SCIMTokenResponseDto) GetLastUsedAt() *time.Time {
+	if s == nil {
+		return nil
+	}
+	return s.LastUsedAt
+}
+
+func (s *SCIMTokenResponseDto) GetRevokedAt() *time.Time {
+	if s == nil {
+		return nil
+	}
+	return s.RevokedAt
+}
+
+func (s *SCIMTokenResponseDto) GetCreatedAt() time.Time {
+	if s == nil {
+		return time.Time{}
+	}
+	return s.CreatedAt
+}
+
+func (s *SCIMTokenResponseDto) GetExtraProperties() map[string]interface{} {
+	return s.extraProperties
+}
+
+func (s *SCIMTokenResponseDto) UnmarshalJSON(data []byte) error {
+	type embed SCIMTokenResponseDto
+	var unmarshaler = struct {
+		embed
+		LastUsedAt *internal.DateTime `json:"lastUsedAt,omitempty"`
+		RevokedAt  *internal.DateTime `json:"revokedAt,omitempty"`
+		CreatedAt  *internal.DateTime `json:"createdAt"`
+	}{
+		embed: embed(*s),
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
+		return err
+	}
+	*s = SCIMTokenResponseDto(unmarshaler.embed)
+	s.LastUsedAt = unmarshaler.LastUsedAt.TimePtr()
+	s.RevokedAt = unmarshaler.RevokedAt.TimePtr()
+	s.CreatedAt = unmarshaler.CreatedAt.Time()
+	extraProperties, err := internal.ExtractExtraProperties(data, *s)
+	if err != nil {
+		return err
+	}
+	s.extraProperties = extraProperties
+	s.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (s *SCIMTokenResponseDto) MarshalJSON() ([]byte, error) {
+	type embed SCIMTokenResponseDto
+	var marshaler = struct {
+		embed
+		LastUsedAt *internal.DateTime `json:"lastUsedAt,omitempty"`
+		RevokedAt  *internal.DateTime `json:"revokedAt,omitempty"`
+		CreatedAt  *internal.DateTime `json:"createdAt"`
+	}{
+		embed:      embed(*s),
+		LastUsedAt: internal.NewOptionalDateTime(s.LastUsedAt),
+		RevokedAt:  internal.NewOptionalDateTime(s.RevokedAt),
+		CreatedAt:  internal.NewDateTime(s.CreatedAt),
+	}
+	return json.Marshal(marshaler)
+}
+
+func (s *SCIMTokenResponseDto) String() string {
+	if len(s.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(s.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(s); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", s)
+}
+
+type SCIMTokenRevokedResponseDto struct {
+	Revoked bool `json:"revoked" url:"revoked"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (s *SCIMTokenRevokedResponseDto) GetRevoked() bool {
+	if s == nil {
+		return false
+	}
+	return s.Revoked
+}
+
+func (s *SCIMTokenRevokedResponseDto) GetExtraProperties() map[string]interface{} {
+	return s.extraProperties
+}
+
+func (s *SCIMTokenRevokedResponseDto) UnmarshalJSON(data []byte) error {
+	type unmarshaler SCIMTokenRevokedResponseDto
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*s = SCIMTokenRevokedResponseDto(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *s)
+	if err != nil {
+		return err
+	}
+	s.extraProperties = extraProperties
+	s.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (s *SCIMTokenRevokedResponseDto) String() string {
+	if len(s.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(s.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(s); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", s)
+}
+
 type SendContactSummaryDto struct {
 	ID    string `json:"id" url:"id"`
 	Email string `json:"email" url:"email"`
@@ -662,6 +4212,804 @@ func (s *SendContactSummaryDto) UnmarshalJSON(data []byte) error {
 }
 
 func (s *SendContactSummaryDto) String() string {
+	if len(s.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(s.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(s); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", s)
+}
+
+type SignInSuccessResponseDto struct {
+	// Access token to present as a Bearer on the self-service routes, and to verify server-side with the project public keys.
+	AccessToken string `json:"accessToken" url:"accessToken"`
+	// Opaque token used to obtain a new accessToken. It rotates on every use: this one works once.
+	RefreshToken string `json:"refreshToken" url:"refreshToken"`
+	// Lifetime of the accessToken, in seconds.
+	ExpiresIn float64                `json:"expiresIn" url:"expiresIn"`
+	User      *PublicUserResponseDto `json:"user,omitempty" url:"user,omitempty"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (s *SignInSuccessResponseDto) GetAccessToken() string {
+	if s == nil {
+		return ""
+	}
+	return s.AccessToken
+}
+
+func (s *SignInSuccessResponseDto) GetRefreshToken() string {
+	if s == nil {
+		return ""
+	}
+	return s.RefreshToken
+}
+
+func (s *SignInSuccessResponseDto) GetExpiresIn() float64 {
+	if s == nil {
+		return 0
+	}
+	return s.ExpiresIn
+}
+
+func (s *SignInSuccessResponseDto) GetUser() *PublicUserResponseDto {
+	if s == nil {
+		return nil
+	}
+	return s.User
+}
+
+func (s *SignInSuccessResponseDto) GetExtraProperties() map[string]interface{} {
+	return s.extraProperties
+}
+
+func (s *SignInSuccessResponseDto) UnmarshalJSON(data []byte) error {
+	type unmarshaler SignInSuccessResponseDto
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*s = SignInSuccessResponseDto(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *s)
+	if err != nil {
+		return err
+	}
+	s.extraProperties = extraProperties
+	s.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (s *SignInSuccessResponseDto) String() string {
+	if len(s.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(s.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(s); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", s)
+}
+
+type SigningKeyRotationResponseDto struct {
+	// Identifier of the new key, the one in the token `kid` claim.
+	Kid       string    `json:"kid" url:"kid"`
+	CreatedAt time.Time `json:"createdAt" url:"createdAt"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (s *SigningKeyRotationResponseDto) GetKid() string {
+	if s == nil {
+		return ""
+	}
+	return s.Kid
+}
+
+func (s *SigningKeyRotationResponseDto) GetCreatedAt() time.Time {
+	if s == nil {
+		return time.Time{}
+	}
+	return s.CreatedAt
+}
+
+func (s *SigningKeyRotationResponseDto) GetExtraProperties() map[string]interface{} {
+	return s.extraProperties
+}
+
+func (s *SigningKeyRotationResponseDto) UnmarshalJSON(data []byte) error {
+	type embed SigningKeyRotationResponseDto
+	var unmarshaler = struct {
+		embed
+		CreatedAt *internal.DateTime `json:"createdAt"`
+	}{
+		embed: embed(*s),
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
+		return err
+	}
+	*s = SigningKeyRotationResponseDto(unmarshaler.embed)
+	s.CreatedAt = unmarshaler.CreatedAt.Time()
+	extraProperties, err := internal.ExtractExtraProperties(data, *s)
+	if err != nil {
+		return err
+	}
+	s.extraProperties = extraProperties
+	s.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (s *SigningKeyRotationResponseDto) MarshalJSON() ([]byte, error) {
+	type embed SigningKeyRotationResponseDto
+	var marshaler = struct {
+		embed
+		CreatedAt *internal.DateTime `json:"createdAt"`
+	}{
+		embed:     embed(*s),
+		CreatedAt: internal.NewDateTime(s.CreatedAt),
+	}
+	return json.Marshal(marshaler)
+}
+
+func (s *SigningKeyRotationResponseDto) String() string {
+	if len(s.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(s.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(s); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", s)
+}
+
+type SSOConnectionIncidentDto struct {
+	ID string `json:"id" url:"id"`
+	// Where the sign-in gave way: PROVIDER_REQUEST (the identity provider cannot be reached), CODE_EXCHANGE (it refuses to exchange the code, often the client secret), KEYS (its signing keys cannot be read), TOKEN_VERIFICATION (the id token is refused), ASSERTION (the SAML response is refused, often the certificate), IDENTITY (no usable email, or one outside the connection domain), UNEXPECTED (an error on our side).
+	Stage SSOConnectionIncidentDtoStage `json:"stage" url:"stage"`
+	// A stable code for the cause, for example `timeout`, `http_401` or `jwt_expired`.
+	Reason string `json:"reason" url:"reason"`
+	// What the identity provider answered, shortened.
+	Detail *string `json:"detail,omitempty" url:"detail,omitempty"`
+	// Refused sign-ins since it started.
+	Occurrences float64   `json:"occurrences" url:"occurrences"`
+	StartedAt   time.Time `json:"startedAt" url:"startedAt"`
+	LastSeenAt  time.Time `json:"lastSeenAt" url:"lastSeenAt"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (s *SSOConnectionIncidentDto) GetID() string {
+	if s == nil {
+		return ""
+	}
+	return s.ID
+}
+
+func (s *SSOConnectionIncidentDto) GetStage() SSOConnectionIncidentDtoStage {
+	if s == nil {
+		return ""
+	}
+	return s.Stage
+}
+
+func (s *SSOConnectionIncidentDto) GetReason() string {
+	if s == nil {
+		return ""
+	}
+	return s.Reason
+}
+
+func (s *SSOConnectionIncidentDto) GetDetail() *string {
+	if s == nil {
+		return nil
+	}
+	return s.Detail
+}
+
+func (s *SSOConnectionIncidentDto) GetOccurrences() float64 {
+	if s == nil {
+		return 0
+	}
+	return s.Occurrences
+}
+
+func (s *SSOConnectionIncidentDto) GetStartedAt() time.Time {
+	if s == nil {
+		return time.Time{}
+	}
+	return s.StartedAt
+}
+
+func (s *SSOConnectionIncidentDto) GetLastSeenAt() time.Time {
+	if s == nil {
+		return time.Time{}
+	}
+	return s.LastSeenAt
+}
+
+func (s *SSOConnectionIncidentDto) GetExtraProperties() map[string]interface{} {
+	return s.extraProperties
+}
+
+func (s *SSOConnectionIncidentDto) UnmarshalJSON(data []byte) error {
+	type embed SSOConnectionIncidentDto
+	var unmarshaler = struct {
+		embed
+		StartedAt  *internal.DateTime `json:"startedAt"`
+		LastSeenAt *internal.DateTime `json:"lastSeenAt"`
+	}{
+		embed: embed(*s),
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
+		return err
+	}
+	*s = SSOConnectionIncidentDto(unmarshaler.embed)
+	s.StartedAt = unmarshaler.StartedAt.Time()
+	s.LastSeenAt = unmarshaler.LastSeenAt.Time()
+	extraProperties, err := internal.ExtractExtraProperties(data, *s)
+	if err != nil {
+		return err
+	}
+	s.extraProperties = extraProperties
+	s.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (s *SSOConnectionIncidentDto) MarshalJSON() ([]byte, error) {
+	type embed SSOConnectionIncidentDto
+	var marshaler = struct {
+		embed
+		StartedAt  *internal.DateTime `json:"startedAt"`
+		LastSeenAt *internal.DateTime `json:"lastSeenAt"`
+	}{
+		embed:      embed(*s),
+		StartedAt:  internal.NewDateTime(s.StartedAt),
+		LastSeenAt: internal.NewDateTime(s.LastSeenAt),
+	}
+	return json.Marshal(marshaler)
+}
+
+func (s *SSOConnectionIncidentDto) String() string {
+	if len(s.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(s.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(s); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", s)
+}
+
+// Where the sign-in gave way: PROVIDER_REQUEST (the identity provider cannot be reached), CODE_EXCHANGE (it refuses to exchange the code, often the client secret), KEYS (its signing keys cannot be read), TOKEN_VERIFICATION (the id token is refused), ASSERTION (the SAML response is refused, often the certificate), IDENTITY (no usable email, or one outside the connection domain), UNEXPECTED (an error on our side).
+type SSOConnectionIncidentDtoStage string
+
+const (
+	SSOConnectionIncidentDtoStageProviderRequest   SSOConnectionIncidentDtoStage = "PROVIDER_REQUEST"
+	SSOConnectionIncidentDtoStageCodeExchange      SSOConnectionIncidentDtoStage = "CODE_EXCHANGE"
+	SSOConnectionIncidentDtoStageKeys              SSOConnectionIncidentDtoStage = "KEYS"
+	SSOConnectionIncidentDtoStageTokenVerification SSOConnectionIncidentDtoStage = "TOKEN_VERIFICATION"
+	SSOConnectionIncidentDtoStageAssertion         SSOConnectionIncidentDtoStage = "ASSERTION"
+	SSOConnectionIncidentDtoStageIdentity          SSOConnectionIncidentDtoStage = "IDENTITY"
+	SSOConnectionIncidentDtoStageUnexpected        SSOConnectionIncidentDtoStage = "UNEXPECTED"
+)
+
+func NewSSOConnectionIncidentDtoStageFromString(s string) (SSOConnectionIncidentDtoStage, error) {
+	switch s {
+	case "PROVIDER_REQUEST":
+		return SSOConnectionIncidentDtoStageProviderRequest, nil
+	case "CODE_EXCHANGE":
+		return SSOConnectionIncidentDtoStageCodeExchange, nil
+	case "KEYS":
+		return SSOConnectionIncidentDtoStageKeys, nil
+	case "TOKEN_VERIFICATION":
+		return SSOConnectionIncidentDtoStageTokenVerification, nil
+	case "ASSERTION":
+		return SSOConnectionIncidentDtoStageAssertion, nil
+	case "IDENTITY":
+		return SSOConnectionIncidentDtoStageIdentity, nil
+	case "UNEXPECTED":
+		return SSOConnectionIncidentDtoStageUnexpected, nil
+	}
+	var t SSOConnectionIncidentDtoStage
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (s SSOConnectionIncidentDtoStage) Ptr() *SSOConnectionIncidentDtoStage {
+	return &s
+}
+
+type SSOConnectionOrganizationDto struct {
+	ID   string `json:"id" url:"id"`
+	Name string `json:"name" url:"name"`
+	Slug string `json:"slug" url:"slug"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (s *SSOConnectionOrganizationDto) GetID() string {
+	if s == nil {
+		return ""
+	}
+	return s.ID
+}
+
+func (s *SSOConnectionOrganizationDto) GetName() string {
+	if s == nil {
+		return ""
+	}
+	return s.Name
+}
+
+func (s *SSOConnectionOrganizationDto) GetSlug() string {
+	if s == nil {
+		return ""
+	}
+	return s.Slug
+}
+
+func (s *SSOConnectionOrganizationDto) GetExtraProperties() map[string]interface{} {
+	return s.extraProperties
+}
+
+func (s *SSOConnectionOrganizationDto) UnmarshalJSON(data []byte) error {
+	type unmarshaler SSOConnectionOrganizationDto
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*s = SSOConnectionOrganizationDto(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *s)
+	if err != nil {
+		return err
+	}
+	s.extraProperties = extraProperties
+	s.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (s *SSOConnectionOrganizationDto) String() string {
+	if len(s.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(s.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(s); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", s)
+}
+
+type SSOConnectionResponseDto struct {
+	ID             string                         `json:"id" url:"id"`
+	OrganizationID string                         `json:"organizationId" url:"organizationId"`
+	ProjectID      string                         `json:"projectId" url:"projectId"`
+	Name           string                         `json:"name" url:"name"`
+	Domain         string                         `json:"domain" url:"domain"`
+	Status         SSOConnectionResponseDtoStatus `json:"status" url:"status"`
+	IdpEntityID    *string                        `json:"idpEntityId,omitempty" url:"idpEntityId,omitempty"`
+	IdpSsoUrl      *string                        `json:"idpSsoUrl,omitempty" url:"idpSsoUrl,omitempty"`
+	// How this company signs in. SAML fields are null on an OpenID Connect connection, and the reverse.
+	Protocol       SSOConnectionResponseDtoProtocol `json:"protocol" url:"protocol"`
+	IdpCertificate []string                         `json:"idpCertificate,omitempty" url:"idpCertificate,omitempty"`
+	// The certificate your identity provider uses to check requests signed by Mailmus. SAML only: null on an OpenID Connect connection.
+	SpCertificate *string `json:"spCertificate,omitempty" url:"spCertificate,omitempty"`
+	OidcIssuer    *string `json:"oidcIssuer,omitempty" url:"oidcIssuer,omitempty"`
+	OidcClientID  *string `json:"oidcClientId,omitempty" url:"oidcClientId,omitempty"`
+	// Whether a client secret is saved. The secret itself is never returned.
+	OidcClientSecretSet bool `json:"oidcClientSecretSet" url:"oidcClientSecretSet"`
+	// Read from your provider’s discovery document when the issuer is saved. Null until that succeeds.
+	OidcAuthorizationEndpoint *string  `json:"oidcAuthorizationEndpoint,omitempty" url:"oidcAuthorizationEndpoint,omitempty"`
+	OidcTokenEndpoint         *string  `json:"oidcTokenEndpoint,omitempty" url:"oidcTokenEndpoint,omitempty"`
+	OidcJwksURI               *string  `json:"oidcJwksUri,omitempty" url:"oidcJwksUri,omitempty"`
+	OidcScopes                []string `json:"oidcScopes,omitempty" url:"oidcScopes,omitempty"`
+	// Failures of the identity provider still going on, most recent first. Empty when sign-in works.
+	Incidents []*SSOConnectionIncidentDto `json:"incidents,omitempty" url:"incidents,omitempty"`
+	CreatedAt time.Time                   `json:"createdAt" url:"createdAt"`
+	UpdatedAt time.Time                   `json:"updatedAt" url:"updatedAt"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (s *SSOConnectionResponseDto) GetID() string {
+	if s == nil {
+		return ""
+	}
+	return s.ID
+}
+
+func (s *SSOConnectionResponseDto) GetOrganizationID() string {
+	if s == nil {
+		return ""
+	}
+	return s.OrganizationID
+}
+
+func (s *SSOConnectionResponseDto) GetProjectID() string {
+	if s == nil {
+		return ""
+	}
+	return s.ProjectID
+}
+
+func (s *SSOConnectionResponseDto) GetName() string {
+	if s == nil {
+		return ""
+	}
+	return s.Name
+}
+
+func (s *SSOConnectionResponseDto) GetDomain() string {
+	if s == nil {
+		return ""
+	}
+	return s.Domain
+}
+
+func (s *SSOConnectionResponseDto) GetStatus() SSOConnectionResponseDtoStatus {
+	if s == nil {
+		return ""
+	}
+	return s.Status
+}
+
+func (s *SSOConnectionResponseDto) GetIdpEntityID() *string {
+	if s == nil {
+		return nil
+	}
+	return s.IdpEntityID
+}
+
+func (s *SSOConnectionResponseDto) GetIdpSsoUrl() *string {
+	if s == nil {
+		return nil
+	}
+	return s.IdpSsoUrl
+}
+
+func (s *SSOConnectionResponseDto) GetProtocol() SSOConnectionResponseDtoProtocol {
+	if s == nil {
+		return ""
+	}
+	return s.Protocol
+}
+
+func (s *SSOConnectionResponseDto) GetIdpCertificate() []string {
+	if s == nil {
+		return nil
+	}
+	return s.IdpCertificate
+}
+
+func (s *SSOConnectionResponseDto) GetSpCertificate() *string {
+	if s == nil {
+		return nil
+	}
+	return s.SpCertificate
+}
+
+func (s *SSOConnectionResponseDto) GetOidcIssuer() *string {
+	if s == nil {
+		return nil
+	}
+	return s.OidcIssuer
+}
+
+func (s *SSOConnectionResponseDto) GetOidcClientID() *string {
+	if s == nil {
+		return nil
+	}
+	return s.OidcClientID
+}
+
+func (s *SSOConnectionResponseDto) GetOidcClientSecretSet() bool {
+	if s == nil {
+		return false
+	}
+	return s.OidcClientSecretSet
+}
+
+func (s *SSOConnectionResponseDto) GetOidcAuthorizationEndpoint() *string {
+	if s == nil {
+		return nil
+	}
+	return s.OidcAuthorizationEndpoint
+}
+
+func (s *SSOConnectionResponseDto) GetOidcTokenEndpoint() *string {
+	if s == nil {
+		return nil
+	}
+	return s.OidcTokenEndpoint
+}
+
+func (s *SSOConnectionResponseDto) GetOidcJwksURI() *string {
+	if s == nil {
+		return nil
+	}
+	return s.OidcJwksURI
+}
+
+func (s *SSOConnectionResponseDto) GetOidcScopes() []string {
+	if s == nil {
+		return nil
+	}
+	return s.OidcScopes
+}
+
+func (s *SSOConnectionResponseDto) GetIncidents() []*SSOConnectionIncidentDto {
+	if s == nil {
+		return nil
+	}
+	return s.Incidents
+}
+
+func (s *SSOConnectionResponseDto) GetCreatedAt() time.Time {
+	if s == nil {
+		return time.Time{}
+	}
+	return s.CreatedAt
+}
+
+func (s *SSOConnectionResponseDto) GetUpdatedAt() time.Time {
+	if s == nil {
+		return time.Time{}
+	}
+	return s.UpdatedAt
+}
+
+func (s *SSOConnectionResponseDto) GetExtraProperties() map[string]interface{} {
+	return s.extraProperties
+}
+
+func (s *SSOConnectionResponseDto) UnmarshalJSON(data []byte) error {
+	type embed SSOConnectionResponseDto
+	var unmarshaler = struct {
+		embed
+		CreatedAt *internal.DateTime `json:"createdAt"`
+		UpdatedAt *internal.DateTime `json:"updatedAt"`
+	}{
+		embed: embed(*s),
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
+		return err
+	}
+	*s = SSOConnectionResponseDto(unmarshaler.embed)
+	s.CreatedAt = unmarshaler.CreatedAt.Time()
+	s.UpdatedAt = unmarshaler.UpdatedAt.Time()
+	extraProperties, err := internal.ExtractExtraProperties(data, *s)
+	if err != nil {
+		return err
+	}
+	s.extraProperties = extraProperties
+	s.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (s *SSOConnectionResponseDto) MarshalJSON() ([]byte, error) {
+	type embed SSOConnectionResponseDto
+	var marshaler = struct {
+		embed
+		CreatedAt *internal.DateTime `json:"createdAt"`
+		UpdatedAt *internal.DateTime `json:"updatedAt"`
+	}{
+		embed:     embed(*s),
+		CreatedAt: internal.NewDateTime(s.CreatedAt),
+		UpdatedAt: internal.NewDateTime(s.UpdatedAt),
+	}
+	return json.Marshal(marshaler)
+}
+
+func (s *SSOConnectionResponseDto) String() string {
+	if len(s.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(s.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(s); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", s)
+}
+
+// How this company signs in. SAML fields are null on an OpenID Connect connection, and the reverse.
+type SSOConnectionResponseDtoProtocol string
+
+const (
+	SSOConnectionResponseDtoProtocolSAML SSOConnectionResponseDtoProtocol = "SAML"
+	SSOConnectionResponseDtoProtocolOidc SSOConnectionResponseDtoProtocol = "OIDC"
+)
+
+func NewSSOConnectionResponseDtoProtocolFromString(s string) (SSOConnectionResponseDtoProtocol, error) {
+	switch s {
+	case "SAML":
+		return SSOConnectionResponseDtoProtocolSAML, nil
+	case "OIDC":
+		return SSOConnectionResponseDtoProtocolOidc, nil
+	}
+	var t SSOConnectionResponseDtoProtocol
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (s SSOConnectionResponseDtoProtocol) Ptr() *SSOConnectionResponseDtoProtocol {
+	return &s
+}
+
+type SSOConnectionResponseDtoStatus string
+
+const (
+	SSOConnectionResponseDtoStatusDraft    SSOConnectionResponseDtoStatus = "DRAFT"
+	SSOConnectionResponseDtoStatusActive   SSOConnectionResponseDtoStatus = "ACTIVE"
+	SSOConnectionResponseDtoStatusDisabled SSOConnectionResponseDtoStatus = "DISABLED"
+)
+
+func NewSSOConnectionResponseDtoStatusFromString(s string) (SSOConnectionResponseDtoStatus, error) {
+	switch s {
+	case "DRAFT":
+		return SSOConnectionResponseDtoStatusDraft, nil
+	case "ACTIVE":
+		return SSOConnectionResponseDtoStatusActive, nil
+	case "DISABLED":
+		return SSOConnectionResponseDtoStatusDisabled, nil
+	}
+	var t SSOConnectionResponseDtoStatus
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (s SSOConnectionResponseDtoStatus) Ptr() *SSOConnectionResponseDtoStatus {
+	return &s
+}
+
+type SSOProfileAcsResponseDto struct {
+	Code        string  `json:"code" url:"code"`
+	RedirectURI string  `json:"redirectUri" url:"redirectUri"`
+	Nonce       *string `json:"nonce,omitempty" url:"nonce,omitempty"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (s *SSOProfileAcsResponseDto) GetCode() string {
+	if s == nil {
+		return ""
+	}
+	return s.Code
+}
+
+func (s *SSOProfileAcsResponseDto) GetRedirectURI() string {
+	if s == nil {
+		return ""
+	}
+	return s.RedirectURI
+}
+
+func (s *SSOProfileAcsResponseDto) GetNonce() *string {
+	if s == nil {
+		return nil
+	}
+	return s.Nonce
+}
+
+func (s *SSOProfileAcsResponseDto) GetExtraProperties() map[string]interface{} {
+	return s.extraProperties
+}
+
+func (s *SSOProfileAcsResponseDto) UnmarshalJSON(data []byte) error {
+	type unmarshaler SSOProfileAcsResponseDto
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*s = SSOProfileAcsResponseDto(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *s)
+	if err != nil {
+		return err
+	}
+	s.extraProperties = extraProperties
+	s.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (s *SSOProfileAcsResponseDto) String() string {
+	if len(s.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(s.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(s); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", s)
+}
+
+type SSOProfileResponseDto struct {
+	OrganizationID string `json:"organizationId" url:"organizationId"`
+	ConnectionID   string `json:"connectionId" url:"connectionId"`
+	// The member, found by this identity provider identifier, or created.
+	UserID string `json:"userId" url:"userId"`
+	Email  string `json:"email" url:"email"`
+	// The identifier the identity provider gives this person (SAML NameID).
+	IdpSubject string `json:"idpSubject" url:"idpSubject"`
+	// The attributes the identity provider sent, as received.
+	Attributes map[string]interface{} `json:"attributes,omitempty" url:"attributes,omitempty"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (s *SSOProfileResponseDto) GetOrganizationID() string {
+	if s == nil {
+		return ""
+	}
+	return s.OrganizationID
+}
+
+func (s *SSOProfileResponseDto) GetConnectionID() string {
+	if s == nil {
+		return ""
+	}
+	return s.ConnectionID
+}
+
+func (s *SSOProfileResponseDto) GetUserID() string {
+	if s == nil {
+		return ""
+	}
+	return s.UserID
+}
+
+func (s *SSOProfileResponseDto) GetEmail() string {
+	if s == nil {
+		return ""
+	}
+	return s.Email
+}
+
+func (s *SSOProfileResponseDto) GetIdpSubject() string {
+	if s == nil {
+		return ""
+	}
+	return s.IdpSubject
+}
+
+func (s *SSOProfileResponseDto) GetAttributes() map[string]interface{} {
+	if s == nil {
+		return nil
+	}
+	return s.Attributes
+}
+
+func (s *SSOProfileResponseDto) GetExtraProperties() map[string]interface{} {
+	return s.extraProperties
+}
+
+func (s *SSOProfileResponseDto) UnmarshalJSON(data []byte) error {
+	type unmarshaler SSOProfileResponseDto
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*s = SSOProfileResponseDto(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *s)
+	if err != nil {
+		return err
+	}
+	s.extraProperties = extraProperties
+	s.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (s *SSOProfileResponseDto) String() string {
 	if len(s.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(s.rawJSON); err == nil {
 			return value
@@ -726,4 +5074,310 @@ func (s *SSOStartResponseDto) String() string {
 		return value
 	}
 	return fmt.Sprintf("%#v", s)
+}
+
+type UserIdentitySummaryDto struct {
+	Provider  string    `json:"provider" url:"provider"`
+	CreatedAt time.Time `json:"createdAt" url:"createdAt"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (u *UserIdentitySummaryDto) GetProvider() string {
+	if u == nil {
+		return ""
+	}
+	return u.Provider
+}
+
+func (u *UserIdentitySummaryDto) GetCreatedAt() time.Time {
+	if u == nil {
+		return time.Time{}
+	}
+	return u.CreatedAt
+}
+
+func (u *UserIdentitySummaryDto) GetExtraProperties() map[string]interface{} {
+	return u.extraProperties
+}
+
+func (u *UserIdentitySummaryDto) UnmarshalJSON(data []byte) error {
+	type embed UserIdentitySummaryDto
+	var unmarshaler = struct {
+		embed
+		CreatedAt *internal.DateTime `json:"createdAt"`
+	}{
+		embed: embed(*u),
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
+		return err
+	}
+	*u = UserIdentitySummaryDto(unmarshaler.embed)
+	u.CreatedAt = unmarshaler.CreatedAt.Time()
+	extraProperties, err := internal.ExtractExtraProperties(data, *u)
+	if err != nil {
+		return err
+	}
+	u.extraProperties = extraProperties
+	u.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (u *UserIdentitySummaryDto) MarshalJSON() ([]byte, error) {
+	type embed UserIdentitySummaryDto
+	var marshaler = struct {
+		embed
+		CreatedAt *internal.DateTime `json:"createdAt"`
+	}{
+		embed:     embed(*u),
+		CreatedAt: internal.NewDateTime(u.CreatedAt),
+	}
+	return json.Marshal(marshaler)
+}
+
+func (u *UserIdentitySummaryDto) String() string {
+	if len(u.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(u.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(u); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", u)
+}
+
+type UserOrganizationSummaryDto struct {
+	ID   string `json:"id" url:"id"`
+	Name string `json:"name" url:"name"`
+	Slug string `json:"slug" url:"slug"`
+	// Every role of the user in this organization.
+	Roles []string `json:"roles,omitempty" url:"roles,omitempty"`
+	// The highest built-in role among roles. Use roles.
+	Role UserOrganizationSummaryDtoRole `json:"role" url:"role"`
+	// True for the active organization.
+	Active bool `json:"active" url:"active"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (u *UserOrganizationSummaryDto) GetID() string {
+	if u == nil {
+		return ""
+	}
+	return u.ID
+}
+
+func (u *UserOrganizationSummaryDto) GetName() string {
+	if u == nil {
+		return ""
+	}
+	return u.Name
+}
+
+func (u *UserOrganizationSummaryDto) GetSlug() string {
+	if u == nil {
+		return ""
+	}
+	return u.Slug
+}
+
+func (u *UserOrganizationSummaryDto) GetRoles() []string {
+	if u == nil {
+		return nil
+	}
+	return u.Roles
+}
+
+func (u *UserOrganizationSummaryDto) GetRole() UserOrganizationSummaryDtoRole {
+	if u == nil {
+		return ""
+	}
+	return u.Role
+}
+
+func (u *UserOrganizationSummaryDto) GetActive() bool {
+	if u == nil {
+		return false
+	}
+	return u.Active
+}
+
+func (u *UserOrganizationSummaryDto) GetExtraProperties() map[string]interface{} {
+	return u.extraProperties
+}
+
+func (u *UserOrganizationSummaryDto) UnmarshalJSON(data []byte) error {
+	type unmarshaler UserOrganizationSummaryDto
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*u = UserOrganizationSummaryDto(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *u)
+	if err != nil {
+		return err
+	}
+	u.extraProperties = extraProperties
+	u.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (u *UserOrganizationSummaryDto) String() string {
+	if len(u.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(u.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(u); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", u)
+}
+
+// The highest built-in role among roles. Use roles.
+type UserOrganizationSummaryDtoRole string
+
+const (
+	UserOrganizationSummaryDtoRoleOwner  UserOrganizationSummaryDtoRole = "OWNER"
+	UserOrganizationSummaryDtoRoleAdmin  UserOrganizationSummaryDtoRole = "ADMIN"
+	UserOrganizationSummaryDtoRoleMember UserOrganizationSummaryDtoRole = "MEMBER"
+)
+
+func NewUserOrganizationSummaryDtoRoleFromString(s string) (UserOrganizationSummaryDtoRole, error) {
+	switch s {
+	case "OWNER":
+		return UserOrganizationSummaryDtoRoleOwner, nil
+	case "ADMIN":
+		return UserOrganizationSummaryDtoRoleAdmin, nil
+	case "MEMBER":
+		return UserOrganizationSummaryDtoRoleMember, nil
+	}
+	var t UserOrganizationSummaryDtoRole
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (u UserOrganizationSummaryDtoRole) Ptr() *UserOrganizationSummaryDtoRole {
+	return &u
+}
+
+type UserSessionSummaryDto struct {
+	ID string `json:"id" url:"id"`
+	// User-agent recorded when the session opened.
+	UserAgent *string   `json:"userAgent,omitempty" url:"userAgent,omitempty"`
+	IPAddress *string   `json:"ipAddress,omitempty" url:"ipAddress,omitempty"`
+	CreatedAt time.Time `json:"createdAt" url:"createdAt"`
+	ExpiresAt time.Time `json:"expiresAt" url:"expiresAt"`
+	// True for the session making this request.
+	Current bool `json:"current" url:"current"`
+	// True when a member of the app's team opened this session to reproduce an issue. It ends on its own within 60 minutes.
+	SupportSession bool `json:"supportSession" url:"supportSession"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (u *UserSessionSummaryDto) GetID() string {
+	if u == nil {
+		return ""
+	}
+	return u.ID
+}
+
+func (u *UserSessionSummaryDto) GetUserAgent() *string {
+	if u == nil {
+		return nil
+	}
+	return u.UserAgent
+}
+
+func (u *UserSessionSummaryDto) GetIPAddress() *string {
+	if u == nil {
+		return nil
+	}
+	return u.IPAddress
+}
+
+func (u *UserSessionSummaryDto) GetCreatedAt() time.Time {
+	if u == nil {
+		return time.Time{}
+	}
+	return u.CreatedAt
+}
+
+func (u *UserSessionSummaryDto) GetExpiresAt() time.Time {
+	if u == nil {
+		return time.Time{}
+	}
+	return u.ExpiresAt
+}
+
+func (u *UserSessionSummaryDto) GetCurrent() bool {
+	if u == nil {
+		return false
+	}
+	return u.Current
+}
+
+func (u *UserSessionSummaryDto) GetSupportSession() bool {
+	if u == nil {
+		return false
+	}
+	return u.SupportSession
+}
+
+func (u *UserSessionSummaryDto) GetExtraProperties() map[string]interface{} {
+	return u.extraProperties
+}
+
+func (u *UserSessionSummaryDto) UnmarshalJSON(data []byte) error {
+	type embed UserSessionSummaryDto
+	var unmarshaler = struct {
+		embed
+		CreatedAt *internal.DateTime `json:"createdAt"`
+		ExpiresAt *internal.DateTime `json:"expiresAt"`
+	}{
+		embed: embed(*u),
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
+		return err
+	}
+	*u = UserSessionSummaryDto(unmarshaler.embed)
+	u.CreatedAt = unmarshaler.CreatedAt.Time()
+	u.ExpiresAt = unmarshaler.ExpiresAt.Time()
+	extraProperties, err := internal.ExtractExtraProperties(data, *u)
+	if err != nil {
+		return err
+	}
+	u.extraProperties = extraProperties
+	u.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (u *UserSessionSummaryDto) MarshalJSON() ([]byte, error) {
+	type embed UserSessionSummaryDto
+	var marshaler = struct {
+		embed
+		CreatedAt *internal.DateTime `json:"createdAt"`
+		ExpiresAt *internal.DateTime `json:"expiresAt"`
+	}{
+		embed:     embed(*u),
+		CreatedAt: internal.NewDateTime(u.CreatedAt),
+		ExpiresAt: internal.NewDateTime(u.ExpiresAt),
+	}
+	return json.Marshal(marshaler)
+}
+
+func (u *UserSessionSummaryDto) String() string {
+	if len(u.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(u.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(u); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", u)
 }

@@ -8,10 +8,6 @@ import (
 	internal "github.com/mailmus/mailmus-go/internal"
 )
 
-type EmailVerificationRequestDto struct {
-	Email string `json:"email" url:"-"`
-}
-
 type EmailVerificationResponseDto struct {
 	Email string `json:"email" url:"email"`
 	// False if at least one reason below applies.
@@ -126,4 +122,8 @@ func NewEmailVerificationResponseDtoReasonsItemFromString(s string) (EmailVerifi
 
 func (e EmailVerificationResponseDtoReasonsItem) Ptr() *EmailVerificationResponseDtoReasonsItem {
 	return &e
+}
+
+type EmailVerificationRequestDto struct {
+	Email string `json:"email" url:"-"`
 }

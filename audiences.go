@@ -275,7 +275,7 @@ type AudienceResponseDto struct {
 	// Tree of criteria over contact attributes. Null on a static audience.
 	Rules map[string]interface{} `json:"rules,omitempty" url:"rules,omitempty"`
 	// Project this audience belongs to.
-	AppID     string    `json:"appId" url:"appId"`
+	ProjectID string    `json:"projectId" url:"projectId"`
 	CreatedAt time.Time `json:"createdAt" url:"createdAt"`
 
 	extraProperties map[string]interface{}
@@ -310,11 +310,11 @@ func (a *AudienceResponseDto) GetRules() map[string]interface{} {
 	return a.Rules
 }
 
-func (a *AudienceResponseDto) GetAppID() string {
+func (a *AudienceResponseDto) GetProjectID() string {
 	if a == nil {
 		return ""
 	}
-	return a.AppID
+	return a.ProjectID
 }
 
 func (a *AudienceResponseDto) GetCreatedAt() time.Time {
@@ -496,19 +496,19 @@ func (c CreateAudienceDtoType) Ptr() *CreateAudienceDtoType {
 	return &c
 }
 
-type AudiencesUpdateRulesRequest struct {
+type UpdateRulesAudiencesRequest struct {
 	Body *AudienceRulesDto `json:"-" url:"-"`
 }
 
-func (a *AudiencesUpdateRulesRequest) UnmarshalJSON(data []byte) error {
+func (u *UpdateRulesAudiencesRequest) UnmarshalJSON(data []byte) error {
 	body := new(AudienceRulesDto)
 	if err := json.Unmarshal(data, &body); err != nil {
 		return err
 	}
-	a.Body = body
+	u.Body = body
 	return nil
 }
 
-func (a *AudiencesUpdateRulesRequest) MarshalJSON() ([]byte, error) {
-	return json.Marshal(a.Body)
+func (u *UpdateRulesAudiencesRequest) MarshalJSON() ([]byte, error) {
+	return json.Marshal(u.Body)
 }

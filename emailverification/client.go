@@ -31,7 +31,7 @@ func NewClient(opts ...option.RequestOption) *Client {
 	}
 }
 
-func (c *Client) EmailVerificationVerify(
+func (c *Client) Verify(
 	ctx context.Context,
 	projectID string,
 	request *mailmusgo.EmailVerificationRequestDto,

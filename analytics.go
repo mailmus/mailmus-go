@@ -8,7 +8,7 @@ import (
 	internal "github.com/mailmus/mailmus-go/internal"
 )
 
-type AppMailAnalyticsGetRequest struct {
+type GetAnalyticsRequest struct {
 	Days float64 `json:"-" url:"days"`
 }
 

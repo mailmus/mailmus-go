@@ -15,9 +15,9 @@ type CreateSeedListEntryDto struct {
 }
 
 type SeedListEntryResponseDto struct {
-	ID    string `json:"id" url:"id"`
-	AppID string `json:"appId" url:"appId"`
-	Email string `json:"email" url:"email"`
+	ID        string `json:"id" url:"id"`
+	ProjectID string `json:"projectId" url:"projectId"`
+	Email     string `json:"email" url:"email"`
 	// Free-form label, for example the provider being tested.
 	Label     *string   `json:"label,omitempty" url:"label,omitempty"`
 	CreatedAt time.Time `json:"createdAt" url:"createdAt"`
@@ -33,11 +33,11 @@ func (s *SeedListEntryResponseDto) GetID() string {
 	return s.ID
 }
 
-func (s *SeedListEntryResponseDto) GetAppID() string {
+func (s *SeedListEntryResponseDto) GetProjectID() string {
 	if s == nil {
 		return ""
 	}
-	return s.AppID
+	return s.ProjectID
 }
 
 func (s *SeedListEntryResponseDto) GetEmail() string {

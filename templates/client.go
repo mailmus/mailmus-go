@@ -112,7 +112,7 @@ func (c *Client) Create(
 	return response, nil
 }
 
-func (c *Client) Findone(
+func (c *Client) FindOne(
 	ctx context.Context,
 	projectID string,
 	id string,

@@ -31,7 +31,7 @@ func NewClient(opts ...option.RequestOption) *Client {
 	}
 }
 
-func (c *Client) Getstatus(
+func (c *Client) GetStatus(
 	ctx context.Context,
 	opts ...option.RequestOption,
 ) (*mailmusgo.PlatformStatusResponseDto, error) {

@@ -9,11 +9,11 @@ import (
 	time "time"
 )
 
-type AppAuthAnalyticsMauHistoryRequest struct {
+type MauHistoryAuthAnalyticsRequest struct {
 	Year float64 `json:"-" url:"year"`
 }
 
-type AppAuthAnalyticsTimeSeriesRequest struct {
+type TimeSeriesAuthAnalyticsRequest struct {
 	Year float64 `json:"-" url:"year"`
 }
 
@@ -23,9 +23,9 @@ type AuthAnalyticsResponseDto struct {
 	// Absent on the per-project rows of an aggregate: it only bounds the year selector.
 	ProjectCreatedAt *time.Time `json:"projectCreatedAt,omitempty" url:"projectCreatedAt,omitempty"`
 	// Absent on a multi-project aggregate: adding up user-agents across projects means nothing.
-	Devices   *AuthDevicesDto            `json:"devices,omitempty" url:"devices,omitempty"`
-	Customers *AuthCustomersAnalyticsDto `json:"customers,omitempty" url:"customers,omitempty"`
-	// Number of Customers per sign-in method (PASSWORD, GOOGLE, GITHUB, and so on).
+	Devices *AuthDevicesDto        `json:"devices,omitempty" url:"devices,omitempty"`
+	Users   *AuthUsersAnalyticsDto `json:"users,omitempty" url:"users,omitempty"`
+	// Number of users per sign-in method (PASSWORD, GOOGLE, GITHUB, and so on).
 	Providers  map[string]float64 `json:"providers,omitempty" url:"providers,omitempty"`
 	Engagement *AuthEngagementDto `json:"engagement,omitempty" url:"engagement,omitempty"`
 
@@ -61,11 +61,11 @@ func (a *AuthAnalyticsResponseDto) GetDevices() *AuthDevicesDto {
 	return a.Devices
 }
 
-func (a *AuthAnalyticsResponseDto) GetCustomers() *AuthCustomersAnalyticsDto {
+func (a *AuthAnalyticsResponseDto) GetUsers() *AuthUsersAnalyticsDto {
 	if a == nil {
 		return nil
 	}
-	return a.Customers
+	return a.Users
 }
 
 func (a *AuthAnalyticsResponseDto) GetProviders() map[string]float64 {
@@ -121,119 +121,6 @@ func (a *AuthAnalyticsResponseDto) MarshalJSON() ([]byte, error) {
 }
 
 func (a *AuthAnalyticsResponseDto) String() string {
-	if len(a.rawJSON) > 0 {
-		if value, err := internal.StringifyJSON(a.rawJSON); err == nil {
-			return value
-		}
-	}
-	if value, err := internal.StringifyJSON(a); err == nil {
-		return value
-	}
-	return fmt.Sprintf("%#v", a)
-}
-
-type AuthCustomersAnalyticsDto struct {
-	Total             float64 `json:"total" url:"total"`
-	NewLast30Days     float64 `json:"newLast30Days" url:"newLast30Days"`
-	DeletedLast30Days float64 `json:"deletedLast30Days" url:"deletedLast30Days"`
-	// Customers whose address is verified.
-	Verified float64 `json:"verified" url:"verified"`
-	// Verified over total. A fraction between 0 and 1.
-	VerifiedRate float64 `json:"verifiedRate" url:"verifiedRate"`
-	Banned       float64 `json:"banned" url:"banned"`
-	BannedRate   float64 `json:"bannedRate" url:"bannedRate"`
-	// Customers who turned on a second factor.
-	MfaEnabled     float64 `json:"mfaEnabled" url:"mfaEnabled"`
-	MfaEnabledRate float64 `json:"mfaEnabledRate" url:"mfaEnabledRate"`
-
-	extraProperties map[string]interface{}
-	rawJSON         json.RawMessage
-}
-
-func (a *AuthCustomersAnalyticsDto) GetTotal() float64 {
-	if a == nil {
-		return 0
-	}
-	return a.Total
-}
-
-func (a *AuthCustomersAnalyticsDto) GetNewLast30Days() float64 {
-	if a == nil {
-		return 0
-	}
-	return a.NewLast30Days
-}
-
-func (a *AuthCustomersAnalyticsDto) GetDeletedLast30Days() float64 {
-	if a == nil {
-		return 0
-	}
-	return a.DeletedLast30Days
-}
-
-func (a *AuthCustomersAnalyticsDto) GetVerified() float64 {
-	if a == nil {
-		return 0
-	}
-	return a.Verified
-}
-
-func (a *AuthCustomersAnalyticsDto) GetVerifiedRate() float64 {
-	if a == nil {
-		return 0
-	}
-	return a.VerifiedRate
-}
-
-func (a *AuthCustomersAnalyticsDto) GetBanned() float64 {
-	if a == nil {
-		return 0
-	}
-	return a.Banned
-}
-
-func (a *AuthCustomersAnalyticsDto) GetBannedRate() float64 {
-	if a == nil {
-		return 0
-	}
-	return a.BannedRate
-}
-
-func (a *AuthCustomersAnalyticsDto) GetMfaEnabled() float64 {
-	if a == nil {
-		return 0
-	}
-	return a.MfaEnabled
-}
-
-func (a *AuthCustomersAnalyticsDto) GetMfaEnabledRate() float64 {
-	if a == nil {
-		return 0
-	}
-	return a.MfaEnabledRate
-}
-
-func (a *AuthCustomersAnalyticsDto) GetExtraProperties() map[string]interface{} {
-	return a.extraProperties
-}
-
-func (a *AuthCustomersAnalyticsDto) UnmarshalJSON(data []byte) error {
-	type unmarshaler AuthCustomersAnalyticsDto
-	var value unmarshaler
-	if err := json.Unmarshal(data, &value); err != nil {
-		return err
-	}
-	*a = AuthCustomersAnalyticsDto(value)
-	extraProperties, err := internal.ExtractExtraProperties(data, *a)
-	if err != nil {
-		return err
-	}
-	a.extraProperties = extraProperties
-	a.rawJSON = json.RawMessage(data)
-	return nil
-}
-
-func (a *AuthCustomersAnalyticsDto) String() string {
 	if len(a.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(a.rawJSON); err == nil {
 			return value
@@ -378,11 +265,11 @@ func (a *AuthDormantBreakdownDto) String() string {
 }
 
 type AuthEngagementDto struct {
-	// Customers active in the current month.
+	// Users active in the current month.
 	Mau float64 `json:"mau" url:"mau"`
-	// Denominator of the retention rates: Customers with at least one session. Those who never came do not count.
+	// Denominator of the retention rates: users with at least one session. Those who never came do not count.
 	EverActiveUsers float64 `json:"everActiveUsers" url:"everActiveUsers"`
-	// Customers active in at least two distinct calendar months.
+	// Users active in at least two distinct calendar months.
 	RecurringUsers float64 `json:"recurringUsers" url:"recurringUsers"`
 	// Returning users over everActiveUsers.
 	RecurringRate float64                  `json:"recurringRate" url:"recurringRate"`
@@ -564,6 +451,119 @@ func (a *AuthTimeSeriesPointDto) UnmarshalJSON(data []byte) error {
 }
 
 func (a *AuthTimeSeriesPointDto) String() string {
+	if len(a.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(a.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(a); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", a)
+}
+
+type AuthUsersAnalyticsDto struct {
+	Total             float64 `json:"total" url:"total"`
+	NewLast30Days     float64 `json:"newLast30Days" url:"newLast30Days"`
+	DeletedLast30Days float64 `json:"deletedLast30Days" url:"deletedLast30Days"`
+	// Users whose address is verified.
+	Verified float64 `json:"verified" url:"verified"`
+	// Verified over total. A fraction between 0 and 1.
+	VerifiedRate float64 `json:"verifiedRate" url:"verifiedRate"`
+	Banned       float64 `json:"banned" url:"banned"`
+	BannedRate   float64 `json:"bannedRate" url:"bannedRate"`
+	// Users who turned on a second factor.
+	MfaEnabled     float64 `json:"mfaEnabled" url:"mfaEnabled"`
+	MfaEnabledRate float64 `json:"mfaEnabledRate" url:"mfaEnabledRate"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (a *AuthUsersAnalyticsDto) GetTotal() float64 {
+	if a == nil {
+		return 0
+	}
+	return a.Total
+}
+
+func (a *AuthUsersAnalyticsDto) GetNewLast30Days() float64 {
+	if a == nil {
+		return 0
+	}
+	return a.NewLast30Days
+}
+
+func (a *AuthUsersAnalyticsDto) GetDeletedLast30Days() float64 {
+	if a == nil {
+		return 0
+	}
+	return a.DeletedLast30Days
+}
+
+func (a *AuthUsersAnalyticsDto) GetVerified() float64 {
+	if a == nil {
+		return 0
+	}
+	return a.Verified
+}
+
+func (a *AuthUsersAnalyticsDto) GetVerifiedRate() float64 {
+	if a == nil {
+		return 0
+	}
+	return a.VerifiedRate
+}
+
+func (a *AuthUsersAnalyticsDto) GetBanned() float64 {
+	if a == nil {
+		return 0
+	}
+	return a.Banned
+}
+
+func (a *AuthUsersAnalyticsDto) GetBannedRate() float64 {
+	if a == nil {
+		return 0
+	}
+	return a.BannedRate
+}
+
+func (a *AuthUsersAnalyticsDto) GetMfaEnabled() float64 {
+	if a == nil {
+		return 0
+	}
+	return a.MfaEnabled
+}
+
+func (a *AuthUsersAnalyticsDto) GetMfaEnabledRate() float64 {
+	if a == nil {
+		return 0
+	}
+	return a.MfaEnabledRate
+}
+
+func (a *AuthUsersAnalyticsDto) GetExtraProperties() map[string]interface{} {
+	return a.extraProperties
+}
+
+func (a *AuthUsersAnalyticsDto) UnmarshalJSON(data []byte) error {
+	type unmarshaler AuthUsersAnalyticsDto
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*a = AuthUsersAnalyticsDto(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *a)
+	if err != nil {
+		return err
+	}
+	a.extraProperties = extraProperties
+	a.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (a *AuthUsersAnalyticsDto) String() string {
 	if len(a.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(a.rawJSON); err == nil {
 			return value

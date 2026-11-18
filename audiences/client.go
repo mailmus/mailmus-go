@@ -112,7 +112,7 @@ func (c *Client) Create(
 	return response, nil
 }
 
-func (c *Client) Findone(
+func (c *Client) FindOne(
 	ctx context.Context,
 	projectID string,
 	id string,
@@ -238,11 +238,11 @@ func (c *Client) Rename(
 	return response, nil
 }
 
-func (c *Client) Updaterules(
+func (c *Client) UpdateRules(
 	ctx context.Context,
 	projectID string,
 	id string,
-	request *mailmusgo.AudiencesUpdateRulesRequest,
+	request *mailmusgo.UpdateRulesAudiencesRequest,
 	opts ...option.RequestOption,
 ) (*mailmusgo.AudienceRecomputeResultDto, error) {
 	options := core.NewRequestOptions(opts...)
@@ -323,7 +323,7 @@ func (c *Client) Recompute(
 	return response, nil
 }
 
-func (c *Client) Getcontacts(
+func (c *Client) GetContacts(
 	ctx context.Context,
 	projectID string,
 	id string,
@@ -364,7 +364,7 @@ func (c *Client) Getcontacts(
 	return response, nil
 }
 
-func (c *Client) Addcontact(
+func (c *Client) AddContact(
 	ctx context.Context,
 	projectID string,
 	id string,
@@ -408,7 +408,7 @@ func (c *Client) Addcontact(
 	return response, nil
 }
 
-func (c *Client) Addcontactbyemail(
+func (c *Client) AddContactByEmail(
 	ctx context.Context,
 	projectID string,
 	id string,
@@ -452,7 +452,7 @@ func (c *Client) Addcontactbyemail(
 	return response, nil
 }
 
-func (c *Client) Bulkaddbyemails(
+func (c *Client) BulkAddByEmails(
 	ctx context.Context,
 	projectID string,
 	id string,
@@ -496,7 +496,7 @@ func (c *Client) Bulkaddbyemails(
 	return response, nil
 }
 
-func (c *Client) Removecontact(
+func (c *Client) RemoveContact(
 	ctx context.Context,
 	projectID string,
 	id string,

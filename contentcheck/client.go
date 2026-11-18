@@ -31,7 +31,7 @@ func NewClient(opts ...option.RequestOption) *Client {
 	}
 }
 
-func (c *Client) ContentCheckCheck(
+func (c *Client) Check(
 	ctx context.Context,
 	projectID string,
 	request *mailmusgo.ContentCheckDto,

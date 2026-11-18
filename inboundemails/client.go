@@ -31,7 +31,7 @@ func NewClient(opts ...option.RequestOption) *Client {
 	}
 }
 
-func (c *Client) InboundEmailsList(
+func (c *Client) List(
 	ctx context.Context,
 	projectID string,
 	opts ...option.RequestOption,
@@ -70,7 +70,7 @@ func (c *Client) InboundEmailsList(
 	return response, nil
 }
 
-func (c *Client) InboundEmailsFindOne(
+func (c *Client) FindOne(
 	ctx context.Context,
 	projectID string,
 	id string,

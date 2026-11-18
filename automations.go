@@ -27,7 +27,7 @@ type AutomationResponseDto struct {
 	Steps []map[string]interface{} `json:"steps,omitempty" url:"steps,omitempty"`
 	// An inactive automation keeps its steps but no longer triggers.
 	Active    bool      `json:"active" url:"active"`
-	AppID     string    `json:"appId" url:"appId"`
+	ProjectID string    `json:"projectId" url:"projectId"`
 	CreatedAt time.Time `json:"createdAt" url:"createdAt"`
 	UpdatedAt time.Time `json:"updatedAt" url:"updatedAt"`
 
@@ -70,11 +70,11 @@ func (a *AutomationResponseDto) GetActive() bool {
 	return a.Active
 }
 
-func (a *AutomationResponseDto) GetAppID() string {
+func (a *AutomationResponseDto) GetProjectID() string {
 	if a == nil {
 		return ""
 	}
-	return a.AppID
+	return a.ProjectID
 }
 
 func (a *AutomationResponseDto) GetCreatedAt() time.Time {

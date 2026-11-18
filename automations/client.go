@@ -197,7 +197,7 @@ func (c *Client) Rename(
 	return response, nil
 }
 
-func (c *Client) Setactive(
+func (c *Client) SetActive(
 	ctx context.Context,
 	projectID string,
 	id string,
@@ -238,7 +238,7 @@ func (c *Client) Setactive(
 	return response, nil
 }
 
-func (c *Client) Listruns(
+func (c *Client) ListRuns(
 	ctx context.Context,
 	projectID string,
 	id string,

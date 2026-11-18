@@ -29,7 +29,7 @@ type CreateCampaignDto struct {
 	Variants []*CampaignVariantDto `json:"variants,omitempty" url:"-"`
 }
 
-type CampaignsGetSendsRequest struct {
+type GetSendsCampaignsRequest struct {
 	Status string `json:"-" url:"status"`
 }
 
@@ -87,6 +87,52 @@ func (c *CampaignActionResultDto) String() string {
 	return fmt.Sprintf("%#v", c)
 }
 
+type CampaignAudienceSummaryDto struct {
+	Name string `json:"name" url:"name"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (c *CampaignAudienceSummaryDto) GetName() string {
+	if c == nil {
+		return ""
+	}
+	return c.Name
+}
+
+func (c *CampaignAudienceSummaryDto) GetExtraProperties() map[string]interface{} {
+	return c.extraProperties
+}
+
+func (c *CampaignAudienceSummaryDto) UnmarshalJSON(data []byte) error {
+	type unmarshaler CampaignAudienceSummaryDto
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*c = CampaignAudienceSummaryDto(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *c)
+	if err != nil {
+		return err
+	}
+	c.extraProperties = extraProperties
+	c.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (c *CampaignAudienceSummaryDto) String() string {
+	if len(c.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(c.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(c); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", c)
+}
+
 type CampaignDetailResponseDto struct {
 	ID string `json:"id" url:"id"`
 	// Internal name, never seen by a recipient.
@@ -103,9 +149,9 @@ type CampaignDetailResponseDto struct {
 	TemplateID  string                          `json:"templateId" url:"templateId"`
 	// Sending domain, which must be verified.
 	DomainID string `json:"domainId" url:"domainId"`
-	// Audience destinataire.
+	// Audience the campaign is sent to.
 	AudienceID string `json:"audienceId" url:"audienceId"`
-	AppID      string `json:"appId" url:"appId"`
+	ProjectID  string `json:"projectId" url:"projectId"`
 	// True if the campaign tests several variants.
 	AbTestEnabled bool `json:"abTestEnabled" url:"abTestEnabled"`
 	// Share of the audience used for the test, the rest receiving the winning variant.
@@ -117,6 +163,7 @@ type CampaignDetailResponseDto struct {
 	AbTestStartedAt       *time.Time                    `json:"abTestStartedAt,omitempty" url:"abTestStartedAt,omitempty"`
 	CreatedAt             time.Time                     `json:"createdAt" url:"createdAt"`
 	UpdatedAt             time.Time                     `json:"updatedAt" url:"updatedAt"`
+	Audience              *CampaignAudienceSummaryDto   `json:"audience,omitempty" url:"audience,omitempty"`
 	Variants              []*CampaignVariantResponseDto `json:"variants,omitempty" url:"variants,omitempty"`
 	Stats                 *CampaignStatsDto             `json:"stats,omitempty" url:"stats,omitempty"`
 
@@ -208,11 +255,11 @@ func (c *CampaignDetailResponseDto) GetAudienceID() string {
 	return c.AudienceID
 }
 
-func (c *CampaignDetailResponseDto) GetAppID() string {
+func (c *CampaignDetailResponseDto) GetProjectID() string {
 	if c == nil {
 		return ""
 	}
-	return c.AppID
+	return c.ProjectID
 }
 
 func (c *CampaignDetailResponseDto) GetAbTestEnabled() bool {
@@ -262,6 +309,13 @@ func (c *CampaignDetailResponseDto) GetUpdatedAt() time.Time {
 		return time.Time{}
 	}
 	return c.UpdatedAt
+}
+
+func (c *CampaignDetailResponseDto) GetAudience() *CampaignAudienceSummaryDto {
+	if c == nil {
+		return nil
+	}
+	return c.Audience
 }
 
 func (c *CampaignDetailResponseDto) GetVariants() []*CampaignVariantResponseDto {
@@ -398,6 +452,388 @@ func (c CampaignDetailResponseDtoStatus) Ptr() *CampaignDetailResponseDtoStatus 
 	return &c
 }
 
+type CampaignListItemResponseDto struct {
+	ID string `json:"id" url:"id"`
+	// Internal name, never seen by a recipient.
+	Name string `json:"name" url:"name"`
+	// Subject of the message, this one visible.
+	Subject   string  `json:"subject" url:"subject"`
+	FromEmail string  `json:"fromEmail" url:"fromEmail"`
+	FromName  *string `json:"fromName,omitempty" url:"fromName,omitempty"`
+	// Preview text shown after the subject in the inbox.
+	PreviewText *string                           `json:"previewText,omitempty" url:"previewText,omitempty"`
+	Status      CampaignListItemResponseDtoStatus `json:"status" url:"status"`
+	ScheduledAt *time.Time                        `json:"scheduledAt,omitempty" url:"scheduledAt,omitempty"`
+	SentAt      *time.Time                        `json:"sentAt,omitempty" url:"sentAt,omitempty"`
+	TemplateID  string                            `json:"templateId" url:"templateId"`
+	// Sending domain, which must be verified.
+	DomainID string `json:"domainId" url:"domainId"`
+	// Audience the campaign is sent to.
+	AudienceID string `json:"audienceId" url:"audienceId"`
+	ProjectID  string `json:"projectId" url:"projectId"`
+	// True if the campaign tests several variants.
+	AbTestEnabled bool `json:"abTestEnabled" url:"abTestEnabled"`
+	// Share of the audience used for the test, the rest receiving the winning variant.
+	AbTestSamplePercent *float64 `json:"abTestSamplePercent,omitempty" url:"abTestSamplePercent,omitempty"`
+	// What decides between the variants.
+	AbTestMetric *CampaignListItemResponseDtoAbTestMetric `json:"abTestMetric,omitempty" url:"abTestMetric,omitempty"`
+	// Length of the test before the winner is picked automatically.
+	AbTestDurationMinutes *float64                    `json:"abTestDurationMinutes,omitempty" url:"abTestDurationMinutes,omitempty"`
+	AbTestStartedAt       *time.Time                  `json:"abTestStartedAt,omitempty" url:"abTestStartedAt,omitempty"`
+	CreatedAt             time.Time                   `json:"createdAt" url:"createdAt"`
+	UpdatedAt             time.Time                   `json:"updatedAt" url:"updatedAt"`
+	Audience              *CampaignAudienceSummaryDto `json:"audience,omitempty" url:"audience,omitempty"`
+	Stats                 *CampaignListStatsDto       `json:"stats,omitempty" url:"stats,omitempty"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (c *CampaignListItemResponseDto) GetID() string {
+	if c == nil {
+		return ""
+	}
+	return c.ID
+}
+
+func (c *CampaignListItemResponseDto) GetName() string {
+	if c == nil {
+		return ""
+	}
+	return c.Name
+}
+
+func (c *CampaignListItemResponseDto) GetSubject() string {
+	if c == nil {
+		return ""
+	}
+	return c.Subject
+}
+
+func (c *CampaignListItemResponseDto) GetFromEmail() string {
+	if c == nil {
+		return ""
+	}
+	return c.FromEmail
+}
+
+func (c *CampaignListItemResponseDto) GetFromName() *string {
+	if c == nil {
+		return nil
+	}
+	return c.FromName
+}
+
+func (c *CampaignListItemResponseDto) GetPreviewText() *string {
+	if c == nil {
+		return nil
+	}
+	return c.PreviewText
+}
+
+func (c *CampaignListItemResponseDto) GetStatus() CampaignListItemResponseDtoStatus {
+	if c == nil {
+		return ""
+	}
+	return c.Status
+}
+
+func (c *CampaignListItemResponseDto) GetScheduledAt() *time.Time {
+	if c == nil {
+		return nil
+	}
+	return c.ScheduledAt
+}
+
+func (c *CampaignListItemResponseDto) GetSentAt() *time.Time {
+	if c == nil {
+		return nil
+	}
+	return c.SentAt
+}
+
+func (c *CampaignListItemResponseDto) GetTemplateID() string {
+	if c == nil {
+		return ""
+	}
+	return c.TemplateID
+}
+
+func (c *CampaignListItemResponseDto) GetDomainID() string {
+	if c == nil {
+		return ""
+	}
+	return c.DomainID
+}
+
+func (c *CampaignListItemResponseDto) GetAudienceID() string {
+	if c == nil {
+		return ""
+	}
+	return c.AudienceID
+}
+
+func (c *CampaignListItemResponseDto) GetProjectID() string {
+	if c == nil {
+		return ""
+	}
+	return c.ProjectID
+}
+
+func (c *CampaignListItemResponseDto) GetAbTestEnabled() bool {
+	if c == nil {
+		return false
+	}
+	return c.AbTestEnabled
+}
+
+func (c *CampaignListItemResponseDto) GetAbTestSamplePercent() *float64 {
+	if c == nil {
+		return nil
+	}
+	return c.AbTestSamplePercent
+}
+
+func (c *CampaignListItemResponseDto) GetAbTestMetric() *CampaignListItemResponseDtoAbTestMetric {
+	if c == nil {
+		return nil
+	}
+	return c.AbTestMetric
+}
+
+func (c *CampaignListItemResponseDto) GetAbTestDurationMinutes() *float64 {
+	if c == nil {
+		return nil
+	}
+	return c.AbTestDurationMinutes
+}
+
+func (c *CampaignListItemResponseDto) GetAbTestStartedAt() *time.Time {
+	if c == nil {
+		return nil
+	}
+	return c.AbTestStartedAt
+}
+
+func (c *CampaignListItemResponseDto) GetCreatedAt() time.Time {
+	if c == nil {
+		return time.Time{}
+	}
+	return c.CreatedAt
+}
+
+func (c *CampaignListItemResponseDto) GetUpdatedAt() time.Time {
+	if c == nil {
+		return time.Time{}
+	}
+	return c.UpdatedAt
+}
+
+func (c *CampaignListItemResponseDto) GetAudience() *CampaignAudienceSummaryDto {
+	if c == nil {
+		return nil
+	}
+	return c.Audience
+}
+
+func (c *CampaignListItemResponseDto) GetStats() *CampaignListStatsDto {
+	if c == nil {
+		return nil
+	}
+	return c.Stats
+}
+
+func (c *CampaignListItemResponseDto) GetExtraProperties() map[string]interface{} {
+	return c.extraProperties
+}
+
+func (c *CampaignListItemResponseDto) UnmarshalJSON(data []byte) error {
+	type embed CampaignListItemResponseDto
+	var unmarshaler = struct {
+		embed
+		ScheduledAt     *internal.DateTime `json:"scheduledAt,omitempty"`
+		SentAt          *internal.DateTime `json:"sentAt,omitempty"`
+		AbTestStartedAt *internal.DateTime `json:"abTestStartedAt,omitempty"`
+		CreatedAt       *internal.DateTime `json:"createdAt"`
+		UpdatedAt       *internal.DateTime `json:"updatedAt"`
+	}{
+		embed: embed(*c),
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
+		return err
+	}
+	*c = CampaignListItemResponseDto(unmarshaler.embed)
+	c.ScheduledAt = unmarshaler.ScheduledAt.TimePtr()
+	c.SentAt = unmarshaler.SentAt.TimePtr()
+	c.AbTestStartedAt = unmarshaler.AbTestStartedAt.TimePtr()
+	c.CreatedAt = unmarshaler.CreatedAt.Time()
+	c.UpdatedAt = unmarshaler.UpdatedAt.Time()
+	extraProperties, err := internal.ExtractExtraProperties(data, *c)
+	if err != nil {
+		return err
+	}
+	c.extraProperties = extraProperties
+	c.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (c *CampaignListItemResponseDto) MarshalJSON() ([]byte, error) {
+	type embed CampaignListItemResponseDto
+	var marshaler = struct {
+		embed
+		ScheduledAt     *internal.DateTime `json:"scheduledAt,omitempty"`
+		SentAt          *internal.DateTime `json:"sentAt,omitempty"`
+		AbTestStartedAt *internal.DateTime `json:"abTestStartedAt,omitempty"`
+		CreatedAt       *internal.DateTime `json:"createdAt"`
+		UpdatedAt       *internal.DateTime `json:"updatedAt"`
+	}{
+		embed:           embed(*c),
+		ScheduledAt:     internal.NewOptionalDateTime(c.ScheduledAt),
+		SentAt:          internal.NewOptionalDateTime(c.SentAt),
+		AbTestStartedAt: internal.NewOptionalDateTime(c.AbTestStartedAt),
+		CreatedAt:       internal.NewDateTime(c.CreatedAt),
+		UpdatedAt:       internal.NewDateTime(c.UpdatedAt),
+	}
+	return json.Marshal(marshaler)
+}
+
+func (c *CampaignListItemResponseDto) String() string {
+	if len(c.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(c.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(c); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", c)
+}
+
+// What decides between the variants.
+type CampaignListItemResponseDtoAbTestMetric string
+
+const (
+	CampaignListItemResponseDtoAbTestMetricOpenRate  CampaignListItemResponseDtoAbTestMetric = "OPEN_RATE"
+	CampaignListItemResponseDtoAbTestMetricClickRate CampaignListItemResponseDtoAbTestMetric = "CLICK_RATE"
+)
+
+func NewCampaignListItemResponseDtoAbTestMetricFromString(s string) (CampaignListItemResponseDtoAbTestMetric, error) {
+	switch s {
+	case "OPEN_RATE":
+		return CampaignListItemResponseDtoAbTestMetricOpenRate, nil
+	case "CLICK_RATE":
+		return CampaignListItemResponseDtoAbTestMetricClickRate, nil
+	}
+	var t CampaignListItemResponseDtoAbTestMetric
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (c CampaignListItemResponseDtoAbTestMetric) Ptr() *CampaignListItemResponseDtoAbTestMetric {
+	return &c
+}
+
+type CampaignListItemResponseDtoStatus string
+
+const (
+	CampaignListItemResponseDtoStatusDraft     CampaignListItemResponseDtoStatus = "DRAFT"
+	CampaignListItemResponseDtoStatusScheduled CampaignListItemResponseDtoStatus = "SCHEDULED"
+	CampaignListItemResponseDtoStatusSending   CampaignListItemResponseDtoStatus = "SENDING"
+	CampaignListItemResponseDtoStatusSent      CampaignListItemResponseDtoStatus = "SENT"
+	CampaignListItemResponseDtoStatusCancelled CampaignListItemResponseDtoStatus = "CANCELLED"
+)
+
+func NewCampaignListItemResponseDtoStatusFromString(s string) (CampaignListItemResponseDtoStatus, error) {
+	switch s {
+	case "DRAFT":
+		return CampaignListItemResponseDtoStatusDraft, nil
+	case "SCHEDULED":
+		return CampaignListItemResponseDtoStatusScheduled, nil
+	case "SENDING":
+		return CampaignListItemResponseDtoStatusSending, nil
+	case "SENT":
+		return CampaignListItemResponseDtoStatusSent, nil
+	case "CANCELLED":
+		return CampaignListItemResponseDtoStatusCancelled, nil
+	}
+	var t CampaignListItemResponseDtoStatus
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (c CampaignListItemResponseDtoStatus) Ptr() *CampaignListItemResponseDtoStatus {
+	return &c
+}
+
+type CampaignListStatsDto struct {
+	// Sends issued.
+	Total   float64 `json:"total" url:"total"`
+	Opened  float64 `json:"opened" url:"opened"`
+	Clicked float64 `json:"clicked" url:"clicked"`
+	Bounced float64 `json:"bounced" url:"bounced"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (c *CampaignListStatsDto) GetTotal() float64 {
+	if c == nil {
+		return 0
+	}
+	return c.Total
+}
+
+func (c *CampaignListStatsDto) GetOpened() float64 {
+	if c == nil {
+		return 0
+	}
+	return c.Opened
+}
+
+func (c *CampaignListStatsDto) GetClicked() float64 {
+	if c == nil {
+		return 0
+	}
+	return c.Clicked
+}
+
+func (c *CampaignListStatsDto) GetBounced() float64 {
+	if c == nil {
+		return 0
+	}
+	return c.Bounced
+}
+
+func (c *CampaignListStatsDto) GetExtraProperties() map[string]interface{} {
+	return c.extraProperties
+}
+
+func (c *CampaignListStatsDto) UnmarshalJSON(data []byte) error {
+	type unmarshaler CampaignListStatsDto
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*c = CampaignListStatsDto(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *c)
+	if err != nil {
+		return err
+	}
+	c.extraProperties = extraProperties
+	c.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (c *CampaignListStatsDto) String() string {
+	if len(c.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(c.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(c); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", c)
+}
+
 type CampaignResponseDto struct {
 	ID string `json:"id" url:"id"`
 	// Internal name, never seen by a recipient.
@@ -414,9 +850,9 @@ type CampaignResponseDto struct {
 	TemplateID  string                    `json:"templateId" url:"templateId"`
 	// Sending domain, which must be verified.
 	DomainID string `json:"domainId" url:"domainId"`
-	// Audience destinataire.
+	// Audience the campaign is sent to.
 	AudienceID string `json:"audienceId" url:"audienceId"`
-	AppID      string `json:"appId" url:"appId"`
+	ProjectID  string `json:"projectId" url:"projectId"`
 	// True if the campaign tests several variants.
 	AbTestEnabled bool `json:"abTestEnabled" url:"abTestEnabled"`
 	// Share of the audience used for the test, the rest receiving the winning variant.
@@ -517,11 +953,11 @@ func (c *CampaignResponseDto) GetAudienceID() string {
 	return c.AudienceID
 }
 
-func (c *CampaignResponseDto) GetAppID() string {
+func (c *CampaignResponseDto) GetProjectID() string {
 	if c == nil {
 		return ""
 	}
-	return c.AppID
+	return c.ProjectID
 }
 
 func (c *CampaignResponseDto) GetAbTestEnabled() bool {
@@ -979,10 +1415,10 @@ func (c CampaignSendResponseDtoStatus) Ptr() *CampaignSendResponseDtoStatus {
 type CampaignStatsDto struct {
 	// Sends issued.
 	Total     float64 `json:"total" url:"total"`
-	Delivered float64 `json:"delivered" url:"delivered"`
 	Opened    float64 `json:"opened" url:"opened"`
 	Clicked   float64 `json:"clicked" url:"clicked"`
 	Bounced   float64 `json:"bounced" url:"bounced"`
+	Delivered float64 `json:"delivered" url:"delivered"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -993,13 +1429,6 @@ func (c *CampaignStatsDto) GetTotal() float64 {
 		return 0
 	}
 	return c.Total
-}
-
-func (c *CampaignStatsDto) GetDelivered() float64 {
-	if c == nil {
-		return 0
-	}
-	return c.Delivered
 }
 
 func (c *CampaignStatsDto) GetOpened() float64 {
@@ -1021,6 +1450,13 @@ func (c *CampaignStatsDto) GetBounced() float64 {
 		return 0
 	}
 	return c.Bounced
+}
+
+func (c *CampaignStatsDto) GetDelivered() float64 {
+	if c == nil {
+		return 0
+	}
+	return c.Delivered
 }
 
 func (c *CampaignStatsDto) GetExtraProperties() map[string]interface{} {

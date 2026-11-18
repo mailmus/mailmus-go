@@ -9,6 +9,11 @@ import (
 	time "time"
 )
 
+type CreateWebhookDto struct {
+	URL    string                       `json:"url" url:"-"`
+	Events []CreateWebhookDtoEventsItem `json:"events,omitempty" url:"-"`
+}
+
 type WebhookDeliveryResponseDto struct {
 	ID             string `json:"id" url:"id"`
 	SubscriptionID string `json:"subscriptionId" url:"subscriptionId"`
@@ -185,7 +190,7 @@ type WebhookSubscriptionResponseDto struct {
 	Events []string `json:"events,omitempty" url:"events,omitempty"`
 	// An inactive subscription is kept but receives nothing any more.
 	Active    bool      `json:"active" url:"active"`
-	AppID     string    `json:"appId" url:"appId"`
+	ProjectID string    `json:"projectId" url:"projectId"`
 	CreatedAt time.Time `json:"createdAt" url:"createdAt"`
 	UpdatedAt time.Time `json:"updatedAt" url:"updatedAt"`
 
@@ -221,11 +226,11 @@ func (w *WebhookSubscriptionResponseDto) GetActive() bool {
 	return w.Active
 }
 
-func (w *WebhookSubscriptionResponseDto) GetAppID() string {
+func (w *WebhookSubscriptionResponseDto) GetProjectID() string {
 	if w == nil {
 		return ""
 	}
-	return w.AppID
+	return w.ProjectID
 }
 
 func (w *WebhookSubscriptionResponseDto) GetCreatedAt() time.Time {
@@ -304,7 +309,7 @@ type WebhookSubscriptionWithSecretResponseDto struct {
 	Events []string `json:"events,omitempty" url:"events,omitempty"`
 	// An inactive subscription is kept but receives nothing any more.
 	Active    bool      `json:"active" url:"active"`
-	AppID     string    `json:"appId" url:"appId"`
+	ProjectID string    `json:"projectId" url:"projectId"`
 	CreatedAt time.Time `json:"createdAt" url:"createdAt"`
 	UpdatedAt time.Time `json:"updatedAt" url:"updatedAt"`
 	// Key used to verify the signature of every delivery. Shown here and nowhere else.
@@ -342,11 +347,11 @@ func (w *WebhookSubscriptionWithSecretResponseDto) GetActive() bool {
 	return w.Active
 }
 
-func (w *WebhookSubscriptionWithSecretResponseDto) GetAppID() string {
+func (w *WebhookSubscriptionWithSecretResponseDto) GetProjectID() string {
 	if w == nil {
 		return ""
 	}
-	return w.AppID
+	return w.ProjectID
 }
 
 func (w *WebhookSubscriptionWithSecretResponseDto) GetCreatedAt() time.Time {
@@ -506,16 +511,16 @@ const (
 	CreateWebhookDtoEventsItemDomainFailed                           CreateWebhookDtoEventsItem = "domain.failed"
 	CreateWebhookDtoEventsItemAutomationCompleted                    CreateWebhookDtoEventsItem = "automation.completed"
 	CreateWebhookDtoEventsItemAutomationFailed                       CreateWebhookDtoEventsItem = "automation.failed"
-	CreateWebhookDtoEventsItemCustomerCreated                        CreateWebhookDtoEventsItem = "customer.created"
-	CreateWebhookDtoEventsItemCustomerSignedIn                       CreateWebhookDtoEventsItem = "customer.signed_in"
-	CreateWebhookDtoEventsItemCustomerEmailVerified                  CreateWebhookDtoEventsItem = "customer.email_verified"
-	CreateWebhookDtoEventsItemCustomerBanned                         CreateWebhookDtoEventsItem = "customer.banned"
-	CreateWebhookDtoEventsItemCustomerUnbanned                       CreateWebhookDtoEventsItem = "customer.unbanned"
-	CreateWebhookDtoEventsItemCustomerDeleted                        CreateWebhookDtoEventsItem = "customer.deleted"
-	CreateWebhookDtoEventsItemCustomerMfaReset                       CreateWebhookDtoEventsItem = "customer.mfa_reset"
-	CreateWebhookDtoEventsItemCustomerSessionRevoked                 CreateWebhookDtoEventsItem = "customer.session_revoked"
-	CreateWebhookDtoEventsItemCustomerLinked                         CreateWebhookDtoEventsItem = "customer.linked"
-	CreateWebhookDtoEventsItemCustomerImpersonated                   CreateWebhookDtoEventsItem = "customer.impersonated"
+	CreateWebhookDtoEventsItemUserCreated                            CreateWebhookDtoEventsItem = "user.created"
+	CreateWebhookDtoEventsItemUserSignedIn                           CreateWebhookDtoEventsItem = "user.signed_in"
+	CreateWebhookDtoEventsItemUserEmailVerified                      CreateWebhookDtoEventsItem = "user.email_verified"
+	CreateWebhookDtoEventsItemUserBanned                             CreateWebhookDtoEventsItem = "user.banned"
+	CreateWebhookDtoEventsItemUserUnbanned                           CreateWebhookDtoEventsItem = "user.unbanned"
+	CreateWebhookDtoEventsItemUserDeleted                            CreateWebhookDtoEventsItem = "user.deleted"
+	CreateWebhookDtoEventsItemUserMfaReset                           CreateWebhookDtoEventsItem = "user.mfa_reset"
+	CreateWebhookDtoEventsItemUserSessionRevoked                     CreateWebhookDtoEventsItem = "user.session_revoked"
+	CreateWebhookDtoEventsItemUserLinked                             CreateWebhookDtoEventsItem = "user.linked"
+	CreateWebhookDtoEventsItemUserImpersonated                       CreateWebhookDtoEventsItem = "user.impersonated"
 	CreateWebhookDtoEventsItemOrganizationCreated                    CreateWebhookDtoEventsItem = "organization.created"
 	CreateWebhookDtoEventsItemOrganizationUpdated                    CreateWebhookDtoEventsItem = "organization.updated"
 	CreateWebhookDtoEventsItemOrganizationDeleted                    CreateWebhookDtoEventsItem = "organization.deleted"
@@ -549,7 +554,7 @@ const (
 	CreateWebhookDtoEventsItemAccessRoleDeleted                      CreateWebhookDtoEventsItem = "access_role.deleted"
 	CreateWebhookDtoEventsItemAccessPermissionCreated                CreateWebhookDtoEventsItem = "access_permission.created"
 	CreateWebhookDtoEventsItemAccessPermissionDeleted                CreateWebhookDtoEventsItem = "access_permission.deleted"
-	CreateWebhookDtoEventsItemCustomerRolesUpdated                   CreateWebhookDtoEventsItem = "customer.roles_updated"
+	CreateWebhookDtoEventsItemUserRolesUpdated                       CreateWebhookDtoEventsItem = "user.roles_updated"
 )
 
 func NewCreateWebhookDtoEventsItemFromString(s string) (CreateWebhookDtoEventsItem, error) {
@@ -582,26 +587,26 @@ func NewCreateWebhookDtoEventsItemFromString(s string) (CreateWebhookDtoEventsIt
 		return CreateWebhookDtoEventsItemAutomationCompleted, nil
 	case "automation.failed":
 		return CreateWebhookDtoEventsItemAutomationFailed, nil
-	case "customer.created":
-		return CreateWebhookDtoEventsItemCustomerCreated, nil
-	case "customer.signed_in":
-		return CreateWebhookDtoEventsItemCustomerSignedIn, nil
-	case "customer.email_verified":
-		return CreateWebhookDtoEventsItemCustomerEmailVerified, nil
-	case "customer.banned":
-		return CreateWebhookDtoEventsItemCustomerBanned, nil
-	case "customer.unbanned":
-		return CreateWebhookDtoEventsItemCustomerUnbanned, nil
-	case "customer.deleted":
-		return CreateWebhookDtoEventsItemCustomerDeleted, nil
-	case "customer.mfa_reset":
-		return CreateWebhookDtoEventsItemCustomerMfaReset, nil
-	case "customer.session_revoked":
-		return CreateWebhookDtoEventsItemCustomerSessionRevoked, nil
-	case "customer.linked":
-		return CreateWebhookDtoEventsItemCustomerLinked, nil
-	case "customer.impersonated":
-		return CreateWebhookDtoEventsItemCustomerImpersonated, nil
+	case "user.created":
+		return CreateWebhookDtoEventsItemUserCreated, nil
+	case "user.signed_in":
+		return CreateWebhookDtoEventsItemUserSignedIn, nil
+	case "user.email_verified":
+		return CreateWebhookDtoEventsItemUserEmailVerified, nil
+	case "user.banned":
+		return CreateWebhookDtoEventsItemUserBanned, nil
+	case "user.unbanned":
+		return CreateWebhookDtoEventsItemUserUnbanned, nil
+	case "user.deleted":
+		return CreateWebhookDtoEventsItemUserDeleted, nil
+	case "user.mfa_reset":
+		return CreateWebhookDtoEventsItemUserMfaReset, nil
+	case "user.session_revoked":
+		return CreateWebhookDtoEventsItemUserSessionRevoked, nil
+	case "user.linked":
+		return CreateWebhookDtoEventsItemUserLinked, nil
+	case "user.impersonated":
+		return CreateWebhookDtoEventsItemUserImpersonated, nil
 	case "organization.created":
 		return CreateWebhookDtoEventsItemOrganizationCreated, nil
 	case "organization.updated":
@@ -668,8 +673,8 @@ func NewCreateWebhookDtoEventsItemFromString(s string) (CreateWebhookDtoEventsIt
 		return CreateWebhookDtoEventsItemAccessPermissionCreated, nil
 	case "access_permission.deleted":
 		return CreateWebhookDtoEventsItemAccessPermissionDeleted, nil
-	case "customer.roles_updated":
-		return CreateWebhookDtoEventsItemCustomerRolesUpdated, nil
+	case "user.roles_updated":
+		return CreateWebhookDtoEventsItemUserRolesUpdated, nil
 	}
 	var t CreateWebhookDtoEventsItem
 	return "", fmt.Errorf("%s is not a valid %T", s, t)
@@ -696,16 +701,16 @@ const (
 	UpdateWebhookDtoEventsItemDomainFailed                           UpdateWebhookDtoEventsItem = "domain.failed"
 	UpdateWebhookDtoEventsItemAutomationCompleted                    UpdateWebhookDtoEventsItem = "automation.completed"
 	UpdateWebhookDtoEventsItemAutomationFailed                       UpdateWebhookDtoEventsItem = "automation.failed"
-	UpdateWebhookDtoEventsItemCustomerCreated                        UpdateWebhookDtoEventsItem = "customer.created"
-	UpdateWebhookDtoEventsItemCustomerSignedIn                       UpdateWebhookDtoEventsItem = "customer.signed_in"
-	UpdateWebhookDtoEventsItemCustomerEmailVerified                  UpdateWebhookDtoEventsItem = "customer.email_verified"
-	UpdateWebhookDtoEventsItemCustomerBanned                         UpdateWebhookDtoEventsItem = "customer.banned"
-	UpdateWebhookDtoEventsItemCustomerUnbanned                       UpdateWebhookDtoEventsItem = "customer.unbanned"
-	UpdateWebhookDtoEventsItemCustomerDeleted                        UpdateWebhookDtoEventsItem = "customer.deleted"
-	UpdateWebhookDtoEventsItemCustomerMfaReset                       UpdateWebhookDtoEventsItem = "customer.mfa_reset"
-	UpdateWebhookDtoEventsItemCustomerSessionRevoked                 UpdateWebhookDtoEventsItem = "customer.session_revoked"
-	UpdateWebhookDtoEventsItemCustomerLinked                         UpdateWebhookDtoEventsItem = "customer.linked"
-	UpdateWebhookDtoEventsItemCustomerImpersonated                   UpdateWebhookDtoEventsItem = "customer.impersonated"
+	UpdateWebhookDtoEventsItemUserCreated                            UpdateWebhookDtoEventsItem = "user.created"
+	UpdateWebhookDtoEventsItemUserSignedIn                           UpdateWebhookDtoEventsItem = "user.signed_in"
+	UpdateWebhookDtoEventsItemUserEmailVerified                      UpdateWebhookDtoEventsItem = "user.email_verified"
+	UpdateWebhookDtoEventsItemUserBanned                             UpdateWebhookDtoEventsItem = "user.banned"
+	UpdateWebhookDtoEventsItemUserUnbanned                           UpdateWebhookDtoEventsItem = "user.unbanned"
+	UpdateWebhookDtoEventsItemUserDeleted                            UpdateWebhookDtoEventsItem = "user.deleted"
+	UpdateWebhookDtoEventsItemUserMfaReset                           UpdateWebhookDtoEventsItem = "user.mfa_reset"
+	UpdateWebhookDtoEventsItemUserSessionRevoked                     UpdateWebhookDtoEventsItem = "user.session_revoked"
+	UpdateWebhookDtoEventsItemUserLinked                             UpdateWebhookDtoEventsItem = "user.linked"
+	UpdateWebhookDtoEventsItemUserImpersonated                       UpdateWebhookDtoEventsItem = "user.impersonated"
 	UpdateWebhookDtoEventsItemOrganizationCreated                    UpdateWebhookDtoEventsItem = "organization.created"
 	UpdateWebhookDtoEventsItemOrganizationUpdated                    UpdateWebhookDtoEventsItem = "organization.updated"
 	UpdateWebhookDtoEventsItemOrganizationDeleted                    UpdateWebhookDtoEventsItem = "organization.deleted"
@@ -739,7 +744,7 @@ const (
 	UpdateWebhookDtoEventsItemAccessRoleDeleted                      UpdateWebhookDtoEventsItem = "access_role.deleted"
 	UpdateWebhookDtoEventsItemAccessPermissionCreated                UpdateWebhookDtoEventsItem = "access_permission.created"
 	UpdateWebhookDtoEventsItemAccessPermissionDeleted                UpdateWebhookDtoEventsItem = "access_permission.deleted"
-	UpdateWebhookDtoEventsItemCustomerRolesUpdated                   UpdateWebhookDtoEventsItem = "customer.roles_updated"
+	UpdateWebhookDtoEventsItemUserRolesUpdated                       UpdateWebhookDtoEventsItem = "user.roles_updated"
 )
 
 func NewUpdateWebhookDtoEventsItemFromString(s string) (UpdateWebhookDtoEventsItem, error) {
@@ -772,26 +777,26 @@ func NewUpdateWebhookDtoEventsItemFromString(s string) (UpdateWebhookDtoEventsIt
 		return UpdateWebhookDtoEventsItemAutomationCompleted, nil
 	case "automation.failed":
 		return UpdateWebhookDtoEventsItemAutomationFailed, nil
-	case "customer.created":
-		return UpdateWebhookDtoEventsItemCustomerCreated, nil
-	case "customer.signed_in":
-		return UpdateWebhookDtoEventsItemCustomerSignedIn, nil
-	case "customer.email_verified":
-		return UpdateWebhookDtoEventsItemCustomerEmailVerified, nil
-	case "customer.banned":
-		return UpdateWebhookDtoEventsItemCustomerBanned, nil
-	case "customer.unbanned":
-		return UpdateWebhookDtoEventsItemCustomerUnbanned, nil
-	case "customer.deleted":
-		return UpdateWebhookDtoEventsItemCustomerDeleted, nil
-	case "customer.mfa_reset":
-		return UpdateWebhookDtoEventsItemCustomerMfaReset, nil
-	case "customer.session_revoked":
-		return UpdateWebhookDtoEventsItemCustomerSessionRevoked, nil
-	case "customer.linked":
-		return UpdateWebhookDtoEventsItemCustomerLinked, nil
-	case "customer.impersonated":
-		return UpdateWebhookDtoEventsItemCustomerImpersonated, nil
+	case "user.created":
+		return UpdateWebhookDtoEventsItemUserCreated, nil
+	case "user.signed_in":
+		return UpdateWebhookDtoEventsItemUserSignedIn, nil
+	case "user.email_verified":
+		return UpdateWebhookDtoEventsItemUserEmailVerified, nil
+	case "user.banned":
+		return UpdateWebhookDtoEventsItemUserBanned, nil
+	case "user.unbanned":
+		return UpdateWebhookDtoEventsItemUserUnbanned, nil
+	case "user.deleted":
+		return UpdateWebhookDtoEventsItemUserDeleted, nil
+	case "user.mfa_reset":
+		return UpdateWebhookDtoEventsItemUserMfaReset, nil
+	case "user.session_revoked":
+		return UpdateWebhookDtoEventsItemUserSessionRevoked, nil
+	case "user.linked":
+		return UpdateWebhookDtoEventsItemUserLinked, nil
+	case "user.impersonated":
+		return UpdateWebhookDtoEventsItemUserImpersonated, nil
 	case "organization.created":
 		return UpdateWebhookDtoEventsItemOrganizationCreated, nil
 	case "organization.updated":
@@ -858,8 +863,8 @@ func NewUpdateWebhookDtoEventsItemFromString(s string) (UpdateWebhookDtoEventsIt
 		return UpdateWebhookDtoEventsItemAccessPermissionCreated, nil
 	case "access_permission.deleted":
 		return UpdateWebhookDtoEventsItemAccessPermissionDeleted, nil
-	case "customer.roles_updated":
-		return UpdateWebhookDtoEventsItemCustomerRolesUpdated, nil
+	case "user.roles_updated":
+		return UpdateWebhookDtoEventsItemUserRolesUpdated, nil
 	}
 	var t UpdateWebhookDtoEventsItem
 	return "", fmt.Errorf("%s is not a valid %T", s, t)
@@ -867,11 +872,6 @@ func NewUpdateWebhookDtoEventsItemFromString(s string) (UpdateWebhookDtoEventsIt
 
 func (u UpdateWebhookDtoEventsItem) Ptr() *UpdateWebhookDtoEventsItem {
 	return &u
-}
-
-type CreateWebhookDto struct {
-	URL    string                       `json:"url" url:"-"`
-	Events []CreateWebhookDtoEventsItem `json:"events,omitempty" url:"-"`
 }
 
 type UpdateWebhookDto struct {

@@ -80,8 +80,8 @@ func (i *InboundEmailListResponseDto) String() string {
 }
 
 type InboundEmailResponseDto struct {
-	ID    string `json:"id" url:"id"`
-	AppID string `json:"appId" url:"appId"`
+	ID        string `json:"id" url:"id"`
+	ProjectID string `json:"projectId" url:"projectId"`
 	// Identifier of the message at the sender.
 	MessageID string   `json:"messageId" url:"messageId"`
 	From      string   `json:"from" url:"from"`
@@ -106,11 +106,11 @@ func (i *InboundEmailResponseDto) GetID() string {
 	return i.ID
 }
 
-func (i *InboundEmailResponseDto) GetAppID() string {
+func (i *InboundEmailResponseDto) GetProjectID() string {
 	if i == nil {
 		return ""
 	}
-	return i.AppID
+	return i.ProjectID
 }
 
 func (i *InboundEmailResponseDto) GetMessageID() string {

@@ -112,7 +112,7 @@ func (c *Client) Create(
 	return response, nil
 }
 
-func (c *Client) Getblockliststatus(
+func (c *Client) GetBlocklistStatus(
 	ctx context.Context,
 	projectID string,
 	id string,

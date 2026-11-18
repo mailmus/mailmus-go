@@ -31,7 +31,7 @@ func NewClient(opts ...option.RequestOption) *Client {
 	}
 }
 
-func (c *Client) SeedListList(
+func (c *Client) List(
 	ctx context.Context,
 	projectID string,
 	opts ...option.RequestOption,
@@ -70,7 +70,7 @@ func (c *Client) SeedListList(
 	return response, nil
 }
 
-func (c *Client) SeedListCreate(
+func (c *Client) Create(
 	ctx context.Context,
 	projectID string,
 	request *mailmusgo.CreateSeedListEntryDto,
@@ -112,7 +112,7 @@ func (c *Client) SeedListCreate(
 	return response, nil
 }
 
-func (c *Client) SeedListRemove(
+func (c *Client) Remove(
 	ctx context.Context,
 	projectID string,
 	id string,

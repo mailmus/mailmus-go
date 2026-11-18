@@ -6,42 +6,13 @@ import (
 	json "encoding/json"
 	fmt "fmt"
 	internal "github.com/mailmus/mailmus-go/internal"
-	time "time"
 )
-
-type CreateAccessPermissionDto struct {
-	Key         string  `json:"key" url:"-"`
-	Description *string `json:"description,omitempty" url:"-"`
-}
-
-type CreateAccessRoleDto struct {
-	Key         string  `json:"key" url:"-"`
-	Name        string  `json:"name" url:"-"`
-	Description *string `json:"description,omitempty" url:"-"`
-	// PROJECT roles are given to a customer; ORGANIZATION roles to an organization member.
-	Scope CreateAccessRoleDtoScope `json:"scope" url:"-"`
-	// PROJECT roles only: the role also grants its permissions in every organization, without membership.
-	AppliesToAllOrganizations *bool    `json:"appliesToAllOrganizations,omitempty" url:"-"`
-	Permissions               []string `json:"permissions,omitempty" url:"-"`
-}
-
-type AccessRolesListRequest struct {
-	Scope *AccessRolesListRequestScope `json:"-" url:"scope,omitempty"`
-}
-
-type UpdateAccessRoleDto struct {
-	Name                      *string `json:"name,omitempty" url:"-"`
-	Description               *string `json:"description,omitempty" url:"-"`
-	AppliesToAllOrganizations *bool   `json:"appliesToAllOrganizations,omitempty" url:"-"`
-	// Replaces the permissions of the role.
-	Permissions []string `json:"permissions,omitempty" url:"-"`
-}
 
 type CheckAccessDto struct {
 	Permission string `json:"permission" url:"-"`
 	// The Mailmus ID of the person. Provide this or externalUserId.
-	CustomerID *string `json:"customerId,omitempty" url:"-"`
-	// Your own ID for the person. Provide this or customerId.
+	UserID *string `json:"userId,omitempty" url:"-"`
+	// Your own ID for the person. Provide this or userId.
 	ExternalUserID *string `json:"externalUserId,omitempty" url:"-"`
 	// Ask within this organization. Without an organization, only project roles are considered.
 	OrganizationID *string `json:"organizationId,omitempty" url:"-"`
@@ -145,7 +116,7 @@ const (
 	AccessDecisionDtoReasonProjectRole                 AccessDecisionDtoReason = "PROJECT_ROLE"
 	AccessDecisionDtoReasonOrganizationRole            AccessDecisionDtoReason = "ORGANIZATION_ROLE"
 	AccessDecisionDtoReasonProjectRoleAllOrganizations AccessDecisionDtoReason = "PROJECT_ROLE_ALL_ORGANIZATIONS"
-	AccessDecisionDtoReasonCustomerNotFound            AccessDecisionDtoReason = "CUSTOMER_NOT_FOUND"
+	AccessDecisionDtoReasonUserNotFound                AccessDecisionDtoReason = "USER_NOT_FOUND"
 	AccessDecisionDtoReasonUnknownPermission           AccessDecisionDtoReason = "UNKNOWN_PERMISSION"
 	AccessDecisionDtoReasonNoRoleGrants                AccessDecisionDtoReason = "NO_ROLE_GRANTS"
 	AccessDecisionDtoReasonOrganizationsDisabled       AccessDecisionDtoReason = "ORGANIZATIONS_DISABLED"
@@ -163,8 +134,8 @@ func NewAccessDecisionDtoReasonFromString(s string) (AccessDecisionDtoReason, er
 		return AccessDecisionDtoReasonOrganizationRole, nil
 	case "PROJECT_ROLE_ALL_ORGANIZATIONS":
 		return AccessDecisionDtoReasonProjectRoleAllOrganizations, nil
-	case "CUSTOMER_NOT_FOUND":
-		return AccessDecisionDtoReasonCustomerNotFound, nil
+	case "USER_NOT_FOUND":
+		return AccessDecisionDtoReasonUserNotFound, nil
 	case "UNKNOWN_PERMISSION":
 		return AccessDecisionDtoReasonUnknownPermission, nil
 	case "NO_ROLE_GRANTS":
@@ -267,7 +238,7 @@ func (a *AccessDecisionStepDto) String() string {
 type AccessDecisionStepDtoStep string
 
 const (
-	AccessDecisionStepDtoStepCustomer                     AccessDecisionStepDtoStep = "customer"
+	AccessDecisionStepDtoStepUser                         AccessDecisionStepDtoStep = "user"
 	AccessDecisionStepDtoStepPermission                   AccessDecisionStepDtoStep = "permission"
 	AccessDecisionStepDtoStepProjectRoles                 AccessDecisionStepDtoStep = "project_roles"
 	AccessDecisionStepDtoStepOrganizationsEnabled         AccessDecisionStepDtoStep = "organizations_enabled"
@@ -281,8 +252,8 @@ const (
 
 func NewAccessDecisionStepDtoStepFromString(s string) (AccessDecisionStepDtoStep, error) {
 	switch s {
-	case "customer":
-		return AccessDecisionStepDtoStepCustomer, nil
+	case "user":
+		return AccessDecisionStepDtoStepUser, nil
 	case "permission":
 		return AccessDecisionStepDtoStepPermission, nil
 	case "project_roles":
@@ -308,330 +279,4 @@ func NewAccessDecisionStepDtoStepFromString(s string) (AccessDecisionStepDtoStep
 
 func (a AccessDecisionStepDtoStep) Ptr() *AccessDecisionStepDtoStep {
 	return &a
-}
-
-type AccessDeletedResponseDto struct {
-	Deleted bool `json:"deleted" url:"deleted"`
-
-	extraProperties map[string]interface{}
-	rawJSON         json.RawMessage
-}
-
-func (a *AccessDeletedResponseDto) GetDeleted() bool {
-	if a == nil {
-		return false
-	}
-	return a.Deleted
-}
-
-func (a *AccessDeletedResponseDto) GetExtraProperties() map[string]interface{} {
-	return a.extraProperties
-}
-
-func (a *AccessDeletedResponseDto) UnmarshalJSON(data []byte) error {
-	type unmarshaler AccessDeletedResponseDto
-	var value unmarshaler
-	if err := json.Unmarshal(data, &value); err != nil {
-		return err
-	}
-	*a = AccessDeletedResponseDto(value)
-	extraProperties, err := internal.ExtractExtraProperties(data, *a)
-	if err != nil {
-		return err
-	}
-	a.extraProperties = extraProperties
-	a.rawJSON = json.RawMessage(data)
-	return nil
-}
-
-func (a *AccessDeletedResponseDto) String() string {
-	if len(a.rawJSON) > 0 {
-		if value, err := internal.StringifyJSON(a.rawJSON); err == nil {
-			return value
-		}
-	}
-	if value, err := internal.StringifyJSON(a); err == nil {
-		return value
-	}
-	return fmt.Sprintf("%#v", a)
-}
-
-type AccessPermissionResponseDto struct {
-	Key         string    `json:"key" url:"key"`
-	Description *string   `json:"description,omitempty" url:"description,omitempty"`
-	CreatedAt   time.Time `json:"createdAt" url:"createdAt"`
-
-	extraProperties map[string]interface{}
-	rawJSON         json.RawMessage
-}
-
-func (a *AccessPermissionResponseDto) GetKey() string {
-	if a == nil {
-		return ""
-	}
-	return a.Key
-}
-
-func (a *AccessPermissionResponseDto) GetDescription() *string {
-	if a == nil {
-		return nil
-	}
-	return a.Description
-}
-
-func (a *AccessPermissionResponseDto) GetCreatedAt() time.Time {
-	if a == nil {
-		return time.Time{}
-	}
-	return a.CreatedAt
-}
-
-func (a *AccessPermissionResponseDto) GetExtraProperties() map[string]interface{} {
-	return a.extraProperties
-}
-
-func (a *AccessPermissionResponseDto) UnmarshalJSON(data []byte) error {
-	type embed AccessPermissionResponseDto
-	var unmarshaler = struct {
-		embed
-		CreatedAt *internal.DateTime `json:"createdAt"`
-	}{
-		embed: embed(*a),
-	}
-	if err := json.Unmarshal(data, &unmarshaler); err != nil {
-		return err
-	}
-	*a = AccessPermissionResponseDto(unmarshaler.embed)
-	a.CreatedAt = unmarshaler.CreatedAt.Time()
-	extraProperties, err := internal.ExtractExtraProperties(data, *a)
-	if err != nil {
-		return err
-	}
-	a.extraProperties = extraProperties
-	a.rawJSON = json.RawMessage(data)
-	return nil
-}
-
-func (a *AccessPermissionResponseDto) MarshalJSON() ([]byte, error) {
-	type embed AccessPermissionResponseDto
-	var marshaler = struct {
-		embed
-		CreatedAt *internal.DateTime `json:"createdAt"`
-	}{
-		embed:     embed(*a),
-		CreatedAt: internal.NewDateTime(a.CreatedAt),
-	}
-	return json.Marshal(marshaler)
-}
-
-func (a *AccessPermissionResponseDto) String() string {
-	if len(a.rawJSON) > 0 {
-		if value, err := internal.StringifyJSON(a.rawJSON); err == nil {
-			return value
-		}
-	}
-	if value, err := internal.StringifyJSON(a); err == nil {
-		return value
-	}
-	return fmt.Sprintf("%#v", a)
-}
-
-type AccessRoleResponseDto struct {
-	Key                       string                     `json:"key" url:"key"`
-	Name                      string                     `json:"name" url:"name"`
-	Description               *string                    `json:"description,omitempty" url:"description,omitempty"`
-	Scope                     AccessRoleResponseDtoScope `json:"scope" url:"scope"`
-	AppliesToAllOrganizations bool                       `json:"appliesToAllOrganizations" url:"appliesToAllOrganizations"`
-	// Built-in organization roles (org:owner, org:admin, org:member). They cannot be deleted.
-	System      bool      `json:"system" url:"system"`
-	Permissions []string  `json:"permissions,omitempty" url:"permissions,omitempty"`
-	CreatedAt   time.Time `json:"createdAt" url:"createdAt"`
-	UpdatedAt   time.Time `json:"updatedAt" url:"updatedAt"`
-
-	extraProperties map[string]interface{}
-	rawJSON         json.RawMessage
-}
-
-func (a *AccessRoleResponseDto) GetKey() string {
-	if a == nil {
-		return ""
-	}
-	return a.Key
-}
-
-func (a *AccessRoleResponseDto) GetName() string {
-	if a == nil {
-		return ""
-	}
-	return a.Name
-}
-
-func (a *AccessRoleResponseDto) GetDescription() *string {
-	if a == nil {
-		return nil
-	}
-	return a.Description
-}
-
-func (a *AccessRoleResponseDto) GetScope() AccessRoleResponseDtoScope {
-	if a == nil {
-		return ""
-	}
-	return a.Scope
-}
-
-func (a *AccessRoleResponseDto) GetAppliesToAllOrganizations() bool {
-	if a == nil {
-		return false
-	}
-	return a.AppliesToAllOrganizations
-}
-
-func (a *AccessRoleResponseDto) GetSystem() bool {
-	if a == nil {
-		return false
-	}
-	return a.System
-}
-
-func (a *AccessRoleResponseDto) GetPermissions() []string {
-	if a == nil {
-		return nil
-	}
-	return a.Permissions
-}
-
-func (a *AccessRoleResponseDto) GetCreatedAt() time.Time {
-	if a == nil {
-		return time.Time{}
-	}
-	return a.CreatedAt
-}
-
-func (a *AccessRoleResponseDto) GetUpdatedAt() time.Time {
-	if a == nil {
-		return time.Time{}
-	}
-	return a.UpdatedAt
-}
-
-func (a *AccessRoleResponseDto) GetExtraProperties() map[string]interface{} {
-	return a.extraProperties
-}
-
-func (a *AccessRoleResponseDto) UnmarshalJSON(data []byte) error {
-	type embed AccessRoleResponseDto
-	var unmarshaler = struct {
-		embed
-		CreatedAt *internal.DateTime `json:"createdAt"`
-		UpdatedAt *internal.DateTime `json:"updatedAt"`
-	}{
-		embed: embed(*a),
-	}
-	if err := json.Unmarshal(data, &unmarshaler); err != nil {
-		return err
-	}
-	*a = AccessRoleResponseDto(unmarshaler.embed)
-	a.CreatedAt = unmarshaler.CreatedAt.Time()
-	a.UpdatedAt = unmarshaler.UpdatedAt.Time()
-	extraProperties, err := internal.ExtractExtraProperties(data, *a)
-	if err != nil {
-		return err
-	}
-	a.extraProperties = extraProperties
-	a.rawJSON = json.RawMessage(data)
-	return nil
-}
-
-func (a *AccessRoleResponseDto) MarshalJSON() ([]byte, error) {
-	type embed AccessRoleResponseDto
-	var marshaler = struct {
-		embed
-		CreatedAt *internal.DateTime `json:"createdAt"`
-		UpdatedAt *internal.DateTime `json:"updatedAt"`
-	}{
-		embed:     embed(*a),
-		CreatedAt: internal.NewDateTime(a.CreatedAt),
-		UpdatedAt: internal.NewDateTime(a.UpdatedAt),
-	}
-	return json.Marshal(marshaler)
-}
-
-func (a *AccessRoleResponseDto) String() string {
-	if len(a.rawJSON) > 0 {
-		if value, err := internal.StringifyJSON(a.rawJSON); err == nil {
-			return value
-		}
-	}
-	if value, err := internal.StringifyJSON(a); err == nil {
-		return value
-	}
-	return fmt.Sprintf("%#v", a)
-}
-
-type AccessRoleResponseDtoScope string
-
-const (
-	AccessRoleResponseDtoScopeProject      AccessRoleResponseDtoScope = "PROJECT"
-	AccessRoleResponseDtoScopeOrganization AccessRoleResponseDtoScope = "ORGANIZATION"
-)
-
-func NewAccessRoleResponseDtoScopeFromString(s string) (AccessRoleResponseDtoScope, error) {
-	switch s {
-	case "PROJECT":
-		return AccessRoleResponseDtoScopeProject, nil
-	case "ORGANIZATION":
-		return AccessRoleResponseDtoScopeOrganization, nil
-	}
-	var t AccessRoleResponseDtoScope
-	return "", fmt.Errorf("%s is not a valid %T", s, t)
-}
-
-func (a AccessRoleResponseDtoScope) Ptr() *AccessRoleResponseDtoScope {
-	return &a
-}
-
-type AccessRolesListRequestScope string
-
-const (
-	AccessRolesListRequestScopeProject      AccessRolesListRequestScope = "PROJECT"
-	AccessRolesListRequestScopeOrganization AccessRolesListRequestScope = "ORGANIZATION"
-)
-
-func NewAccessRolesListRequestScopeFromString(s string) (AccessRolesListRequestScope, error) {
-	switch s {
-	case "PROJECT":
-		return AccessRolesListRequestScopeProject, nil
-	case "ORGANIZATION":
-		return AccessRolesListRequestScopeOrganization, nil
-	}
-	var t AccessRolesListRequestScope
-	return "", fmt.Errorf("%s is not a valid %T", s, t)
-}
-
-func (a AccessRolesListRequestScope) Ptr() *AccessRolesListRequestScope {
-	return &a
-}
-
-// PROJECT roles are given to a customer; ORGANIZATION roles to an organization member.
-type CreateAccessRoleDtoScope string
-
-const (
-	CreateAccessRoleDtoScopeProject      CreateAccessRoleDtoScope = "PROJECT"
-	CreateAccessRoleDtoScopeOrganization CreateAccessRoleDtoScope = "ORGANIZATION"
-)
-
-func NewCreateAccessRoleDtoScopeFromString(s string) (CreateAccessRoleDtoScope, error) {
-	switch s {
-	case "PROJECT":
-		return CreateAccessRoleDtoScopeProject, nil
-	case "ORGANIZATION":
-		return CreateAccessRoleDtoScopeOrganization, nil
-	}
-	var t CreateAccessRoleDtoScope
-	return "", fmt.Errorf("%s is not a valid %T", s, t)
-}
-
-func (c CreateAccessRoleDtoScope) Ptr() *CreateAccessRoleDtoScope {
-	return &c
 }

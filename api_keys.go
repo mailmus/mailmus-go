@@ -19,7 +19,7 @@ type APIKeyResponseDto struct {
 	ID string `json:"id" url:"id"`
 	// The name you gave it.
 	Name string `json:"name" url:"name"`
-	// SECRET stays on your server. PUBLISHABLE can live in a browser or a mobile app: it opens only the Customer authentication routes.
+	// SECRET stays on your server. PUBLISHABLE can live in a browser or a mobile app: it opens only the user authentication routes.
 	Type APIKeyResponseDtoType `json:"type" url:"type"`
 	// A TEST key sends nothing for real.
 	Environment APIKeyResponseDtoEnvironment `json:"environment" url:"environment"`
@@ -159,7 +159,7 @@ func (a APIKeyResponseDtoEnvironment) Ptr() *APIKeyResponseDtoEnvironment {
 	return &a
 }
 
-// SECRET stays on your server. PUBLISHABLE can live in a browser or a mobile app: it opens only the Customer authentication routes.
+// SECRET stays on your server. PUBLISHABLE can live in a browser or a mobile app: it opens only the user authentication routes.
 type APIKeyResponseDtoType string
 
 const (
@@ -186,7 +186,7 @@ type APIKeyWithValueResponseDto struct {
 	ID string `json:"id" url:"id"`
 	// The name you gave it.
 	Name string `json:"name" url:"name"`
-	// SECRET stays on your server. PUBLISHABLE can live in a browser or a mobile app: it opens only the Customer authentication routes.
+	// SECRET stays on your server. PUBLISHABLE can live in a browser or a mobile app: it opens only the user authentication routes.
 	Type APIKeyWithValueResponseDtoType `json:"type" url:"type"`
 	// A TEST key sends nothing for real.
 	Environment APIKeyWithValueResponseDtoEnvironment `json:"environment" url:"environment"`
@@ -326,7 +326,7 @@ func (a APIKeyWithValueResponseDtoEnvironment) Ptr() *APIKeyWithValueResponseDto
 	return &a
 }
 
-// SECRET stays on your server. PUBLISHABLE can live in a browser or a mobile app: it opens only the Customer authentication routes.
+// SECRET stays on your server. PUBLISHABLE can live in a browser or a mobile app: it opens only the user authentication routes.
 type APIKeyWithValueResponseDtoType string
 
 const (

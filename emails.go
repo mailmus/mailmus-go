@@ -9,28 +9,28 @@ import (
 	time "time"
 )
 
-type TransactionalEmailsLogsRequest struct {
+type LogsEmailsRequest struct {
 	Status string `json:"-" url:"status"`
 	Q      string `json:"-" url:"q"`
 }
 
-type TransactionalEmailsSendRequest struct {
+type SendEmailsRequest struct {
 	// Replay-safe for 24 hours: a retry with the same key returns the original result instead of sending again. Past that, the key is forgotten and the same request sends a new email. If a request with the same key is still being processed, you get a 409 — retry shortly instead of assuming it failed.
 	IdempotencyKey *string                    `json:"-" url:"-"`
 	Body           *SendTransactionalEmailDto `json:"-" url:"-"`
 }
 
-func (t *TransactionalEmailsSendRequest) UnmarshalJSON(data []byte) error {
+func (s *SendEmailsRequest) UnmarshalJSON(data []byte) error {
 	body := new(SendTransactionalEmailDto)
 	if err := json.Unmarshal(data, &body); err != nil {
 		return err
 	}
-	t.Body = body
+	s.Body = body
 	return nil
 }
 
-func (t *TransactionalEmailsSendRequest) MarshalJSON() ([]byte, error) {
-	return json.Marshal(t.Body)
+func (s *SendEmailsRequest) MarshalJSON() ([]byte, error) {
+	return json.Marshal(s.Body)
 }
 
 type SendBatchEmailsDto struct {

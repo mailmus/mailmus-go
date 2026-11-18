@@ -33,7 +33,7 @@ func NewClient(opts ...option.RequestOption) *Client {
 	}
 }
 
-func (c *Client) AppAuthAnalyticsGet(
+func (c *Client) Get(
 	ctx context.Context,
 	projectID string,
 	opts ...option.RequestOption,
@@ -72,7 +72,7 @@ func (c *Client) AppAuthAnalyticsGet(
 	return response, nil
 }
 
-func (c *Client) AppAuthAnalyticsExportCsv(
+func (c *Client) ExportCsv(
 	ctx context.Context,
 	projectID string,
 	opts ...option.RequestOption,
@@ -111,10 +111,10 @@ func (c *Client) AppAuthAnalyticsExportCsv(
 	return response, nil
 }
 
-func (c *Client) AppAuthAnalyticsTimeSeries(
+func (c *Client) TimeSeries(
 	ctx context.Context,
 	projectID string,
-	request *mailmusgo.AppAuthAnalyticsTimeSeriesRequest,
+	request *mailmusgo.TimeSeriesAuthAnalyticsRequest,
 	opts ...option.RequestOption,
 ) ([]*mailmusgo.AuthTimeSeriesPointDto, error) {
 	options := core.NewRequestOptions(opts...)
@@ -158,10 +158,10 @@ func (c *Client) AppAuthAnalyticsTimeSeries(
 	return response, nil
 }
 
-func (c *Client) AppAuthAnalyticsMauHistory(
+func (c *Client) MauHistory(
 	ctx context.Context,
 	projectID string,
-	request *mailmusgo.AppAuthAnalyticsMauHistoryRequest,
+	request *mailmusgo.MauHistoryAuthAnalyticsRequest,
 	opts ...option.RequestOption,
 ) ([]*mailmusgo.AuthMauPointDto, error) {
 	options := core.NewRequestOptions(opts...)

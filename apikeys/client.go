@@ -31,7 +31,7 @@ func NewClient(opts ...option.RequestOption) *Client {
 	}
 }
 
-func (c *Client) APIKeysList(
+func (c *Client) List(
 	ctx context.Context,
 	projectID string,
 	opts ...option.RequestOption,
@@ -70,7 +70,7 @@ func (c *Client) APIKeysList(
 	return response, nil
 }
 
-func (c *Client) APIKeysCreate(
+func (c *Client) Create(
 	ctx context.Context,
 	projectID string,
 	request *mailmusgo.CreateAPIKeyDto,
@@ -112,7 +112,7 @@ func (c *Client) APIKeysCreate(
 	return response, nil
 }
 
-func (c *Client) APIKeysRevoke(
+func (c *Client) Revoke(
 	ctx context.Context,
 	projectID string,
 	id string,

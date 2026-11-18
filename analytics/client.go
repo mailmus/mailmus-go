@@ -33,10 +33,10 @@ func NewClient(opts ...option.RequestOption) *Client {
 	}
 }
 
-func (c *Client) AppMailAnalyticsGet(
+func (c *Client) Get(
 	ctx context.Context,
 	projectID string,
-	request *mailmusgo.AppMailAnalyticsGetRequest,
+	request *mailmusgo.GetAnalyticsRequest,
 	opts ...option.RequestOption,
 ) (*mailmusgo.MailAnalyticsResponseDto, error) {
 	options := core.NewRequestOptions(opts...)
@@ -80,7 +80,7 @@ func (c *Client) AppMailAnalyticsGet(
 	return response, nil
 }
 
-func (c *Client) AppMailAnalyticsExportCsv(
+func (c *Client) ExportCsv(
 	ctx context.Context,
 	projectID string,
 	opts ...option.RequestOption,
@@ -119,7 +119,7 @@ func (c *Client) AppMailAnalyticsExportCsv(
 	return response, nil
 }
 
-func (c *Client) AppMailAnalyticsTimeSeries(
+func (c *Client) TimeSeries(
 	ctx context.Context,
 	projectID string,
 	opts ...option.RequestOption,
@@ -158,7 +158,7 @@ func (c *Client) AppMailAnalyticsTimeSeries(
 	return response, nil
 }
 
-func (c *Client) AppMailAnalyticsByDomain(
+func (c *Client) ByDomain(
 	ctx context.Context,
 	projectID string,
 	opts ...option.RequestOption,

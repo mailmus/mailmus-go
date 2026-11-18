@@ -8,11 +8,6 @@ import (
 	internal "github.com/mailmus/mailmus-go/internal"
 )
 
-type UpdateMailSettingsDto struct {
-	// Turns Mail on for this project in your dashboard.
-	Enabled bool `json:"enabled" url:"-"`
-}
-
 type MailSettingsResponseDto struct {
 	// True if this project uses Mail. It shows Mail in your dashboard; sending through the API works either way.
 	Enabled bool `json:"enabled" url:"enabled"`
@@ -58,4 +53,9 @@ func (m *MailSettingsResponseDto) String() string {
 		return value
 	}
 	return fmt.Sprintf("%#v", m)
+}
+
+type UpdateMailSettingsDto struct {
+	// Turns Mail on for this project in your dashboard.
+	Enabled bool `json:"enabled" url:"-"`
 }

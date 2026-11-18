@@ -31,7 +31,7 @@ func NewClient(opts ...option.RequestOption) *Client {
 	}
 }
 
-func (c *Client) MailSettingsGet(
+func (c *Client) Get(
 	ctx context.Context,
 	projectID string,
 	opts ...option.RequestOption,
@@ -70,7 +70,7 @@ func (c *Client) MailSettingsGet(
 	return response, nil
 }
 
-func (c *Client) MailSettingsUpdate(
+func (c *Client) Update(
 	ctx context.Context,
 	projectID string,
 	request *mailmusgo.UpdateMailSettingsDto,

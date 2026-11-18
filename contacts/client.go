@@ -36,7 +36,7 @@ func NewClient(opts ...option.RequestOption) *Client {
 func (c *Client) List(
 	ctx context.Context,
 	projectID string,
-	request *mailmusgo.ContactsListRequest,
+	request *mailmusgo.ListContactsRequest,
 	opts ...option.RequestOption,
 ) (*mailmusgo.ContactListResponseDto, error) {
 	options := core.NewRequestOptions(opts...)
@@ -122,7 +122,7 @@ func (c *Client) Create(
 	return response, nil
 }
 
-func (c *Client) Exportcsv(
+func (c *Client) ExportCsv(
 	ctx context.Context,
 	projectID string,
 	opts ...option.RequestOption,
@@ -161,7 +161,7 @@ func (c *Client) Exportcsv(
 	return response, nil
 }
 
-func (c *Client) Importcsv(
+func (c *Client) ImportCsv(
 	ctx context.Context,
 	projectID string,
 	opts ...option.RequestOption,
@@ -200,7 +200,7 @@ func (c *Client) Importcsv(
 	return response, nil
 }
 
-func (c *Client) Batchimport(
+func (c *Client) BatchImport(
 	ctx context.Context,
 	projectID string,
 	request *mailmusgo.BatchImportContactsDto,
@@ -242,7 +242,50 @@ func (c *Client) Batchimport(
 	return response, nil
 }
 
-func (c *Client) Findone(
+// Their sends stay counted in your campaign statistics, linked to no one.
+func (c *Client) BatchDelete(
+	ctx context.Context,
+	projectID string,
+	request *mailmusgo.BatchDeleteContactsDto,
+	opts ...option.RequestOption,
+) (*mailmusgo.ContactsBatchDeletedResponseDto, error) {
+	options := core.NewRequestOptions(opts...)
+	baseURL := internal.ResolveBaseURL(
+		options.BaseURL,
+		c.baseURL,
+		"https://api.mailmus.app",
+	)
+	endpointURL := internal.EncodeURL(
+		baseURL+"/projects/%v/contacts/batch-delete",
+		projectID,
+	)
+	headers := internal.MergeHeaders(
+		c.header.Clone(),
+		options.ToHeader(),
+	)
+	headers.Set("Content-Type", "application/json")
+
+	var response *mailmusgo.ContactsBatchDeletedResponseDto
+	if err := c.caller.Call(
+		ctx,
+		&internal.CallParams{
+			URL:             endpointURL,
+			Method:          http.MethodPost,
+			Headers:         headers,
+			MaxAttempts:     options.MaxAttempts,
+			BodyProperties:  options.BodyProperties,
+			QueryParameters: options.QueryParameters,
+			Client:          options.HTTPClient,
+			Request:         request,
+			Response:        &response,
+		},
+	); err != nil {
+		return nil, err
+	}
+	return response, nil
+}
+
+func (c *Client) FindOne(
 	ctx context.Context,
 	projectID string,
 	id string,
@@ -324,7 +367,7 @@ func (c *Client) Remove(
 	return response, nil
 }
 
-func (c *Client) Updateattributes(
+func (c *Client) UpdateAttributes(
 	ctx context.Context,
 	projectID string,
 	id string,

@@ -24,7 +24,7 @@ type TemplateResponseDto struct {
 	// Final HTML sent. Personalization variables are left as they are and interpolated at send time.
 	HTML string `json:"html" url:"html"`
 	// Projet auquel ce template appartient.
-	AppID     string    `json:"appId" url:"appId"`
+	ProjectID string    `json:"projectId" url:"projectId"`
 	CreatedAt time.Time `json:"createdAt" url:"createdAt"`
 	UpdatedAt time.Time `json:"updatedAt" url:"updatedAt"`
 
@@ -60,11 +60,11 @@ func (t *TemplateResponseDto) GetHTML() string {
 	return t.HTML
 }
 
-func (t *TemplateResponseDto) GetAppID() string {
+func (t *TemplateResponseDto) GetProjectID() string {
 	if t == nil {
 		return ""
 	}
-	return t.AppID
+	return t.ProjectID
 }
 
 func (t *TemplateResponseDto) GetCreatedAt() time.Time {

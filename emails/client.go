@@ -32,10 +32,10 @@ func NewClient(opts ...option.RequestOption) *Client {
 	}
 }
 
-func (c *Client) TransactionalEmailsSend(
+func (c *Client) Send(
 	ctx context.Context,
 	projectID string,
-	request *mailmusgo.TransactionalEmailsSendRequest,
+	request *mailmusgo.SendEmailsRequest,
 	opts ...option.RequestOption,
 ) (*mailmusgo.SendEmailResponseDto, error) {
 	options := core.NewRequestOptions(opts...)
@@ -77,7 +77,7 @@ func (c *Client) TransactionalEmailsSend(
 	return response, nil
 }
 
-func (c *Client) TransactionalEmailsSendBatch(
+func (c *Client) SendBatch(
 	ctx context.Context,
 	projectID string,
 	request *mailmusgo.SendBatchEmailsDto,
@@ -122,7 +122,7 @@ func (c *Client) TransactionalEmailsSendBatch(
 	return response, nil
 }
 
-func (c *Client) TransactionalEmailsGetSendDetail(
+func (c *Client) GetSendDetail(
 	ctx context.Context,
 	projectID string,
 	sendID string,
@@ -163,10 +163,10 @@ func (c *Client) TransactionalEmailsGetSendDetail(
 	return response, nil
 }
 
-func (c *Client) TransactionalEmailsLogs(
+func (c *Client) Logs(
 	ctx context.Context,
 	projectID string,
-	request *mailmusgo.TransactionalEmailsLogsRequest,
+	request *mailmusgo.LogsEmailsRequest,
 	opts ...option.RequestOption,
 ) (*mailmusgo.SendLogListResponseDto, error) {
 	options := core.NewRequestOptions(opts...)

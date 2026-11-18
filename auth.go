@@ -6,102 +6,46 @@ import (
 	json "encoding/json"
 	fmt "fmt"
 	internal "github.com/mailmus/mailmus-go/internal"
-	time "time"
 )
 
-type AuthProviderHealthHistoryRequest struct {
-	Days *float64 `json:"-" url:"days,omitempty"`
-}
-
-type AuthProviderHealthTimelinesRequest struct {
-	Days *float64 `json:"-" url:"days,omitempty"`
-}
-
-type RequestTestPhoneDto struct {
-	// Number in E.164 format (for example +33612345678). The "+" is required.
-	Phone string `json:"phone" url:"-"`
-}
-
-type UpdateAuthSettingsDto struct {
-	Enabled               *bool                                       `json:"enabled,omitempty" url:"-"`
-	AllowedProviders      []UpdateAuthSettingsDtoAllowedProvidersItem `json:"allowedProviders,omitempty" url:"-"`
-	RedirectURLAllowlist  []string                                    `json:"redirectUrlAllowlist,omitempty" url:"-"`
-	AccessTokenTTLSeconds *float64                                    `json:"accessTokenTtlSeconds,omitempty" url:"-"`
-	RefreshTokenTTLDays   *float64                                    `json:"refreshTokenTtlDays,omitempty" url:"-"`
-	// Logo shown on the hosted pages.
-	LogoURL *string `json:"logoUrl,omitempty" url:"-"`
-	// Primary color of the hosted pages, in hex (#2563eb).
-	PrimaryColor *string `json:"primaryColor,omitempty" url:"-"`
-	// Custom domain for the hosted pages, for example auth.yourapp.com.
-	CustomDomain *string `json:"customDomain,omitempty" url:"-"`
-	// Deprecated: use PATCH /projects/{projectId}/b2b/settings. Still accepted, and writes the same setting.
-	OrganizationsEnabled *bool `json:"organizationsEnabled,omitempty" url:"-"`
-	// Language your end-users are served in: hosted sign-in pages and authentication emails. English by default.
-	Locale *UpdateAuthSettingsDtoLocale `json:"locale,omitempty" url:"-"`
-	// Restricts PHONE_CODE sending to these countries (ISO 3166-1 alpha-2 codes, for example FR, US). An empty list means no restriction.
-	PhoneCodeAllowedCountries []string `json:"phoneCodeAllowedCountries,omitempty" url:"-"`
-	// Layout of the hosted pages: CENTERED (a card on a plain background), SPLIT (the form beside an image panel) or MINIMAL (the form alone, no card).
-	HostedLayout *UpdateAuthSettingsDtoHostedLayout `json:"hostedLayout,omitempty" url:"-"`
-	// With the SPLIT layout, the side the image panel sits on.
-	HostedPanelSide *UpdateAuthSettingsDtoHostedPanelSide `json:"hostedPanelSide,omitempty" url:"-"`
-	// With the SPLIT layout, the image shown in the panel (https only). Null removes it: the panel then shows your primary color.
-	HostedPanelImageURL *string `json:"hostedPanelImageUrl,omitempty" url:"-"`
-	// Background color of the hosted pages, in hex (#f8f7f4). Null restores the default background.
-	HostedBackgroundColor *string `json:"hostedBackgroundColor,omitempty" url:"-"`
-	// Corner rounding of fields, buttons and card.
-	HostedRadius *UpdateAuthSettingsDtoHostedRadius `json:"hostedRadius,omitempty" url:"-"`
-	// Typeface of the hosted pages.
-	HostedFont *UpdateAuthSettingsDtoHostedFont `json:"hostedFont,omitempty" url:"-"`
-	// Shows your logo, or your project name when there is no logo, above the form.
-	HostedShowBrandMark *bool `json:"hostedShowBrandMark,omitempty" url:"-"`
-	// Shows a country selector with flags in front of the phone field, so your end-users do not type the country code themselves.
-	PhoneCountryPicker *bool `json:"phoneCountryPicker,omitempty" url:"-"`
-	// Country preselected in the phone field (ISO 3166-1 alpha-2, for example FR). Must be one of phoneCodeAllowedCountries when that list is not empty. Null lets the page guess from the browser language.
-	PhoneDefaultCountry *string `json:"phoneDefaultCountry,omitempty" url:"-"`
-}
-
-type VerifyTestPhoneDto struct {
-	Code string `json:"code" url:"-"`
-}
-
-type CustomerAuthAppleCallbackRequest struct {
+type AppleCallbackAuthRequest struct {
 	Body *OAuthCallbackDto `json:"-" url:"-"`
 }
 
-func (c *CustomerAuthAppleCallbackRequest) UnmarshalJSON(data []byte) error {
+func (a *AppleCallbackAuthRequest) UnmarshalJSON(data []byte) error {
 	body := new(OAuthCallbackDto)
 	if err := json.Unmarshal(data, &body); err != nil {
 		return err
 	}
-	c.Body = body
+	a.Body = body
 	return nil
 }
 
-func (c *CustomerAuthAppleCallbackRequest) MarshalJSON() ([]byte, error) {
-	return json.Marshal(c.Body)
+func (a *AppleCallbackAuthRequest) MarshalJSON() ([]byte, error) {
+	return json.Marshal(a.Body)
 }
 
 type ForgotPasswordDto struct {
 	Email string `json:"email" url:"-"`
-	// Where to send the Customer once signed in again; must appear in the project redirect allowlist.
+	// Where to send the user once signed in again; must appear in the project redirect allowlist.
 	RedirectURI string `json:"redirectUri" url:"-"`
 }
 
-type CustomerAuthGithubCallbackRequest struct {
+type GithubCallbackAuthRequest struct {
 	Body *OAuthCallbackDto `json:"-" url:"-"`
 }
 
-func (c *CustomerAuthGithubCallbackRequest) UnmarshalJSON(data []byte) error {
+func (g *GithubCallbackAuthRequest) UnmarshalJSON(data []byte) error {
 	body := new(OAuthCallbackDto)
 	if err := json.Unmarshal(data, &body); err != nil {
 		return err
 	}
-	c.Body = body
+	g.Body = body
 	return nil
 }
 
-func (c *CustomerAuthGithubCallbackRequest) MarshalJSON() ([]byte, error) {
-	return json.Marshal(c.Body)
+func (g *GithubCallbackAuthRequest) MarshalJSON() ([]byte, error) {
+	return json.Marshal(g.Body)
 }
 
 type GoogleCallbackDto struct {
@@ -110,55 +54,55 @@ type GoogleCallbackDto struct {
 	RedirectURI string `json:"redirectUri" url:"-"`
 }
 
-type CustomerAuthRefreshRequest struct {
+type RefreshAuthRequest struct {
 	Body *RefreshDto `json:"-" url:"-"`
 }
 
-func (c *CustomerAuthRefreshRequest) UnmarshalJSON(data []byte) error {
+func (r *RefreshAuthRequest) UnmarshalJSON(data []byte) error {
 	body := new(RefreshDto)
 	if err := json.Unmarshal(data, &body); err != nil {
 		return err
 	}
-	c.Body = body
+	r.Body = body
 	return nil
 }
 
-func (c *CustomerAuthRefreshRequest) MarshalJSON() ([]byte, error) {
-	return json.Marshal(c.Body)
+func (r *RefreshAuthRequest) MarshalJSON() ([]byte, error) {
+	return json.Marshal(r.Body)
 }
 
-type CustomerAuthRequestMagicLinkRequest struct {
+type RequestMagicLinkAuthRequest struct {
 	Body *EmailCodeRequestDto `json:"-" url:"-"`
 }
 
-func (c *CustomerAuthRequestMagicLinkRequest) UnmarshalJSON(data []byte) error {
+func (r *RequestMagicLinkAuthRequest) UnmarshalJSON(data []byte) error {
 	body := new(EmailCodeRequestDto)
 	if err := json.Unmarshal(data, &body); err != nil {
 		return err
 	}
-	c.Body = body
+	r.Body = body
 	return nil
 }
 
-func (c *CustomerAuthRequestMagicLinkRequest) MarshalJSON() ([]byte, error) {
-	return json.Marshal(c.Body)
+func (r *RequestMagicLinkAuthRequest) MarshalJSON() ([]byte, error) {
+	return json.Marshal(r.Body)
 }
 
-type CustomerAuthRequestOtpRequest struct {
+type RequestOtpAuthRequest struct {
 	Body *EmailCodeRequestDto `json:"-" url:"-"`
 }
 
-func (c *CustomerAuthRequestOtpRequest) UnmarshalJSON(data []byte) error {
+func (r *RequestOtpAuthRequest) UnmarshalJSON(data []byte) error {
 	body := new(EmailCodeRequestDto)
 	if err := json.Unmarshal(data, &body); err != nil {
 		return err
 	}
-	c.Body = body
+	r.Body = body
 	return nil
 }
 
-func (c *CustomerAuthRequestOtpRequest) MarshalJSON() ([]byte, error) {
-	return json.Marshal(c.Body)
+func (r *RequestOtpAuthRequest) MarshalJSON() ([]byte, error) {
+	return json.Marshal(r.Body)
 }
 
 type PhoneOtpRequestDto struct {
@@ -176,21 +120,21 @@ type SignInDto struct {
 	Password string `json:"password" url:"-"`
 }
 
-type CustomerAuthSignOutRequest struct {
+type SignOutAuthRequest struct {
 	Body *RefreshDto `json:"-" url:"-"`
 }
 
-func (c *CustomerAuthSignOutRequest) UnmarshalJSON(data []byte) error {
+func (s *SignOutAuthRequest) UnmarshalJSON(data []byte) error {
 	body := new(RefreshDto)
 	if err := json.Unmarshal(data, &body); err != nil {
 		return err
 	}
-	c.Body = body
+	s.Body = body
 	return nil
 }
 
-func (c *CustomerAuthSignOutRequest) MarshalJSON() ([]byte, error) {
-	return json.Marshal(c.Body)
+func (s *SignOutAuthRequest) MarshalJSON() ([]byte, error) {
+	return json.Marshal(s.Body)
 }
 
 type SignUpDto struct {
@@ -198,1119 +142,6 @@ type SignUpDto struct {
 	Password string `json:"password" url:"-"`
 	// When provided (and present in the allowlist), triggers a confirmation email.
 	RedirectURI *string `json:"redirectUri,omitempty" url:"-"`
-}
-
-type VerifyEmailDto struct {
-	Token string `json:"token" url:"-"`
-}
-
-type MagicLinkVerifyDto struct {
-	Token string `json:"token" url:"-"`
-}
-
-type MfaVerifyDto struct {
-	ChallengeToken string `json:"challengeToken" url:"-"`
-	// 6-digit TOTP code, or a 10-character backup code.
-	Code string `json:"code" url:"-"`
-}
-
-type OtpVerifyDto struct {
-	Email string `json:"email" url:"-"`
-	Code  string `json:"code" url:"-"`
-}
-
-type PhoneOtpVerifyDto struct {
-	// Number in E.164 format (for example +33612345678). The "+" is required.
-	Phone string `json:"phone" url:"-"`
-	Code  string `json:"code" url:"-"`
-}
-
-type CustomerMfaConfirmRequest struct {
-	Body *MfaCodeDto `json:"-" url:"-"`
-}
-
-func (c *CustomerMfaConfirmRequest) UnmarshalJSON(data []byte) error {
-	body := new(MfaCodeDto)
-	if err := json.Unmarshal(data, &body); err != nil {
-		return err
-	}
-	c.Body = body
-	return nil
-}
-
-func (c *CustomerMfaConfirmRequest) MarshalJSON() ([]byte, error) {
-	return json.Marshal(c.Body)
-}
-
-type CustomerMfaDisableRequest struct {
-	Body *MfaCodeDto `json:"-" url:"-"`
-}
-
-func (c *CustomerMfaDisableRequest) UnmarshalJSON(data []byte) error {
-	body := new(MfaCodeDto)
-	if err := json.Unmarshal(data, &body); err != nil {
-		return err
-	}
-	c.Body = body
-	return nil
-}
-
-func (c *CustomerMfaDisableRequest) MarshalJSON() ([]byte, error) {
-	return json.Marshal(c.Body)
-}
-
-type EnrollMfaDto struct {
-	// 6-digit TOTP code or backup code, required only if MFA is already on — it proves possession of the current factor before replacing it.
-	Code *string `json:"code,omitempty" url:"-"`
-}
-
-type AcceptInvitationDto struct {
-	Token string `json:"token" url:"-"`
-}
-
-type ActivateOrganizationDto struct {
-	OrganizationID string `json:"organizationId" url:"-"`
-}
-
-type SSOAcsDto struct {
-	SAMLResponse string `json:"SAMLResponse" url:"-"`
-	RelayState   string `json:"RelayState" url:"-"`
-}
-
-type SSOOidcCallbackDto struct {
-	// The authorization code returned by the provider.
-	Code string `json:"code" url:"-"`
-	// The opaque state we issued when the sign-in started.
-	State string `json:"state" url:"-"`
-}
-
-type SSOStartDto struct {
-	Email string `json:"email" url:"-"`
-	// Must appear in the allowed redirect URLs, checked before any redirect to an IdP: the Auth redirectUrlAllowlist for the session flow, the B2B settings ssoRedirectUrls for the profile flow.
-	RedirectURI string `json:"redirectUri" url:"-"`
-	// session (default) signs the person in with Mailmus Auth. profile sends the person back to redirectUri with a one-time code, which your server exchanges for the verified profile: use it when you sign people in yourself.
-	Flow *SSOStartDtoFlow `json:"flow,omitempty" url:"-"`
-	// Anti-CSRF nonce generated client-side, carried through unchanged until the ACS return (same contract as the existing OAuth bridge) — not validated server-side, the check happens in your front end.
-	Nonce *string `json:"nonce,omitempty" url:"-"`
-}
-
-type AuthProviderIncidentDto struct {
-	// Identifier of the incident.
-	ID string `json:"id" url:"id"`
-	// The provider concerned.
-	Provider string `json:"provider" url:"provider"`
-	// Where the sign-in gave way: CONFIGURATION, CODE_EXCHANGE, TOKEN_VERIFICATION, PROFILE_READ or DELIVERY. CONFIGURATION points at a setting to fix; DELIVERY means Mailmus could not deliver the SMS code, with nothing to change on your side; the others usually concern a single attempt.
-	Stage string `json:"stage" url:"stage"`
-	// Stable reason, comparable over time.
-	Reason string `json:"reason" url:"reason"`
-	// Number of attempts hit by the incident.
-	Occurrences float64 `json:"occurrences" url:"occurrences"`
-	// When the incident started.
-	StartedAt time.Time `json:"startedAt" url:"startedAt"`
-	// Last attempt hit.
-	LastSeenAt time.Time `json:"lastSeenAt" url:"lastSeenAt"`
-	// End of the incident, set by the first successful sign-in. Null while it lasts.
-	ResolvedAt *string `json:"resolvedAt,omitempty" url:"resolvedAt,omitempty"`
-
-	extraProperties map[string]interface{}
-	rawJSON         json.RawMessage
-}
-
-func (a *AuthProviderIncidentDto) GetID() string {
-	if a == nil {
-		return ""
-	}
-	return a.ID
-}
-
-func (a *AuthProviderIncidentDto) GetProvider() string {
-	if a == nil {
-		return ""
-	}
-	return a.Provider
-}
-
-func (a *AuthProviderIncidentDto) GetStage() string {
-	if a == nil {
-		return ""
-	}
-	return a.Stage
-}
-
-func (a *AuthProviderIncidentDto) GetReason() string {
-	if a == nil {
-		return ""
-	}
-	return a.Reason
-}
-
-func (a *AuthProviderIncidentDto) GetOccurrences() float64 {
-	if a == nil {
-		return 0
-	}
-	return a.Occurrences
-}
-
-func (a *AuthProviderIncidentDto) GetStartedAt() time.Time {
-	if a == nil {
-		return time.Time{}
-	}
-	return a.StartedAt
-}
-
-func (a *AuthProviderIncidentDto) GetLastSeenAt() time.Time {
-	if a == nil {
-		return time.Time{}
-	}
-	return a.LastSeenAt
-}
-
-func (a *AuthProviderIncidentDto) GetResolvedAt() *string {
-	if a == nil {
-		return nil
-	}
-	return a.ResolvedAt
-}
-
-func (a *AuthProviderIncidentDto) GetExtraProperties() map[string]interface{} {
-	return a.extraProperties
-}
-
-func (a *AuthProviderIncidentDto) UnmarshalJSON(data []byte) error {
-	type embed AuthProviderIncidentDto
-	var unmarshaler = struct {
-		embed
-		StartedAt  *internal.DateTime `json:"startedAt"`
-		LastSeenAt *internal.DateTime `json:"lastSeenAt"`
-	}{
-		embed: embed(*a),
-	}
-	if err := json.Unmarshal(data, &unmarshaler); err != nil {
-		return err
-	}
-	*a = AuthProviderIncidentDto(unmarshaler.embed)
-	a.StartedAt = unmarshaler.StartedAt.Time()
-	a.LastSeenAt = unmarshaler.LastSeenAt.Time()
-	extraProperties, err := internal.ExtractExtraProperties(data, *a)
-	if err != nil {
-		return err
-	}
-	a.extraProperties = extraProperties
-	a.rawJSON = json.RawMessage(data)
-	return nil
-}
-
-func (a *AuthProviderIncidentDto) MarshalJSON() ([]byte, error) {
-	type embed AuthProviderIncidentDto
-	var marshaler = struct {
-		embed
-		StartedAt  *internal.DateTime `json:"startedAt"`
-		LastSeenAt *internal.DateTime `json:"lastSeenAt"`
-	}{
-		embed:      embed(*a),
-		StartedAt:  internal.NewDateTime(a.StartedAt),
-		LastSeenAt: internal.NewDateTime(a.LastSeenAt),
-	}
-	return json.Marshal(marshaler)
-}
-
-func (a *AuthProviderIncidentDto) String() string {
-	if len(a.rawJSON) > 0 {
-		if value, err := internal.StringifyJSON(a.rawJSON); err == nil {
-			return value
-		}
-	}
-	if value, err := internal.StringifyJSON(a); err == nil {
-		return value
-	}
-	return fmt.Sprintf("%#v", a)
-}
-
-type AuthSettingsResponseDto struct {
-	ID    string `json:"id" url:"id"`
-	AppID string `json:"appId" url:"appId"`
-	// False until Auth is enabled: the sign-in routes then refuse calls.
-	Enabled bool `json:"enabled" url:"enabled"`
-	// Sign-in methods open to this project Customers.
-	AllowedProviders []string `json:"allowedProviders,omitempty" url:"allowedProviders,omitempty"`
-	// Return addresses allowed after sign-in. Any other one is refused, which stops a third party from diverting the tokens.
-	RedirectURLAllowlist []string `json:"redirectUrlAllowlist,omitempty" url:"redirectUrlAllowlist,omitempty"`
-	// Lifetime of an accessToken, in seconds.
-	AccessTokenTTLSeconds float64 `json:"accessTokenTtlSeconds" url:"accessTokenTtlSeconds"`
-	// Lifetime of a refreshToken, in days.
-	RefreshTokenTTLDays float64 `json:"refreshTokenTtlDays" url:"refreshTokenTtlDays"`
-	LogoURL             *string `json:"logoUrl,omitempty" url:"logoUrl,omitempty"`
-	PrimaryColor        *string `json:"primaryColor,omitempty" url:"primaryColor,omitempty"`
-	// Domain your authentication pages are served from.
-	CustomDomain       *string                                    `json:"customDomain,omitempty" url:"customDomain,omitempty"`
-	CustomDomainStatus *AuthSettingsResponseDtoCustomDomainStatus `json:"customDomainStatus,omitempty" url:"customDomainStatus,omitempty"`
-	// Deprecated: read GET /projects/{projectId}/b2b/settings. Same value, kept here for existing integrations.
-	OrganizationsEnabled bool `json:"organizationsEnabled" url:"organizationsEnabled"`
-	// Language your end-users are served in: hosted sign-in pages and authentication emails.
-	Locale AuthSettingsResponseDtoLocale `json:"locale" url:"locale"`
-	// On the free tier, only this number can receive an SMS code. The Pro tier lifts that restriction.
-	TestPhoneNumber     *string    `json:"testPhoneNumber,omitempty" url:"testPhoneNumber,omitempty"`
-	TestPhoneVerifiedAt *time.Time `json:"testPhoneVerifiedAt,omitempty" url:"testPhoneVerifiedAt,omitempty"`
-	// Test number changes already used.
-	TestPhoneChangesUsed      float64    `json:"testPhoneChangesUsed" url:"testPhoneChangesUsed"`
-	TestPhonePendingNumber    *string    `json:"testPhonePendingNumber,omitempty" url:"testPhonePendingNumber,omitempty"`
-	TestPhonePendingExpiresAt *time.Time `json:"testPhonePendingExpiresAt,omitempty" url:"testPhonePendingExpiresAt,omitempty"`
-	TestPhonePendingAttempts  float64    `json:"testPhonePendingAttempts" url:"testPhonePendingAttempts"`
-	TestPhoneSendCount        float64    `json:"testPhoneSendCount" url:"testPhoneSendCount"`
-	TestPhoneSendPeriodStart  *time.Time `json:"testPhoneSendPeriodStart,omitempty" url:"testPhoneSendPeriodStart,omitempty"`
-	// Country codes allowed for SMS codes. Empty means no restriction.
-	PhoneCodeAllowedCountries []string                               `json:"phoneCodeAllowedCountries,omitempty" url:"phoneCodeAllowedCountries,omitempty"`
-	HostedLayout              AuthSettingsResponseDtoHostedLayout    `json:"hostedLayout" url:"hostedLayout"`
-	HostedPanelSide           AuthSettingsResponseDtoHostedPanelSide `json:"hostedPanelSide" url:"hostedPanelSide"`
-	HostedPanelImageURL       *string                                `json:"hostedPanelImageUrl,omitempty" url:"hostedPanelImageUrl,omitempty"`
-	HostedBackgroundColor     *string                                `json:"hostedBackgroundColor,omitempty" url:"hostedBackgroundColor,omitempty"`
-	HostedRadius              AuthSettingsResponseDtoHostedRadius    `json:"hostedRadius" url:"hostedRadius"`
-	HostedFont                AuthSettingsResponseDtoHostedFont      `json:"hostedFont" url:"hostedFont"`
-	HostedShowBrandMark       bool                                   `json:"hostedShowBrandMark" url:"hostedShowBrandMark"`
-	// Shows a country selector in front of the phone field.
-	PhoneCountryPicker   bool      `json:"phoneCountryPicker" url:"phoneCountryPicker"`
-	PhoneDefaultCountry  *string   `json:"phoneDefaultCountry,omitempty" url:"phoneDefaultCountry,omitempty"`
-	NewSignupCount       float64   `json:"newSignupCount" url:"newSignupCount"`
-	NewSignupPeriodStart time.Time `json:"newSignupPeriodStart" url:"newSignupPeriodStart"`
-	CreatedAt            time.Time `json:"createdAt" url:"createdAt"`
-	UpdatedAt            time.Time `json:"updatedAt" url:"updatedAt"`
-
-	extraProperties map[string]interface{}
-	rawJSON         json.RawMessage
-}
-
-func (a *AuthSettingsResponseDto) GetID() string {
-	if a == nil {
-		return ""
-	}
-	return a.ID
-}
-
-func (a *AuthSettingsResponseDto) GetAppID() string {
-	if a == nil {
-		return ""
-	}
-	return a.AppID
-}
-
-func (a *AuthSettingsResponseDto) GetEnabled() bool {
-	if a == nil {
-		return false
-	}
-	return a.Enabled
-}
-
-func (a *AuthSettingsResponseDto) GetAllowedProviders() []string {
-	if a == nil {
-		return nil
-	}
-	return a.AllowedProviders
-}
-
-func (a *AuthSettingsResponseDto) GetRedirectURLAllowlist() []string {
-	if a == nil {
-		return nil
-	}
-	return a.RedirectURLAllowlist
-}
-
-func (a *AuthSettingsResponseDto) GetAccessTokenTTLSeconds() float64 {
-	if a == nil {
-		return 0
-	}
-	return a.AccessTokenTTLSeconds
-}
-
-func (a *AuthSettingsResponseDto) GetRefreshTokenTTLDays() float64 {
-	if a == nil {
-		return 0
-	}
-	return a.RefreshTokenTTLDays
-}
-
-func (a *AuthSettingsResponseDto) GetLogoURL() *string {
-	if a == nil {
-		return nil
-	}
-	return a.LogoURL
-}
-
-func (a *AuthSettingsResponseDto) GetPrimaryColor() *string {
-	if a == nil {
-		return nil
-	}
-	return a.PrimaryColor
-}
-
-func (a *AuthSettingsResponseDto) GetCustomDomain() *string {
-	if a == nil {
-		return nil
-	}
-	return a.CustomDomain
-}
-
-func (a *AuthSettingsResponseDto) GetCustomDomainStatus() *AuthSettingsResponseDtoCustomDomainStatus {
-	if a == nil {
-		return nil
-	}
-	return a.CustomDomainStatus
-}
-
-func (a *AuthSettingsResponseDto) GetOrganizationsEnabled() bool {
-	if a == nil {
-		return false
-	}
-	return a.OrganizationsEnabled
-}
-
-func (a *AuthSettingsResponseDto) GetLocale() AuthSettingsResponseDtoLocale {
-	if a == nil {
-		return ""
-	}
-	return a.Locale
-}
-
-func (a *AuthSettingsResponseDto) GetTestPhoneNumber() *string {
-	if a == nil {
-		return nil
-	}
-	return a.TestPhoneNumber
-}
-
-func (a *AuthSettingsResponseDto) GetTestPhoneVerifiedAt() *time.Time {
-	if a == nil {
-		return nil
-	}
-	return a.TestPhoneVerifiedAt
-}
-
-func (a *AuthSettingsResponseDto) GetTestPhoneChangesUsed() float64 {
-	if a == nil {
-		return 0
-	}
-	return a.TestPhoneChangesUsed
-}
-
-func (a *AuthSettingsResponseDto) GetTestPhonePendingNumber() *string {
-	if a == nil {
-		return nil
-	}
-	return a.TestPhonePendingNumber
-}
-
-func (a *AuthSettingsResponseDto) GetTestPhonePendingExpiresAt() *time.Time {
-	if a == nil {
-		return nil
-	}
-	return a.TestPhonePendingExpiresAt
-}
-
-func (a *AuthSettingsResponseDto) GetTestPhonePendingAttempts() float64 {
-	if a == nil {
-		return 0
-	}
-	return a.TestPhonePendingAttempts
-}
-
-func (a *AuthSettingsResponseDto) GetTestPhoneSendCount() float64 {
-	if a == nil {
-		return 0
-	}
-	return a.TestPhoneSendCount
-}
-
-func (a *AuthSettingsResponseDto) GetTestPhoneSendPeriodStart() *time.Time {
-	if a == nil {
-		return nil
-	}
-	return a.TestPhoneSendPeriodStart
-}
-
-func (a *AuthSettingsResponseDto) GetPhoneCodeAllowedCountries() []string {
-	if a == nil {
-		return nil
-	}
-	return a.PhoneCodeAllowedCountries
-}
-
-func (a *AuthSettingsResponseDto) GetHostedLayout() AuthSettingsResponseDtoHostedLayout {
-	if a == nil {
-		return ""
-	}
-	return a.HostedLayout
-}
-
-func (a *AuthSettingsResponseDto) GetHostedPanelSide() AuthSettingsResponseDtoHostedPanelSide {
-	if a == nil {
-		return ""
-	}
-	return a.HostedPanelSide
-}
-
-func (a *AuthSettingsResponseDto) GetHostedPanelImageURL() *string {
-	if a == nil {
-		return nil
-	}
-	return a.HostedPanelImageURL
-}
-
-func (a *AuthSettingsResponseDto) GetHostedBackgroundColor() *string {
-	if a == nil {
-		return nil
-	}
-	return a.HostedBackgroundColor
-}
-
-func (a *AuthSettingsResponseDto) GetHostedRadius() AuthSettingsResponseDtoHostedRadius {
-	if a == nil {
-		return ""
-	}
-	return a.HostedRadius
-}
-
-func (a *AuthSettingsResponseDto) GetHostedFont() AuthSettingsResponseDtoHostedFont {
-	if a == nil {
-		return ""
-	}
-	return a.HostedFont
-}
-
-func (a *AuthSettingsResponseDto) GetHostedShowBrandMark() bool {
-	if a == nil {
-		return false
-	}
-	return a.HostedShowBrandMark
-}
-
-func (a *AuthSettingsResponseDto) GetPhoneCountryPicker() bool {
-	if a == nil {
-		return false
-	}
-	return a.PhoneCountryPicker
-}
-
-func (a *AuthSettingsResponseDto) GetPhoneDefaultCountry() *string {
-	if a == nil {
-		return nil
-	}
-	return a.PhoneDefaultCountry
-}
-
-func (a *AuthSettingsResponseDto) GetNewSignupCount() float64 {
-	if a == nil {
-		return 0
-	}
-	return a.NewSignupCount
-}
-
-func (a *AuthSettingsResponseDto) GetNewSignupPeriodStart() time.Time {
-	if a == nil {
-		return time.Time{}
-	}
-	return a.NewSignupPeriodStart
-}
-
-func (a *AuthSettingsResponseDto) GetCreatedAt() time.Time {
-	if a == nil {
-		return time.Time{}
-	}
-	return a.CreatedAt
-}
-
-func (a *AuthSettingsResponseDto) GetUpdatedAt() time.Time {
-	if a == nil {
-		return time.Time{}
-	}
-	return a.UpdatedAt
-}
-
-func (a *AuthSettingsResponseDto) GetExtraProperties() map[string]interface{} {
-	return a.extraProperties
-}
-
-func (a *AuthSettingsResponseDto) UnmarshalJSON(data []byte) error {
-	type embed AuthSettingsResponseDto
-	var unmarshaler = struct {
-		embed
-		TestPhoneVerifiedAt       *internal.DateTime `json:"testPhoneVerifiedAt,omitempty"`
-		TestPhonePendingExpiresAt *internal.DateTime `json:"testPhonePendingExpiresAt,omitempty"`
-		TestPhoneSendPeriodStart  *internal.DateTime `json:"testPhoneSendPeriodStart,omitempty"`
-		NewSignupPeriodStart      *internal.DateTime `json:"newSignupPeriodStart"`
-		CreatedAt                 *internal.DateTime `json:"createdAt"`
-		UpdatedAt                 *internal.DateTime `json:"updatedAt"`
-	}{
-		embed: embed(*a),
-	}
-	if err := json.Unmarshal(data, &unmarshaler); err != nil {
-		return err
-	}
-	*a = AuthSettingsResponseDto(unmarshaler.embed)
-	a.TestPhoneVerifiedAt = unmarshaler.TestPhoneVerifiedAt.TimePtr()
-	a.TestPhonePendingExpiresAt = unmarshaler.TestPhonePendingExpiresAt.TimePtr()
-	a.TestPhoneSendPeriodStart = unmarshaler.TestPhoneSendPeriodStart.TimePtr()
-	a.NewSignupPeriodStart = unmarshaler.NewSignupPeriodStart.Time()
-	a.CreatedAt = unmarshaler.CreatedAt.Time()
-	a.UpdatedAt = unmarshaler.UpdatedAt.Time()
-	extraProperties, err := internal.ExtractExtraProperties(data, *a)
-	if err != nil {
-		return err
-	}
-	a.extraProperties = extraProperties
-	a.rawJSON = json.RawMessage(data)
-	return nil
-}
-
-func (a *AuthSettingsResponseDto) MarshalJSON() ([]byte, error) {
-	type embed AuthSettingsResponseDto
-	var marshaler = struct {
-		embed
-		TestPhoneVerifiedAt       *internal.DateTime `json:"testPhoneVerifiedAt,omitempty"`
-		TestPhonePendingExpiresAt *internal.DateTime `json:"testPhonePendingExpiresAt,omitempty"`
-		TestPhoneSendPeriodStart  *internal.DateTime `json:"testPhoneSendPeriodStart,omitempty"`
-		NewSignupPeriodStart      *internal.DateTime `json:"newSignupPeriodStart"`
-		CreatedAt                 *internal.DateTime `json:"createdAt"`
-		UpdatedAt                 *internal.DateTime `json:"updatedAt"`
-	}{
-		embed:                     embed(*a),
-		TestPhoneVerifiedAt:       internal.NewOptionalDateTime(a.TestPhoneVerifiedAt),
-		TestPhonePendingExpiresAt: internal.NewOptionalDateTime(a.TestPhonePendingExpiresAt),
-		TestPhoneSendPeriodStart:  internal.NewOptionalDateTime(a.TestPhoneSendPeriodStart),
-		NewSignupPeriodStart:      internal.NewDateTime(a.NewSignupPeriodStart),
-		CreatedAt:                 internal.NewDateTime(a.CreatedAt),
-		UpdatedAt:                 internal.NewDateTime(a.UpdatedAt),
-	}
-	return json.Marshal(marshaler)
-}
-
-func (a *AuthSettingsResponseDto) String() string {
-	if len(a.rawJSON) > 0 {
-		if value, err := internal.StringifyJSON(a.rawJSON); err == nil {
-			return value
-		}
-	}
-	if value, err := internal.StringifyJSON(a); err == nil {
-		return value
-	}
-	return fmt.Sprintf("%#v", a)
-}
-
-type AuthSettingsResponseDtoCustomDomainStatus string
-
-const (
-	AuthSettingsResponseDtoCustomDomainStatusPending  AuthSettingsResponseDtoCustomDomainStatus = "PENDING"
-	AuthSettingsResponseDtoCustomDomainStatusVerified AuthSettingsResponseDtoCustomDomainStatus = "VERIFIED"
-	AuthSettingsResponseDtoCustomDomainStatusFailed   AuthSettingsResponseDtoCustomDomainStatus = "FAILED"
-)
-
-func NewAuthSettingsResponseDtoCustomDomainStatusFromString(s string) (AuthSettingsResponseDtoCustomDomainStatus, error) {
-	switch s {
-	case "PENDING":
-		return AuthSettingsResponseDtoCustomDomainStatusPending, nil
-	case "VERIFIED":
-		return AuthSettingsResponseDtoCustomDomainStatusVerified, nil
-	case "FAILED":
-		return AuthSettingsResponseDtoCustomDomainStatusFailed, nil
-	}
-	var t AuthSettingsResponseDtoCustomDomainStatus
-	return "", fmt.Errorf("%s is not a valid %T", s, t)
-}
-
-func (a AuthSettingsResponseDtoCustomDomainStatus) Ptr() *AuthSettingsResponseDtoCustomDomainStatus {
-	return &a
-}
-
-type AuthSettingsResponseDtoHostedFont string
-
-const (
-	AuthSettingsResponseDtoHostedFontDefault AuthSettingsResponseDtoHostedFont = "DEFAULT"
-	AuthSettingsResponseDtoHostedFontInter   AuthSettingsResponseDtoHostedFont = "INTER"
-	AuthSettingsResponseDtoHostedFontDmSans  AuthSettingsResponseDtoHostedFont = "DM_SANS"
-	AuthSettingsResponseDtoHostedFontLora    AuthSettingsResponseDtoHostedFont = "LORA"
-)
-
-func NewAuthSettingsResponseDtoHostedFontFromString(s string) (AuthSettingsResponseDtoHostedFont, error) {
-	switch s {
-	case "DEFAULT":
-		return AuthSettingsResponseDtoHostedFontDefault, nil
-	case "INTER":
-		return AuthSettingsResponseDtoHostedFontInter, nil
-	case "DM_SANS":
-		return AuthSettingsResponseDtoHostedFontDmSans, nil
-	case "LORA":
-		return AuthSettingsResponseDtoHostedFontLora, nil
-	}
-	var t AuthSettingsResponseDtoHostedFont
-	return "", fmt.Errorf("%s is not a valid %T", s, t)
-}
-
-func (a AuthSettingsResponseDtoHostedFont) Ptr() *AuthSettingsResponseDtoHostedFont {
-	return &a
-}
-
-type AuthSettingsResponseDtoHostedLayout string
-
-const (
-	AuthSettingsResponseDtoHostedLayoutCentered AuthSettingsResponseDtoHostedLayout = "CENTERED"
-	AuthSettingsResponseDtoHostedLayoutSplit    AuthSettingsResponseDtoHostedLayout = "SPLIT"
-	AuthSettingsResponseDtoHostedLayoutMinimal  AuthSettingsResponseDtoHostedLayout = "MINIMAL"
-)
-
-func NewAuthSettingsResponseDtoHostedLayoutFromString(s string) (AuthSettingsResponseDtoHostedLayout, error) {
-	switch s {
-	case "CENTERED":
-		return AuthSettingsResponseDtoHostedLayoutCentered, nil
-	case "SPLIT":
-		return AuthSettingsResponseDtoHostedLayoutSplit, nil
-	case "MINIMAL":
-		return AuthSettingsResponseDtoHostedLayoutMinimal, nil
-	}
-	var t AuthSettingsResponseDtoHostedLayout
-	return "", fmt.Errorf("%s is not a valid %T", s, t)
-}
-
-func (a AuthSettingsResponseDtoHostedLayout) Ptr() *AuthSettingsResponseDtoHostedLayout {
-	return &a
-}
-
-type AuthSettingsResponseDtoHostedPanelSide string
-
-const (
-	AuthSettingsResponseDtoHostedPanelSideLeft  AuthSettingsResponseDtoHostedPanelSide = "LEFT"
-	AuthSettingsResponseDtoHostedPanelSideRight AuthSettingsResponseDtoHostedPanelSide = "RIGHT"
-)
-
-func NewAuthSettingsResponseDtoHostedPanelSideFromString(s string) (AuthSettingsResponseDtoHostedPanelSide, error) {
-	switch s {
-	case "LEFT":
-		return AuthSettingsResponseDtoHostedPanelSideLeft, nil
-	case "RIGHT":
-		return AuthSettingsResponseDtoHostedPanelSideRight, nil
-	}
-	var t AuthSettingsResponseDtoHostedPanelSide
-	return "", fmt.Errorf("%s is not a valid %T", s, t)
-}
-
-func (a AuthSettingsResponseDtoHostedPanelSide) Ptr() *AuthSettingsResponseDtoHostedPanelSide {
-	return &a
-}
-
-type AuthSettingsResponseDtoHostedRadius string
-
-const (
-	AuthSettingsResponseDtoHostedRadiusSharp AuthSettingsResponseDtoHostedRadius = "SHARP"
-	AuthSettingsResponseDtoHostedRadiusSoft  AuthSettingsResponseDtoHostedRadius = "SOFT"
-	AuthSettingsResponseDtoHostedRadiusRound AuthSettingsResponseDtoHostedRadius = "ROUND"
-)
-
-func NewAuthSettingsResponseDtoHostedRadiusFromString(s string) (AuthSettingsResponseDtoHostedRadius, error) {
-	switch s {
-	case "SHARP":
-		return AuthSettingsResponseDtoHostedRadiusSharp, nil
-	case "SOFT":
-		return AuthSettingsResponseDtoHostedRadiusSoft, nil
-	case "ROUND":
-		return AuthSettingsResponseDtoHostedRadiusRound, nil
-	}
-	var t AuthSettingsResponseDtoHostedRadius
-	return "", fmt.Errorf("%s is not a valid %T", s, t)
-}
-
-func (a AuthSettingsResponseDtoHostedRadius) Ptr() *AuthSettingsResponseDtoHostedRadius {
-	return &a
-}
-
-// Language your end-users are served in: hosted sign-in pages and authentication emails.
-type AuthSettingsResponseDtoLocale string
-
-const (
-	AuthSettingsResponseDtoLocaleEn AuthSettingsResponseDtoLocale = "en"
-	AuthSettingsResponseDtoLocaleFr AuthSettingsResponseDtoLocale = "fr"
-)
-
-func NewAuthSettingsResponseDtoLocaleFromString(s string) (AuthSettingsResponseDtoLocale, error) {
-	switch s {
-	case "en":
-		return AuthSettingsResponseDtoLocaleEn, nil
-	case "fr":
-		return AuthSettingsResponseDtoLocaleFr, nil
-	}
-	var t AuthSettingsResponseDtoLocale
-	return "", fmt.Errorf("%s is not a valid %T", s, t)
-}
-
-func (a AuthSettingsResponseDtoLocale) Ptr() *AuthSettingsResponseDtoLocale {
-	return &a
-}
-
-type CustomerIdentitySummaryDto struct {
-	Provider  string    `json:"provider" url:"provider"`
-	CreatedAt time.Time `json:"createdAt" url:"createdAt"`
-
-	extraProperties map[string]interface{}
-	rawJSON         json.RawMessage
-}
-
-func (c *CustomerIdentitySummaryDto) GetProvider() string {
-	if c == nil {
-		return ""
-	}
-	return c.Provider
-}
-
-func (c *CustomerIdentitySummaryDto) GetCreatedAt() time.Time {
-	if c == nil {
-		return time.Time{}
-	}
-	return c.CreatedAt
-}
-
-func (c *CustomerIdentitySummaryDto) GetExtraProperties() map[string]interface{} {
-	return c.extraProperties
-}
-
-func (c *CustomerIdentitySummaryDto) UnmarshalJSON(data []byte) error {
-	type embed CustomerIdentitySummaryDto
-	var unmarshaler = struct {
-		embed
-		CreatedAt *internal.DateTime `json:"createdAt"`
-	}{
-		embed: embed(*c),
-	}
-	if err := json.Unmarshal(data, &unmarshaler); err != nil {
-		return err
-	}
-	*c = CustomerIdentitySummaryDto(unmarshaler.embed)
-	c.CreatedAt = unmarshaler.CreatedAt.Time()
-	extraProperties, err := internal.ExtractExtraProperties(data, *c)
-	if err != nil {
-		return err
-	}
-	c.extraProperties = extraProperties
-	c.rawJSON = json.RawMessage(data)
-	return nil
-}
-
-func (c *CustomerIdentitySummaryDto) MarshalJSON() ([]byte, error) {
-	type embed CustomerIdentitySummaryDto
-	var marshaler = struct {
-		embed
-		CreatedAt *internal.DateTime `json:"createdAt"`
-	}{
-		embed:     embed(*c),
-		CreatedAt: internal.NewDateTime(c.CreatedAt),
-	}
-	return json.Marshal(marshaler)
-}
-
-func (c *CustomerIdentitySummaryDto) String() string {
-	if len(c.rawJSON) > 0 {
-		if value, err := internal.StringifyJSON(c.rawJSON); err == nil {
-			return value
-		}
-	}
-	if value, err := internal.StringifyJSON(c); err == nil {
-		return value
-	}
-	return fmt.Sprintf("%#v", c)
-}
-
-type CustomerOrganizationSummaryDto struct {
-	ID   string `json:"id" url:"id"`
-	Name string `json:"name" url:"name"`
-	Slug string `json:"slug" url:"slug"`
-	// Every role of the Customer in this organization.
-	Roles []string `json:"roles,omitempty" url:"roles,omitempty"`
-	// The highest built-in role among roles. Use roles.
-	Role CustomerOrganizationSummaryDtoRole `json:"role" url:"role"`
-	// True for the active organization.
-	Active bool `json:"active" url:"active"`
-
-	extraProperties map[string]interface{}
-	rawJSON         json.RawMessage
-}
-
-func (c *CustomerOrganizationSummaryDto) GetID() string {
-	if c == nil {
-		return ""
-	}
-	return c.ID
-}
-
-func (c *CustomerOrganizationSummaryDto) GetName() string {
-	if c == nil {
-		return ""
-	}
-	return c.Name
-}
-
-func (c *CustomerOrganizationSummaryDto) GetSlug() string {
-	if c == nil {
-		return ""
-	}
-	return c.Slug
-}
-
-func (c *CustomerOrganizationSummaryDto) GetRoles() []string {
-	if c == nil {
-		return nil
-	}
-	return c.Roles
-}
-
-func (c *CustomerOrganizationSummaryDto) GetRole() CustomerOrganizationSummaryDtoRole {
-	if c == nil {
-		return ""
-	}
-	return c.Role
-}
-
-func (c *CustomerOrganizationSummaryDto) GetActive() bool {
-	if c == nil {
-		return false
-	}
-	return c.Active
-}
-
-func (c *CustomerOrganizationSummaryDto) GetExtraProperties() map[string]interface{} {
-	return c.extraProperties
-}
-
-func (c *CustomerOrganizationSummaryDto) UnmarshalJSON(data []byte) error {
-	type unmarshaler CustomerOrganizationSummaryDto
-	var value unmarshaler
-	if err := json.Unmarshal(data, &value); err != nil {
-		return err
-	}
-	*c = CustomerOrganizationSummaryDto(value)
-	extraProperties, err := internal.ExtractExtraProperties(data, *c)
-	if err != nil {
-		return err
-	}
-	c.extraProperties = extraProperties
-	c.rawJSON = json.RawMessage(data)
-	return nil
-}
-
-func (c *CustomerOrganizationSummaryDto) String() string {
-	if len(c.rawJSON) > 0 {
-		if value, err := internal.StringifyJSON(c.rawJSON); err == nil {
-			return value
-		}
-	}
-	if value, err := internal.StringifyJSON(c); err == nil {
-		return value
-	}
-	return fmt.Sprintf("%#v", c)
-}
-
-// The highest built-in role among roles. Use roles.
-type CustomerOrganizationSummaryDtoRole string
-
-const (
-	CustomerOrganizationSummaryDtoRoleOwner  CustomerOrganizationSummaryDtoRole = "OWNER"
-	CustomerOrganizationSummaryDtoRoleAdmin  CustomerOrganizationSummaryDtoRole = "ADMIN"
-	CustomerOrganizationSummaryDtoRoleMember CustomerOrganizationSummaryDtoRole = "MEMBER"
-)
-
-func NewCustomerOrganizationSummaryDtoRoleFromString(s string) (CustomerOrganizationSummaryDtoRole, error) {
-	switch s {
-	case "OWNER":
-		return CustomerOrganizationSummaryDtoRoleOwner, nil
-	case "ADMIN":
-		return CustomerOrganizationSummaryDtoRoleAdmin, nil
-	case "MEMBER":
-		return CustomerOrganizationSummaryDtoRoleMember, nil
-	}
-	var t CustomerOrganizationSummaryDtoRole
-	return "", fmt.Errorf("%s is not a valid %T", s, t)
-}
-
-func (c CustomerOrganizationSummaryDtoRole) Ptr() *CustomerOrganizationSummaryDtoRole {
-	return &c
-}
-
-type CustomerSessionSummaryDto struct {
-	ID string `json:"id" url:"id"`
-	// User-agent recorded when the session opened.
-	UserAgent *string   `json:"userAgent,omitempty" url:"userAgent,omitempty"`
-	IPAddress *string   `json:"ipAddress,omitempty" url:"ipAddress,omitempty"`
-	CreatedAt time.Time `json:"createdAt" url:"createdAt"`
-	ExpiresAt time.Time `json:"expiresAt" url:"expiresAt"`
-	// True for the session making this request.
-	Current bool `json:"current" url:"current"`
-	// True when a member of the app's team opened this session to reproduce an issue. It ends on its own within 60 minutes.
-	SupportSession bool `json:"supportSession" url:"supportSession"`
-
-	extraProperties map[string]interface{}
-	rawJSON         json.RawMessage
-}
-
-func (c *CustomerSessionSummaryDto) GetID() string {
-	if c == nil {
-		return ""
-	}
-	return c.ID
-}
-
-func (c *CustomerSessionSummaryDto) GetUserAgent() *string {
-	if c == nil {
-		return nil
-	}
-	return c.UserAgent
-}
-
-func (c *CustomerSessionSummaryDto) GetIPAddress() *string {
-	if c == nil {
-		return nil
-	}
-	return c.IPAddress
-}
-
-func (c *CustomerSessionSummaryDto) GetCreatedAt() time.Time {
-	if c == nil {
-		return time.Time{}
-	}
-	return c.CreatedAt
-}
-
-func (c *CustomerSessionSummaryDto) GetExpiresAt() time.Time {
-	if c == nil {
-		return time.Time{}
-	}
-	return c.ExpiresAt
-}
-
-func (c *CustomerSessionSummaryDto) GetCurrent() bool {
-	if c == nil {
-		return false
-	}
-	return c.Current
-}
-
-func (c *CustomerSessionSummaryDto) GetSupportSession() bool {
-	if c == nil {
-		return false
-	}
-	return c.SupportSession
-}
-
-func (c *CustomerSessionSummaryDto) GetExtraProperties() map[string]interface{} {
-	return c.extraProperties
-}
-
-func (c *CustomerSessionSummaryDto) UnmarshalJSON(data []byte) error {
-	type embed CustomerSessionSummaryDto
-	var unmarshaler = struct {
-		embed
-		CreatedAt *internal.DateTime `json:"createdAt"`
-		ExpiresAt *internal.DateTime `json:"expiresAt"`
-	}{
-		embed: embed(*c),
-	}
-	if err := json.Unmarshal(data, &unmarshaler); err != nil {
-		return err
-	}
-	*c = CustomerSessionSummaryDto(unmarshaler.embed)
-	c.CreatedAt = unmarshaler.CreatedAt.Time()
-	c.ExpiresAt = unmarshaler.ExpiresAt.Time()
-	extraProperties, err := internal.ExtractExtraProperties(data, *c)
-	if err != nil {
-		return err
-	}
-	c.extraProperties = extraProperties
-	c.rawJSON = json.RawMessage(data)
-	return nil
-}
-
-func (c *CustomerSessionSummaryDto) MarshalJSON() ([]byte, error) {
-	type embed CustomerSessionSummaryDto
-	var marshaler = struct {
-		embed
-		CreatedAt *internal.DateTime `json:"createdAt"`
-		ExpiresAt *internal.DateTime `json:"expiresAt"`
-	}{
-		embed:     embed(*c),
-		CreatedAt: internal.NewDateTime(c.CreatedAt),
-		ExpiresAt: internal.NewDateTime(c.ExpiresAt),
-	}
-	return json.Marshal(marshaler)
-}
-
-func (c *CustomerSessionSummaryDto) String() string {
-	if len(c.rawJSON) > 0 {
-		if value, err := internal.StringifyJSON(c.rawJSON); err == nil {
-			return value
-		}
-	}
-	if value, err := internal.StringifyJSON(c); err == nil {
-		return value
-	}
-	return fmt.Sprintf("%#v", c)
-}
-
-type CustomerTokensResponseDto struct {
-	// Access token to present as a Bearer on the self-service routes, and to verify server-side with the project public keys.
-	AccessToken string `json:"accessToken" url:"accessToken"`
-	// Opaque token used to obtain a new accessToken. It rotates on every use: this one works once.
-	RefreshToken string `json:"refreshToken" url:"refreshToken"`
-	// Lifetime of the accessToken, in seconds.
-	ExpiresIn float64 `json:"expiresIn" url:"expiresIn"`
-
-	extraProperties map[string]interface{}
-	rawJSON         json.RawMessage
-}
-
-func (c *CustomerTokensResponseDto) GetAccessToken() string {
-	if c == nil {
-		return ""
-	}
-	return c.AccessToken
-}
-
-func (c *CustomerTokensResponseDto) GetRefreshToken() string {
-	if c == nil {
-		return ""
-	}
-	return c.RefreshToken
-}
-
-func (c *CustomerTokensResponseDto) GetExpiresIn() float64 {
-	if c == nil {
-		return 0
-	}
-	return c.ExpiresIn
-}
-
-func (c *CustomerTokensResponseDto) GetExtraProperties() map[string]interface{} {
-	return c.extraProperties
-}
-
-func (c *CustomerTokensResponseDto) UnmarshalJSON(data []byte) error {
-	type unmarshaler CustomerTokensResponseDto
-	var value unmarshaler
-	if err := json.Unmarshal(data, &value); err != nil {
-		return err
-	}
-	*c = CustomerTokensResponseDto(value)
-	extraProperties, err := internal.ExtractExtraProperties(data, *c)
-	if err != nil {
-		return err
-	}
-	c.extraProperties = extraProperties
-	c.rawJSON = json.RawMessage(data)
-	return nil
-}
-
-func (c *CustomerTokensResponseDto) String() string {
-	if len(c.rawJSON) > 0 {
-		if value, err := internal.StringifyJSON(c.rawJSON); err == nil {
-			return value
-		}
-	}
-	if value, err := internal.StringifyJSON(c); err == nil {
-		return value
-	}
-	return fmt.Sprintf("%#v", c)
 }
 
 type EmailCodeRequestDto struct {
@@ -1576,9 +407,9 @@ type HostedAuthConfigResponseDto struct {
 	RedirectURLAllowlist []string `json:"redirectUrlAllowlist,omitempty" url:"redirectUrlAllowlist,omitempty"`
 	LogoURL              *string  `json:"logoUrl,omitempty" url:"logoUrl,omitempty"`
 	PrimaryColor         *string  `json:"primaryColor,omitempty" url:"primaryColor,omitempty"`
-	// True if this project Customers can belong to organizations. Lets the front end skip SSO domain discovery when it serves no purpose.
+	// True if the users of this project can belong to organizations. Lets the front end skip SSO domain discovery when it serves no purpose.
 	OrganizationsEnabled bool `json:"organizationsEnabled" url:"organizationsEnabled"`
-	// Language the sign-in pages are shown in to your end-users, chosen by you in the dashboard.
+	// Language the sign-in pages are shown in to your users, chosen by you in the dashboard.
 	Locale HostedAuthConfigResponseDtoLocale `json:"locale" url:"locale"`
 	Oauth  *OAuthBridgeConfigDto             `json:"oauth,omitempty" url:"oauth,omitempty"`
 	// True if the hosted pages show a small "Secured by Mailmus" badge. Removed from the Pro plan up.
@@ -1707,7 +538,7 @@ func (h *HostedAuthConfigResponseDto) String() string {
 	return fmt.Sprintf("%#v", h)
 }
 
-// Language the sign-in pages are shown in to your end-users, chosen by you in the dashboard.
+// Language the sign-in pages are shown in to your users, chosen by you in the dashboard.
 type HostedAuthConfigResponseDtoLocale string
 
 const (
@@ -1728,53 +559,6 @@ func NewHostedAuthConfigResponseDtoLocaleFromString(s string) (HostedAuthConfigR
 
 func (h HostedAuthConfigResponseDtoLocale) Ptr() *HostedAuthConfigResponseDtoLocale {
 	return &h
-}
-
-type HostedDomainResolveResponseDto struct {
-	// Project this domain is attached to.
-	AppID string `json:"appId" url:"appId"`
-
-	extraProperties map[string]interface{}
-	rawJSON         json.RawMessage
-}
-
-func (h *HostedDomainResolveResponseDto) GetAppID() string {
-	if h == nil {
-		return ""
-	}
-	return h.AppID
-}
-
-func (h *HostedDomainResolveResponseDto) GetExtraProperties() map[string]interface{} {
-	return h.extraProperties
-}
-
-func (h *HostedDomainResolveResponseDto) UnmarshalJSON(data []byte) error {
-	type unmarshaler HostedDomainResolveResponseDto
-	var value unmarshaler
-	if err := json.Unmarshal(data, &value); err != nil {
-		return err
-	}
-	*h = HostedDomainResolveResponseDto(value)
-	extraProperties, err := internal.ExtractExtraProperties(data, *h)
-	if err != nil {
-		return err
-	}
-	h.extraProperties = extraProperties
-	h.rawJSON = json.RawMessage(data)
-	return nil
-}
-
-func (h *HostedDomainResolveResponseDto) String() string {
-	if len(h.rawJSON) > 0 {
-		if value, err := internal.StringifyJSON(h.rawJSON); err == nil {
-			return value
-		}
-	}
-	if value, err := internal.StringifyJSON(h); err == nil {
-		return value
-	}
-	return fmt.Sprintf("%#v", h)
 }
 
 type HostedPhoneConfigDto struct {
@@ -1887,211 +671,6 @@ func (j *JwksResponseDto) String() string {
 		return value
 	}
 	return fmt.Sprintf("%#v", j)
-}
-
-type MfaChallengeResponseDto struct {
-	MfaRequired bool `json:"mfaRequired" url:"mfaRequired"`
-	// Pass to exchange for a real session via POST auth/mfa/verify. It is not an accessToken: it grants access to nothing.
-	ChallengeToken string `json:"challengeToken" url:"challengeToken"`
-
-	extraProperties map[string]interface{}
-	rawJSON         json.RawMessage
-}
-
-func (m *MfaChallengeResponseDto) GetMfaRequired() bool {
-	if m == nil {
-		return false
-	}
-	return m.MfaRequired
-}
-
-func (m *MfaChallengeResponseDto) GetChallengeToken() string {
-	if m == nil {
-		return ""
-	}
-	return m.ChallengeToken
-}
-
-func (m *MfaChallengeResponseDto) GetExtraProperties() map[string]interface{} {
-	return m.extraProperties
-}
-
-func (m *MfaChallengeResponseDto) UnmarshalJSON(data []byte) error {
-	type unmarshaler MfaChallengeResponseDto
-	var value unmarshaler
-	if err := json.Unmarshal(data, &value); err != nil {
-		return err
-	}
-	*m = MfaChallengeResponseDto(value)
-	extraProperties, err := internal.ExtractExtraProperties(data, *m)
-	if err != nil {
-		return err
-	}
-	m.extraProperties = extraProperties
-	m.rawJSON = json.RawMessage(data)
-	return nil
-}
-
-func (m *MfaChallengeResponseDto) String() string {
-	if len(m.rawJSON) > 0 {
-		if value, err := internal.StringifyJSON(m.rawJSON); err == nil {
-			return value
-		}
-	}
-	if value, err := internal.StringifyJSON(m); err == nil {
-		return value
-	}
-	return fmt.Sprintf("%#v", m)
-}
-
-type MfaCodeDto struct {
-	// 6-digit TOTP code, or a 10-character backup code.
-	Code string `json:"code" url:"code"`
-
-	extraProperties map[string]interface{}
-	rawJSON         json.RawMessage
-}
-
-func (m *MfaCodeDto) GetCode() string {
-	if m == nil {
-		return ""
-	}
-	return m.Code
-}
-
-func (m *MfaCodeDto) GetExtraProperties() map[string]interface{} {
-	return m.extraProperties
-}
-
-func (m *MfaCodeDto) UnmarshalJSON(data []byte) error {
-	type unmarshaler MfaCodeDto
-	var value unmarshaler
-	if err := json.Unmarshal(data, &value); err != nil {
-		return err
-	}
-	*m = MfaCodeDto(value)
-	extraProperties, err := internal.ExtractExtraProperties(data, *m)
-	if err != nil {
-		return err
-	}
-	m.extraProperties = extraProperties
-	m.rawJSON = json.RawMessage(data)
-	return nil
-}
-
-func (m *MfaCodeDto) String() string {
-	if len(m.rawJSON) > 0 {
-		if value, err := internal.StringifyJSON(m.rawJSON); err == nil {
-			return value
-		}
-	}
-	if value, err := internal.StringifyJSON(m); err == nil {
-		return value
-	}
-	return fmt.Sprintf("%#v", m)
-}
-
-type MfaConfirmResponseDto struct {
-	// Single-use codes, shown here and nowhere else.
-	BackupCodes []string `json:"backupCodes,omitempty" url:"backupCodes,omitempty"`
-
-	extraProperties map[string]interface{}
-	rawJSON         json.RawMessage
-}
-
-func (m *MfaConfirmResponseDto) GetBackupCodes() []string {
-	if m == nil {
-		return nil
-	}
-	return m.BackupCodes
-}
-
-func (m *MfaConfirmResponseDto) GetExtraProperties() map[string]interface{} {
-	return m.extraProperties
-}
-
-func (m *MfaConfirmResponseDto) UnmarshalJSON(data []byte) error {
-	type unmarshaler MfaConfirmResponseDto
-	var value unmarshaler
-	if err := json.Unmarshal(data, &value); err != nil {
-		return err
-	}
-	*m = MfaConfirmResponseDto(value)
-	extraProperties, err := internal.ExtractExtraProperties(data, *m)
-	if err != nil {
-		return err
-	}
-	m.extraProperties = extraProperties
-	m.rawJSON = json.RawMessage(data)
-	return nil
-}
-
-func (m *MfaConfirmResponseDto) String() string {
-	if len(m.rawJSON) > 0 {
-		if value, err := internal.StringifyJSON(m.rawJSON); err == nil {
-			return value
-		}
-	}
-	if value, err := internal.StringifyJSON(m); err == nil {
-		return value
-	}
-	return fmt.Sprintf("%#v", m)
-}
-
-type MfaEnrollResponseDto struct {
-	// Shared secret, in base32. To type by hand into an authenticator app that cannot read QR codes.
-	Secret string `json:"secret" url:"secret"`
-	// The same thing as a URL, to encode as a QR code.
-	OtpauthURL string `json:"otpauthUrl" url:"otpauthUrl"`
-
-	extraProperties map[string]interface{}
-	rawJSON         json.RawMessage
-}
-
-func (m *MfaEnrollResponseDto) GetSecret() string {
-	if m == nil {
-		return ""
-	}
-	return m.Secret
-}
-
-func (m *MfaEnrollResponseDto) GetOtpauthURL() string {
-	if m == nil {
-		return ""
-	}
-	return m.OtpauthURL
-}
-
-func (m *MfaEnrollResponseDto) GetExtraProperties() map[string]interface{} {
-	return m.extraProperties
-}
-
-func (m *MfaEnrollResponseDto) UnmarshalJSON(data []byte) error {
-	type unmarshaler MfaEnrollResponseDto
-	var value unmarshaler
-	if err := json.Unmarshal(data, &value); err != nil {
-		return err
-	}
-	*m = MfaEnrollResponseDto(value)
-	extraProperties, err := internal.ExtractExtraProperties(data, *m)
-	if err != nil {
-		return err
-	}
-	m.extraProperties = extraProperties
-	m.rawJSON = json.RawMessage(data)
-	return nil
-}
-
-func (m *MfaEnrollResponseDto) String() string {
-	if len(m.rawJSON) > 0 {
-		if value, err := internal.StringifyJSON(m.rawJSON); err == nil {
-			return value
-		}
-	}
-	if value, err := internal.StringifyJSON(m); err == nil {
-		return value
-	}
-	return fmt.Sprintf("%#v", m)
 }
 
 type OAuthBridgeConfigDto struct {
@@ -2300,419 +879,6 @@ func (o *OAuthCallbackDto) String() string {
 	return fmt.Sprintf("%#v", o)
 }
 
-type OrganizationInvitationPreviewDto struct {
-	OrganizationName string `json:"organizationName" url:"organizationName"`
-	// Address this invitation was issued to.
-	Email string                               `json:"email" url:"email"`
-	Role  OrganizationInvitationPreviewDtoRole `json:"role" url:"role"`
-
-	extraProperties map[string]interface{}
-	rawJSON         json.RawMessage
-}
-
-func (o *OrganizationInvitationPreviewDto) GetOrganizationName() string {
-	if o == nil {
-		return ""
-	}
-	return o.OrganizationName
-}
-
-func (o *OrganizationInvitationPreviewDto) GetEmail() string {
-	if o == nil {
-		return ""
-	}
-	return o.Email
-}
-
-func (o *OrganizationInvitationPreviewDto) GetRole() OrganizationInvitationPreviewDtoRole {
-	if o == nil {
-		return ""
-	}
-	return o.Role
-}
-
-func (o *OrganizationInvitationPreviewDto) GetExtraProperties() map[string]interface{} {
-	return o.extraProperties
-}
-
-func (o *OrganizationInvitationPreviewDto) UnmarshalJSON(data []byte) error {
-	type unmarshaler OrganizationInvitationPreviewDto
-	var value unmarshaler
-	if err := json.Unmarshal(data, &value); err != nil {
-		return err
-	}
-	*o = OrganizationInvitationPreviewDto(value)
-	extraProperties, err := internal.ExtractExtraProperties(data, *o)
-	if err != nil {
-		return err
-	}
-	o.extraProperties = extraProperties
-	o.rawJSON = json.RawMessage(data)
-	return nil
-}
-
-func (o *OrganizationInvitationPreviewDto) String() string {
-	if len(o.rawJSON) > 0 {
-		if value, err := internal.StringifyJSON(o.rawJSON); err == nil {
-			return value
-		}
-	}
-	if value, err := internal.StringifyJSON(o); err == nil {
-		return value
-	}
-	return fmt.Sprintf("%#v", o)
-}
-
-type OrganizationInvitationPreviewDtoRole string
-
-const (
-	OrganizationInvitationPreviewDtoRoleOwner  OrganizationInvitationPreviewDtoRole = "OWNER"
-	OrganizationInvitationPreviewDtoRoleAdmin  OrganizationInvitationPreviewDtoRole = "ADMIN"
-	OrganizationInvitationPreviewDtoRoleMember OrganizationInvitationPreviewDtoRole = "MEMBER"
-)
-
-func NewOrganizationInvitationPreviewDtoRoleFromString(s string) (OrganizationInvitationPreviewDtoRole, error) {
-	switch s {
-	case "OWNER":
-		return OrganizationInvitationPreviewDtoRoleOwner, nil
-	case "ADMIN":
-		return OrganizationInvitationPreviewDtoRoleAdmin, nil
-	case "MEMBER":
-		return OrganizationInvitationPreviewDtoRoleMember, nil
-	}
-	var t OrganizationInvitationPreviewDtoRole
-	return "", fmt.Errorf("%s is not a valid %T", s, t)
-}
-
-func (o OrganizationInvitationPreviewDtoRole) Ptr() *OrganizationInvitationPreviewDtoRole {
-	return &o
-}
-
-type ProviderDayDto struct {
-	// The day, in YYYY-MM-DD format.
-	Day string `json:"day" url:"day"`
-	// Incidents opened that day.
-	Incidents float64 `json:"incidents" url:"incidents"`
-	// At least one blocking incident that day, meaning sign-in was impossible for all of your end-users.
-	Blocking bool `json:"blocking" url:"blocking"`
-
-	extraProperties map[string]interface{}
-	rawJSON         json.RawMessage
-}
-
-func (p *ProviderDayDto) GetDay() string {
-	if p == nil {
-		return ""
-	}
-	return p.Day
-}
-
-func (p *ProviderDayDto) GetIncidents() float64 {
-	if p == nil {
-		return 0
-	}
-	return p.Incidents
-}
-
-func (p *ProviderDayDto) GetBlocking() bool {
-	if p == nil {
-		return false
-	}
-	return p.Blocking
-}
-
-func (p *ProviderDayDto) GetExtraProperties() map[string]interface{} {
-	return p.extraProperties
-}
-
-func (p *ProviderDayDto) UnmarshalJSON(data []byte) error {
-	type unmarshaler ProviderDayDto
-	var value unmarshaler
-	if err := json.Unmarshal(data, &value); err != nil {
-		return err
-	}
-	*p = ProviderDayDto(value)
-	extraProperties, err := internal.ExtractExtraProperties(data, *p)
-	if err != nil {
-		return err
-	}
-	p.extraProperties = extraProperties
-	p.rawJSON = json.RawMessage(data)
-	return nil
-}
-
-func (p *ProviderDayDto) String() string {
-	if len(p.rawJSON) > 0 {
-		if value, err := internal.StringifyJSON(p.rawJSON); err == nil {
-			return value
-		}
-	}
-	if value, err := internal.StringifyJSON(p); err == nil {
-		return value
-	}
-	return fmt.Sprintf("%#v", p)
-}
-
-type ProviderTimelineDto struct {
-	// The provider concerned.
-	Provider string            `json:"provider" url:"provider"`
-	Days     []*ProviderDayDto `json:"days,omitempty" url:"days,omitempty"`
-
-	extraProperties map[string]interface{}
-	rawJSON         json.RawMessage
-}
-
-func (p *ProviderTimelineDto) GetProvider() string {
-	if p == nil {
-		return ""
-	}
-	return p.Provider
-}
-
-func (p *ProviderTimelineDto) GetDays() []*ProviderDayDto {
-	if p == nil {
-		return nil
-	}
-	return p.Days
-}
-
-func (p *ProviderTimelineDto) GetExtraProperties() map[string]interface{} {
-	return p.extraProperties
-}
-
-func (p *ProviderTimelineDto) UnmarshalJSON(data []byte) error {
-	type unmarshaler ProviderTimelineDto
-	var value unmarshaler
-	if err := json.Unmarshal(data, &value); err != nil {
-		return err
-	}
-	*p = ProviderTimelineDto(value)
-	extraProperties, err := internal.ExtractExtraProperties(data, *p)
-	if err != nil {
-		return err
-	}
-	p.extraProperties = extraProperties
-	p.rawJSON = json.RawMessage(data)
-	return nil
-}
-
-func (p *ProviderTimelineDto) String() string {
-	if len(p.rawJSON) > 0 {
-		if value, err := internal.StringifyJSON(p.rawJSON); err == nil {
-			return value
-		}
-	}
-	if value, err := internal.StringifyJSON(p); err == nil {
-		return value
-	}
-	return fmt.Sprintf("%#v", p)
-}
-
-type PublicCustomerResponseDto struct {
-	ID string `json:"id" url:"id"`
-	// Identifier of the project this Customer belongs to. A Customer exists only inside a project: the same address in two projects means two Customers.
-	ProjectID       string     `json:"projectId" url:"projectId"`
-	Email           *string    `json:"email,omitempty" url:"email,omitempty"`
-	EmailVerifiedAt *time.Time `json:"emailVerifiedAt,omitempty" url:"emailVerifiedAt,omitempty"`
-	Phone           *string    `json:"phone,omitempty" url:"phone,omitempty"`
-	PhoneVerifiedAt *time.Time `json:"phoneVerifiedAt,omitempty" url:"phoneVerifiedAt,omitempty"`
-	// Free-form metadata you attach to the Customer.
-	Metadata map[string]interface{} `json:"metadata,omitempty" url:"metadata,omitempty"`
-	// Application roles, carried in the token `roles` claim.
-	Roles        []string   `json:"roles,omitempty" url:"roles,omitempty"`
-	LastSignInAt *time.Time `json:"lastSignInAt,omitempty" url:"lastSignInAt,omitempty"`
-	// Non-null if the Customer is banned: they can no longer sign in.
-	BannedAt *time.Time `json:"bannedAt,omitempty" url:"bannedAt,omitempty"`
-	// True if a second factor is active on this Customer.
-	MfaEnabled   bool                          `json:"mfaEnabled" url:"mfaEnabled"`
-	MfaEnabledAt *time.Time                    `json:"mfaEnabledAt,omitempty" url:"mfaEnabledAt,omitempty"`
-	CreatedAt    time.Time                     `json:"createdAt" url:"createdAt"`
-	UpdatedAt    time.Time                     `json:"updatedAt" url:"updatedAt"`
-	Identities   []*CustomerIdentitySummaryDto `json:"identities,omitempty" url:"identities,omitempty"`
-
-	extraProperties map[string]interface{}
-	rawJSON         json.RawMessage
-}
-
-func (p *PublicCustomerResponseDto) GetID() string {
-	if p == nil {
-		return ""
-	}
-	return p.ID
-}
-
-func (p *PublicCustomerResponseDto) GetProjectID() string {
-	if p == nil {
-		return ""
-	}
-	return p.ProjectID
-}
-
-func (p *PublicCustomerResponseDto) GetEmail() *string {
-	if p == nil {
-		return nil
-	}
-	return p.Email
-}
-
-func (p *PublicCustomerResponseDto) GetEmailVerifiedAt() *time.Time {
-	if p == nil {
-		return nil
-	}
-	return p.EmailVerifiedAt
-}
-
-func (p *PublicCustomerResponseDto) GetPhone() *string {
-	if p == nil {
-		return nil
-	}
-	return p.Phone
-}
-
-func (p *PublicCustomerResponseDto) GetPhoneVerifiedAt() *time.Time {
-	if p == nil {
-		return nil
-	}
-	return p.PhoneVerifiedAt
-}
-
-func (p *PublicCustomerResponseDto) GetMetadata() map[string]interface{} {
-	if p == nil {
-		return nil
-	}
-	return p.Metadata
-}
-
-func (p *PublicCustomerResponseDto) GetRoles() []string {
-	if p == nil {
-		return nil
-	}
-	return p.Roles
-}
-
-func (p *PublicCustomerResponseDto) GetLastSignInAt() *time.Time {
-	if p == nil {
-		return nil
-	}
-	return p.LastSignInAt
-}
-
-func (p *PublicCustomerResponseDto) GetBannedAt() *time.Time {
-	if p == nil {
-		return nil
-	}
-	return p.BannedAt
-}
-
-func (p *PublicCustomerResponseDto) GetMfaEnabled() bool {
-	if p == nil {
-		return false
-	}
-	return p.MfaEnabled
-}
-
-func (p *PublicCustomerResponseDto) GetMfaEnabledAt() *time.Time {
-	if p == nil {
-		return nil
-	}
-	return p.MfaEnabledAt
-}
-
-func (p *PublicCustomerResponseDto) GetCreatedAt() time.Time {
-	if p == nil {
-		return time.Time{}
-	}
-	return p.CreatedAt
-}
-
-func (p *PublicCustomerResponseDto) GetUpdatedAt() time.Time {
-	if p == nil {
-		return time.Time{}
-	}
-	return p.UpdatedAt
-}
-
-func (p *PublicCustomerResponseDto) GetIdentities() []*CustomerIdentitySummaryDto {
-	if p == nil {
-		return nil
-	}
-	return p.Identities
-}
-
-func (p *PublicCustomerResponseDto) GetExtraProperties() map[string]interface{} {
-	return p.extraProperties
-}
-
-func (p *PublicCustomerResponseDto) UnmarshalJSON(data []byte) error {
-	type embed PublicCustomerResponseDto
-	var unmarshaler = struct {
-		embed
-		EmailVerifiedAt *internal.DateTime `json:"emailVerifiedAt,omitempty"`
-		PhoneVerifiedAt *internal.DateTime `json:"phoneVerifiedAt,omitempty"`
-		LastSignInAt    *internal.DateTime `json:"lastSignInAt,omitempty"`
-		BannedAt        *internal.DateTime `json:"bannedAt,omitempty"`
-		MfaEnabledAt    *internal.DateTime `json:"mfaEnabledAt,omitempty"`
-		CreatedAt       *internal.DateTime `json:"createdAt"`
-		UpdatedAt       *internal.DateTime `json:"updatedAt"`
-	}{
-		embed: embed(*p),
-	}
-	if err := json.Unmarshal(data, &unmarshaler); err != nil {
-		return err
-	}
-	*p = PublicCustomerResponseDto(unmarshaler.embed)
-	p.EmailVerifiedAt = unmarshaler.EmailVerifiedAt.TimePtr()
-	p.PhoneVerifiedAt = unmarshaler.PhoneVerifiedAt.TimePtr()
-	p.LastSignInAt = unmarshaler.LastSignInAt.TimePtr()
-	p.BannedAt = unmarshaler.BannedAt.TimePtr()
-	p.MfaEnabledAt = unmarshaler.MfaEnabledAt.TimePtr()
-	p.CreatedAt = unmarshaler.CreatedAt.Time()
-	p.UpdatedAt = unmarshaler.UpdatedAt.Time()
-	extraProperties, err := internal.ExtractExtraProperties(data, *p)
-	if err != nil {
-		return err
-	}
-	p.extraProperties = extraProperties
-	p.rawJSON = json.RawMessage(data)
-	return nil
-}
-
-func (p *PublicCustomerResponseDto) MarshalJSON() ([]byte, error) {
-	type embed PublicCustomerResponseDto
-	var marshaler = struct {
-		embed
-		EmailVerifiedAt *internal.DateTime `json:"emailVerifiedAt,omitempty"`
-		PhoneVerifiedAt *internal.DateTime `json:"phoneVerifiedAt,omitempty"`
-		LastSignInAt    *internal.DateTime `json:"lastSignInAt,omitempty"`
-		BannedAt        *internal.DateTime `json:"bannedAt,omitempty"`
-		MfaEnabledAt    *internal.DateTime `json:"mfaEnabledAt,omitempty"`
-		CreatedAt       *internal.DateTime `json:"createdAt"`
-		UpdatedAt       *internal.DateTime `json:"updatedAt"`
-	}{
-		embed:           embed(*p),
-		EmailVerifiedAt: internal.NewOptionalDateTime(p.EmailVerifiedAt),
-		PhoneVerifiedAt: internal.NewOptionalDateTime(p.PhoneVerifiedAt),
-		LastSignInAt:    internal.NewOptionalDateTime(p.LastSignInAt),
-		BannedAt:        internal.NewOptionalDateTime(p.BannedAt),
-		MfaEnabledAt:    internal.NewOptionalDateTime(p.MfaEnabledAt),
-		CreatedAt:       internal.NewDateTime(p.CreatedAt),
-		UpdatedAt:       internal.NewDateTime(p.UpdatedAt),
-	}
-	return json.Marshal(marshaler)
-}
-
-func (p *PublicCustomerResponseDto) String() string {
-	if len(p.rawJSON) > 0 {
-		if value, err := internal.StringifyJSON(p.rawJSON); err == nil {
-			return value
-		}
-	}
-	if value, err := internal.StringifyJSON(p); err == nil {
-		return value
-	}
-	return fmt.Sprintf("%#v", p)
-}
-
 type RefreshDto struct {
 	RefreshToken string `json:"refreshToken" url:"refreshToken"`
 
@@ -2759,886 +925,381 @@ func (r *RefreshDto) String() string {
 	return fmt.Sprintf("%#v", r)
 }
 
-type SignInSuccessResponseDto struct {
+type UserTokensResponseDto struct {
 	// Access token to present as a Bearer on the self-service routes, and to verify server-side with the project public keys.
 	AccessToken string `json:"accessToken" url:"accessToken"`
 	// Opaque token used to obtain a new accessToken. It rotates on every use: this one works once.
 	RefreshToken string `json:"refreshToken" url:"refreshToken"`
 	// Lifetime of the accessToken, in seconds.
-	ExpiresIn float64                    `json:"expiresIn" url:"expiresIn"`
-	Customer  *PublicCustomerResponseDto `json:"customer,omitempty" url:"customer,omitempty"`
+	ExpiresIn float64 `json:"expiresIn" url:"expiresIn"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
 }
 
-func (s *SignInSuccessResponseDto) GetAccessToken() string {
-	if s == nil {
+func (u *UserTokensResponseDto) GetAccessToken() string {
+	if u == nil {
 		return ""
 	}
-	return s.AccessToken
+	return u.AccessToken
 }
 
-func (s *SignInSuccessResponseDto) GetRefreshToken() string {
-	if s == nil {
+func (u *UserTokensResponseDto) GetRefreshToken() string {
+	if u == nil {
 		return ""
 	}
-	return s.RefreshToken
+	return u.RefreshToken
 }
 
-func (s *SignInSuccessResponseDto) GetExpiresIn() float64 {
-	if s == nil {
+func (u *UserTokensResponseDto) GetExpiresIn() float64 {
+	if u == nil {
 		return 0
 	}
-	return s.ExpiresIn
+	return u.ExpiresIn
 }
 
-func (s *SignInSuccessResponseDto) GetCustomer() *PublicCustomerResponseDto {
-	if s == nil {
-		return nil
-	}
-	return s.Customer
+func (u *UserTokensResponseDto) GetExtraProperties() map[string]interface{} {
+	return u.extraProperties
 }
 
-func (s *SignInSuccessResponseDto) GetExtraProperties() map[string]interface{} {
-	return s.extraProperties
-}
-
-func (s *SignInSuccessResponseDto) UnmarshalJSON(data []byte) error {
-	type unmarshaler SignInSuccessResponseDto
+func (u *UserTokensResponseDto) UnmarshalJSON(data []byte) error {
+	type unmarshaler UserTokensResponseDto
 	var value unmarshaler
 	if err := json.Unmarshal(data, &value); err != nil {
 		return err
 	}
-	*s = SignInSuccessResponseDto(value)
-	extraProperties, err := internal.ExtractExtraProperties(data, *s)
+	*u = UserTokensResponseDto(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *u)
 	if err != nil {
 		return err
 	}
-	s.extraProperties = extraProperties
-	s.rawJSON = json.RawMessage(data)
+	u.extraProperties = extraProperties
+	u.rawJSON = json.RawMessage(data)
 	return nil
 }
 
-func (s *SignInSuccessResponseDto) String() string {
-	if len(s.rawJSON) > 0 {
-		if value, err := internal.StringifyJSON(s.rawJSON); err == nil {
+func (u *UserTokensResponseDto) String() string {
+	if len(u.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(u.rawJSON); err == nil {
 			return value
 		}
 	}
-	if value, err := internal.StringifyJSON(s); err == nil {
+	if value, err := internal.StringifyJSON(u); err == nil {
 		return value
 	}
-	return fmt.Sprintf("%#v", s)
+	return fmt.Sprintf("%#v", u)
 }
 
-type SigningKeyRotationResponseDto struct {
-	// Identifier of the new key, the one in the token `kid` claim.
-	Kid       string    `json:"kid" url:"kid"`
-	CreatedAt time.Time `json:"createdAt" url:"createdAt"`
-
-	extraProperties map[string]interface{}
-	rawJSON         json.RawMessage
-}
-
-func (s *SigningKeyRotationResponseDto) GetKid() string {
-	if s == nil {
-		return ""
-	}
-	return s.Kid
-}
-
-func (s *SigningKeyRotationResponseDto) GetCreatedAt() time.Time {
-	if s == nil {
-		return time.Time{}
-	}
-	return s.CreatedAt
-}
-
-func (s *SigningKeyRotationResponseDto) GetExtraProperties() map[string]interface{} {
-	return s.extraProperties
-}
-
-func (s *SigningKeyRotationResponseDto) UnmarshalJSON(data []byte) error {
-	type embed SigningKeyRotationResponseDto
-	var unmarshaler = struct {
-		embed
-		CreatedAt *internal.DateTime `json:"createdAt"`
-	}{
-		embed: embed(*s),
-	}
-	if err := json.Unmarshal(data, &unmarshaler); err != nil {
-		return err
-	}
-	*s = SigningKeyRotationResponseDto(unmarshaler.embed)
-	s.CreatedAt = unmarshaler.CreatedAt.Time()
-	extraProperties, err := internal.ExtractExtraProperties(data, *s)
-	if err != nil {
-		return err
-	}
-	s.extraProperties = extraProperties
-	s.rawJSON = json.RawMessage(data)
-	return nil
-}
-
-func (s *SigningKeyRotationResponseDto) MarshalJSON() ([]byte, error) {
-	type embed SigningKeyRotationResponseDto
-	var marshaler = struct {
-		embed
-		CreatedAt *internal.DateTime `json:"createdAt"`
-	}{
-		embed:     embed(*s),
-		CreatedAt: internal.NewDateTime(s.CreatedAt),
-	}
-	return json.Marshal(marshaler)
-}
-
-func (s *SigningKeyRotationResponseDto) String() string {
-	if len(s.rawJSON) > 0 {
-		if value, err := internal.StringifyJSON(s.rawJSON); err == nil {
-			return value
-		}
-	}
-	if value, err := internal.StringifyJSON(s); err == nil {
-		return value
-	}
-	return fmt.Sprintf("%#v", s)
-}
-
-type SSOProfileAcsResponseDto struct {
-	Code        string  `json:"code" url:"code"`
-	RedirectURI string  `json:"redirectUri" url:"redirectUri"`
-	Nonce       *string `json:"nonce,omitempty" url:"nonce,omitempty"`
-
-	extraProperties map[string]interface{}
-	rawJSON         json.RawMessage
-}
-
-func (s *SSOProfileAcsResponseDto) GetCode() string {
-	if s == nil {
-		return ""
-	}
-	return s.Code
-}
-
-func (s *SSOProfileAcsResponseDto) GetRedirectURI() string {
-	if s == nil {
-		return ""
-	}
-	return s.RedirectURI
-}
-
-func (s *SSOProfileAcsResponseDto) GetNonce() *string {
-	if s == nil {
-		return nil
-	}
-	return s.Nonce
-}
-
-func (s *SSOProfileAcsResponseDto) GetExtraProperties() map[string]interface{} {
-	return s.extraProperties
-}
-
-func (s *SSOProfileAcsResponseDto) UnmarshalJSON(data []byte) error {
-	type unmarshaler SSOProfileAcsResponseDto
-	var value unmarshaler
-	if err := json.Unmarshal(data, &value); err != nil {
-		return err
-	}
-	*s = SSOProfileAcsResponseDto(value)
-	extraProperties, err := internal.ExtractExtraProperties(data, *s)
-	if err != nil {
-		return err
-	}
-	s.extraProperties = extraProperties
-	s.rawJSON = json.RawMessage(data)
-	return nil
-}
-
-func (s *SSOProfileAcsResponseDto) String() string {
-	if len(s.rawJSON) > 0 {
-		if value, err := internal.StringifyJSON(s.rawJSON); err == nil {
-			return value
-		}
-	}
-	if value, err := internal.StringifyJSON(s); err == nil {
-		return value
-	}
-	return fmt.Sprintf("%#v", s)
-}
-
-type CustomerAuthAppleCallbackResponse struct {
+type AppleCallbackAuthResponse struct {
 	SignInSuccessResponseDto *SignInSuccessResponseDto
 	MfaChallengeResponseDto  *MfaChallengeResponseDto
 
 	typ string
 }
 
-func NewCustomerAuthAppleCallbackResponseFromSignInSuccessResponseDto(value *SignInSuccessResponseDto) *CustomerAuthAppleCallbackResponse {
-	return &CustomerAuthAppleCallbackResponse{typ: "SignInSuccessResponseDto", SignInSuccessResponseDto: value}
+func NewAppleCallbackAuthResponseFromSignInSuccessResponseDto(value *SignInSuccessResponseDto) *AppleCallbackAuthResponse {
+	return &AppleCallbackAuthResponse{typ: "SignInSuccessResponseDto", SignInSuccessResponseDto: value}
 }
 
-func NewCustomerAuthAppleCallbackResponseFromMfaChallengeResponseDto(value *MfaChallengeResponseDto) *CustomerAuthAppleCallbackResponse {
-	return &CustomerAuthAppleCallbackResponse{typ: "MfaChallengeResponseDto", MfaChallengeResponseDto: value}
+func NewAppleCallbackAuthResponseFromMfaChallengeResponseDto(value *MfaChallengeResponseDto) *AppleCallbackAuthResponse {
+	return &AppleCallbackAuthResponse{typ: "MfaChallengeResponseDto", MfaChallengeResponseDto: value}
 }
 
-func (c *CustomerAuthAppleCallbackResponse) GetSignInSuccessResponseDto() *SignInSuccessResponseDto {
-	if c == nil {
+func (a *AppleCallbackAuthResponse) GetSignInSuccessResponseDto() *SignInSuccessResponseDto {
+	if a == nil {
 		return nil
 	}
-	return c.SignInSuccessResponseDto
+	return a.SignInSuccessResponseDto
 }
 
-func (c *CustomerAuthAppleCallbackResponse) GetMfaChallengeResponseDto() *MfaChallengeResponseDto {
-	if c == nil {
+func (a *AppleCallbackAuthResponse) GetMfaChallengeResponseDto() *MfaChallengeResponseDto {
+	if a == nil {
 		return nil
 	}
-	return c.MfaChallengeResponseDto
+	return a.MfaChallengeResponseDto
 }
 
-func (c *CustomerAuthAppleCallbackResponse) UnmarshalJSON(data []byte) error {
+func (a *AppleCallbackAuthResponse) UnmarshalJSON(data []byte) error {
 	valueSignInSuccessResponseDto := new(SignInSuccessResponseDto)
 	if err := json.Unmarshal(data, &valueSignInSuccessResponseDto); err == nil {
-		c.typ = "SignInSuccessResponseDto"
-		c.SignInSuccessResponseDto = valueSignInSuccessResponseDto
+		a.typ = "SignInSuccessResponseDto"
+		a.SignInSuccessResponseDto = valueSignInSuccessResponseDto
 		return nil
 	}
 	valueMfaChallengeResponseDto := new(MfaChallengeResponseDto)
 	if err := json.Unmarshal(data, &valueMfaChallengeResponseDto); err == nil {
-		c.typ = "MfaChallengeResponseDto"
-		c.MfaChallengeResponseDto = valueMfaChallengeResponseDto
+		a.typ = "MfaChallengeResponseDto"
+		a.MfaChallengeResponseDto = valueMfaChallengeResponseDto
 		return nil
 	}
-	return fmt.Errorf("%s cannot be deserialized as a %T", data, c)
+	return fmt.Errorf("%s cannot be deserialized as a %T", data, a)
 }
 
-func (c CustomerAuthAppleCallbackResponse) MarshalJSON() ([]byte, error) {
-	if c.typ == "SignInSuccessResponseDto" || c.SignInSuccessResponseDto != nil {
-		return json.Marshal(c.SignInSuccessResponseDto)
+func (a AppleCallbackAuthResponse) MarshalJSON() ([]byte, error) {
+	if a.typ == "SignInSuccessResponseDto" || a.SignInSuccessResponseDto != nil {
+		return json.Marshal(a.SignInSuccessResponseDto)
 	}
-	if c.typ == "MfaChallengeResponseDto" || c.MfaChallengeResponseDto != nil {
-		return json.Marshal(c.MfaChallengeResponseDto)
+	if a.typ == "MfaChallengeResponseDto" || a.MfaChallengeResponseDto != nil {
+		return json.Marshal(a.MfaChallengeResponseDto)
 	}
-	return nil, fmt.Errorf("type %T does not include a non-empty union type", c)
+	return nil, fmt.Errorf("type %T does not include a non-empty union type", a)
 }
 
-type CustomerAuthAppleCallbackResponseVisitor interface {
+type AppleCallbackAuthResponseVisitor interface {
 	VisitSignInSuccessResponseDto(*SignInSuccessResponseDto) error
 	VisitMfaChallengeResponseDto(*MfaChallengeResponseDto) error
 }
 
-func (c *CustomerAuthAppleCallbackResponse) Accept(visitor CustomerAuthAppleCallbackResponseVisitor) error {
-	if c.typ == "SignInSuccessResponseDto" || c.SignInSuccessResponseDto != nil {
-		return visitor.VisitSignInSuccessResponseDto(c.SignInSuccessResponseDto)
+func (a *AppleCallbackAuthResponse) Accept(visitor AppleCallbackAuthResponseVisitor) error {
+	if a.typ == "SignInSuccessResponseDto" || a.SignInSuccessResponseDto != nil {
+		return visitor.VisitSignInSuccessResponseDto(a.SignInSuccessResponseDto)
 	}
-	if c.typ == "MfaChallengeResponseDto" || c.MfaChallengeResponseDto != nil {
-		return visitor.VisitMfaChallengeResponseDto(c.MfaChallengeResponseDto)
+	if a.typ == "MfaChallengeResponseDto" || a.MfaChallengeResponseDto != nil {
+		return visitor.VisitMfaChallengeResponseDto(a.MfaChallengeResponseDto)
 	}
-	return fmt.Errorf("type %T does not include a non-empty union type", c)
+	return fmt.Errorf("type %T does not include a non-empty union type", a)
 }
 
-type CustomerAuthGithubCallbackResponse struct {
+type GithubCallbackAuthResponse struct {
 	SignInSuccessResponseDto *SignInSuccessResponseDto
 	MfaChallengeResponseDto  *MfaChallengeResponseDto
 
 	typ string
 }
 
-func NewCustomerAuthGithubCallbackResponseFromSignInSuccessResponseDto(value *SignInSuccessResponseDto) *CustomerAuthGithubCallbackResponse {
-	return &CustomerAuthGithubCallbackResponse{typ: "SignInSuccessResponseDto", SignInSuccessResponseDto: value}
+func NewGithubCallbackAuthResponseFromSignInSuccessResponseDto(value *SignInSuccessResponseDto) *GithubCallbackAuthResponse {
+	return &GithubCallbackAuthResponse{typ: "SignInSuccessResponseDto", SignInSuccessResponseDto: value}
 }
 
-func NewCustomerAuthGithubCallbackResponseFromMfaChallengeResponseDto(value *MfaChallengeResponseDto) *CustomerAuthGithubCallbackResponse {
-	return &CustomerAuthGithubCallbackResponse{typ: "MfaChallengeResponseDto", MfaChallengeResponseDto: value}
+func NewGithubCallbackAuthResponseFromMfaChallengeResponseDto(value *MfaChallengeResponseDto) *GithubCallbackAuthResponse {
+	return &GithubCallbackAuthResponse{typ: "MfaChallengeResponseDto", MfaChallengeResponseDto: value}
 }
 
-func (c *CustomerAuthGithubCallbackResponse) GetSignInSuccessResponseDto() *SignInSuccessResponseDto {
-	if c == nil {
+func (g *GithubCallbackAuthResponse) GetSignInSuccessResponseDto() *SignInSuccessResponseDto {
+	if g == nil {
 		return nil
 	}
-	return c.SignInSuccessResponseDto
+	return g.SignInSuccessResponseDto
 }
 
-func (c *CustomerAuthGithubCallbackResponse) GetMfaChallengeResponseDto() *MfaChallengeResponseDto {
-	if c == nil {
+func (g *GithubCallbackAuthResponse) GetMfaChallengeResponseDto() *MfaChallengeResponseDto {
+	if g == nil {
 		return nil
 	}
-	return c.MfaChallengeResponseDto
+	return g.MfaChallengeResponseDto
 }
 
-func (c *CustomerAuthGithubCallbackResponse) UnmarshalJSON(data []byte) error {
+func (g *GithubCallbackAuthResponse) UnmarshalJSON(data []byte) error {
 	valueSignInSuccessResponseDto := new(SignInSuccessResponseDto)
 	if err := json.Unmarshal(data, &valueSignInSuccessResponseDto); err == nil {
-		c.typ = "SignInSuccessResponseDto"
-		c.SignInSuccessResponseDto = valueSignInSuccessResponseDto
+		g.typ = "SignInSuccessResponseDto"
+		g.SignInSuccessResponseDto = valueSignInSuccessResponseDto
 		return nil
 	}
 	valueMfaChallengeResponseDto := new(MfaChallengeResponseDto)
 	if err := json.Unmarshal(data, &valueMfaChallengeResponseDto); err == nil {
-		c.typ = "MfaChallengeResponseDto"
-		c.MfaChallengeResponseDto = valueMfaChallengeResponseDto
+		g.typ = "MfaChallengeResponseDto"
+		g.MfaChallengeResponseDto = valueMfaChallengeResponseDto
 		return nil
 	}
-	return fmt.Errorf("%s cannot be deserialized as a %T", data, c)
+	return fmt.Errorf("%s cannot be deserialized as a %T", data, g)
 }
 
-func (c CustomerAuthGithubCallbackResponse) MarshalJSON() ([]byte, error) {
-	if c.typ == "SignInSuccessResponseDto" || c.SignInSuccessResponseDto != nil {
-		return json.Marshal(c.SignInSuccessResponseDto)
+func (g GithubCallbackAuthResponse) MarshalJSON() ([]byte, error) {
+	if g.typ == "SignInSuccessResponseDto" || g.SignInSuccessResponseDto != nil {
+		return json.Marshal(g.SignInSuccessResponseDto)
 	}
-	if c.typ == "MfaChallengeResponseDto" || c.MfaChallengeResponseDto != nil {
-		return json.Marshal(c.MfaChallengeResponseDto)
+	if g.typ == "MfaChallengeResponseDto" || g.MfaChallengeResponseDto != nil {
+		return json.Marshal(g.MfaChallengeResponseDto)
 	}
-	return nil, fmt.Errorf("type %T does not include a non-empty union type", c)
+	return nil, fmt.Errorf("type %T does not include a non-empty union type", g)
 }
 
-type CustomerAuthGithubCallbackResponseVisitor interface {
+type GithubCallbackAuthResponseVisitor interface {
 	VisitSignInSuccessResponseDto(*SignInSuccessResponseDto) error
 	VisitMfaChallengeResponseDto(*MfaChallengeResponseDto) error
 }
 
-func (c *CustomerAuthGithubCallbackResponse) Accept(visitor CustomerAuthGithubCallbackResponseVisitor) error {
-	if c.typ == "SignInSuccessResponseDto" || c.SignInSuccessResponseDto != nil {
-		return visitor.VisitSignInSuccessResponseDto(c.SignInSuccessResponseDto)
+func (g *GithubCallbackAuthResponse) Accept(visitor GithubCallbackAuthResponseVisitor) error {
+	if g.typ == "SignInSuccessResponseDto" || g.SignInSuccessResponseDto != nil {
+		return visitor.VisitSignInSuccessResponseDto(g.SignInSuccessResponseDto)
 	}
-	if c.typ == "MfaChallengeResponseDto" || c.MfaChallengeResponseDto != nil {
-		return visitor.VisitMfaChallengeResponseDto(c.MfaChallengeResponseDto)
+	if g.typ == "MfaChallengeResponseDto" || g.MfaChallengeResponseDto != nil {
+		return visitor.VisitMfaChallengeResponseDto(g.MfaChallengeResponseDto)
 	}
-	return fmt.Errorf("type %T does not include a non-empty union type", c)
+	return fmt.Errorf("type %T does not include a non-empty union type", g)
 }
 
-type CustomerAuthGoogleCallbackResponse struct {
+type GoogleCallbackAuthResponse struct {
 	SignInSuccessResponseDto *SignInSuccessResponseDto
 	MfaChallengeResponseDto  *MfaChallengeResponseDto
 
 	typ string
 }
 
-func NewCustomerAuthGoogleCallbackResponseFromSignInSuccessResponseDto(value *SignInSuccessResponseDto) *CustomerAuthGoogleCallbackResponse {
-	return &CustomerAuthGoogleCallbackResponse{typ: "SignInSuccessResponseDto", SignInSuccessResponseDto: value}
+func NewGoogleCallbackAuthResponseFromSignInSuccessResponseDto(value *SignInSuccessResponseDto) *GoogleCallbackAuthResponse {
+	return &GoogleCallbackAuthResponse{typ: "SignInSuccessResponseDto", SignInSuccessResponseDto: value}
 }
 
-func NewCustomerAuthGoogleCallbackResponseFromMfaChallengeResponseDto(value *MfaChallengeResponseDto) *CustomerAuthGoogleCallbackResponse {
-	return &CustomerAuthGoogleCallbackResponse{typ: "MfaChallengeResponseDto", MfaChallengeResponseDto: value}
+func NewGoogleCallbackAuthResponseFromMfaChallengeResponseDto(value *MfaChallengeResponseDto) *GoogleCallbackAuthResponse {
+	return &GoogleCallbackAuthResponse{typ: "MfaChallengeResponseDto", MfaChallengeResponseDto: value}
 }
 
-func (c *CustomerAuthGoogleCallbackResponse) GetSignInSuccessResponseDto() *SignInSuccessResponseDto {
-	if c == nil {
+func (g *GoogleCallbackAuthResponse) GetSignInSuccessResponseDto() *SignInSuccessResponseDto {
+	if g == nil {
 		return nil
 	}
-	return c.SignInSuccessResponseDto
+	return g.SignInSuccessResponseDto
 }
 
-func (c *CustomerAuthGoogleCallbackResponse) GetMfaChallengeResponseDto() *MfaChallengeResponseDto {
-	if c == nil {
+func (g *GoogleCallbackAuthResponse) GetMfaChallengeResponseDto() *MfaChallengeResponseDto {
+	if g == nil {
 		return nil
 	}
-	return c.MfaChallengeResponseDto
+	return g.MfaChallengeResponseDto
 }
 
-func (c *CustomerAuthGoogleCallbackResponse) UnmarshalJSON(data []byte) error {
+func (g *GoogleCallbackAuthResponse) UnmarshalJSON(data []byte) error {
 	valueSignInSuccessResponseDto := new(SignInSuccessResponseDto)
 	if err := json.Unmarshal(data, &valueSignInSuccessResponseDto); err == nil {
-		c.typ = "SignInSuccessResponseDto"
-		c.SignInSuccessResponseDto = valueSignInSuccessResponseDto
+		g.typ = "SignInSuccessResponseDto"
+		g.SignInSuccessResponseDto = valueSignInSuccessResponseDto
 		return nil
 	}
 	valueMfaChallengeResponseDto := new(MfaChallengeResponseDto)
 	if err := json.Unmarshal(data, &valueMfaChallengeResponseDto); err == nil {
-		c.typ = "MfaChallengeResponseDto"
-		c.MfaChallengeResponseDto = valueMfaChallengeResponseDto
+		g.typ = "MfaChallengeResponseDto"
+		g.MfaChallengeResponseDto = valueMfaChallengeResponseDto
 		return nil
 	}
-	return fmt.Errorf("%s cannot be deserialized as a %T", data, c)
+	return fmt.Errorf("%s cannot be deserialized as a %T", data, g)
 }
 
-func (c CustomerAuthGoogleCallbackResponse) MarshalJSON() ([]byte, error) {
-	if c.typ == "SignInSuccessResponseDto" || c.SignInSuccessResponseDto != nil {
-		return json.Marshal(c.SignInSuccessResponseDto)
+func (g GoogleCallbackAuthResponse) MarshalJSON() ([]byte, error) {
+	if g.typ == "SignInSuccessResponseDto" || g.SignInSuccessResponseDto != nil {
+		return json.Marshal(g.SignInSuccessResponseDto)
 	}
-	if c.typ == "MfaChallengeResponseDto" || c.MfaChallengeResponseDto != nil {
-		return json.Marshal(c.MfaChallengeResponseDto)
+	if g.typ == "MfaChallengeResponseDto" || g.MfaChallengeResponseDto != nil {
+		return json.Marshal(g.MfaChallengeResponseDto)
 	}
-	return nil, fmt.Errorf("type %T does not include a non-empty union type", c)
+	return nil, fmt.Errorf("type %T does not include a non-empty union type", g)
 }
 
-type CustomerAuthGoogleCallbackResponseVisitor interface {
+type GoogleCallbackAuthResponseVisitor interface {
 	VisitSignInSuccessResponseDto(*SignInSuccessResponseDto) error
 	VisitMfaChallengeResponseDto(*MfaChallengeResponseDto) error
 }
 
-func (c *CustomerAuthGoogleCallbackResponse) Accept(visitor CustomerAuthGoogleCallbackResponseVisitor) error {
-	if c.typ == "SignInSuccessResponseDto" || c.SignInSuccessResponseDto != nil {
-		return visitor.VisitSignInSuccessResponseDto(c.SignInSuccessResponseDto)
+func (g *GoogleCallbackAuthResponse) Accept(visitor GoogleCallbackAuthResponseVisitor) error {
+	if g.typ == "SignInSuccessResponseDto" || g.SignInSuccessResponseDto != nil {
+		return visitor.VisitSignInSuccessResponseDto(g.SignInSuccessResponseDto)
 	}
-	if c.typ == "MfaChallengeResponseDto" || c.MfaChallengeResponseDto != nil {
-		return visitor.VisitMfaChallengeResponseDto(c.MfaChallengeResponseDto)
+	if g.typ == "MfaChallengeResponseDto" || g.MfaChallengeResponseDto != nil {
+		return visitor.VisitMfaChallengeResponseDto(g.MfaChallengeResponseDto)
 	}
-	return fmt.Errorf("type %T does not include a non-empty union type", c)
+	return fmt.Errorf("type %T does not include a non-empty union type", g)
 }
 
-type CustomerAuthResetPasswordResponse struct {
+type ResetPasswordAuthResponse struct {
 	SignInSuccessResponseDto *SignInSuccessResponseDto
 	MfaChallengeResponseDto  *MfaChallengeResponseDto
 
 	typ string
 }
 
-func NewCustomerAuthResetPasswordResponseFromSignInSuccessResponseDto(value *SignInSuccessResponseDto) *CustomerAuthResetPasswordResponse {
-	return &CustomerAuthResetPasswordResponse{typ: "SignInSuccessResponseDto", SignInSuccessResponseDto: value}
+func NewResetPasswordAuthResponseFromSignInSuccessResponseDto(value *SignInSuccessResponseDto) *ResetPasswordAuthResponse {
+	return &ResetPasswordAuthResponse{typ: "SignInSuccessResponseDto", SignInSuccessResponseDto: value}
 }
 
-func NewCustomerAuthResetPasswordResponseFromMfaChallengeResponseDto(value *MfaChallengeResponseDto) *CustomerAuthResetPasswordResponse {
-	return &CustomerAuthResetPasswordResponse{typ: "MfaChallengeResponseDto", MfaChallengeResponseDto: value}
+func NewResetPasswordAuthResponseFromMfaChallengeResponseDto(value *MfaChallengeResponseDto) *ResetPasswordAuthResponse {
+	return &ResetPasswordAuthResponse{typ: "MfaChallengeResponseDto", MfaChallengeResponseDto: value}
 }
 
-func (c *CustomerAuthResetPasswordResponse) GetSignInSuccessResponseDto() *SignInSuccessResponseDto {
-	if c == nil {
+func (r *ResetPasswordAuthResponse) GetSignInSuccessResponseDto() *SignInSuccessResponseDto {
+	if r == nil {
 		return nil
 	}
-	return c.SignInSuccessResponseDto
+	return r.SignInSuccessResponseDto
 }
 
-func (c *CustomerAuthResetPasswordResponse) GetMfaChallengeResponseDto() *MfaChallengeResponseDto {
-	if c == nil {
+func (r *ResetPasswordAuthResponse) GetMfaChallengeResponseDto() *MfaChallengeResponseDto {
+	if r == nil {
 		return nil
 	}
-	return c.MfaChallengeResponseDto
+	return r.MfaChallengeResponseDto
 }
 
-func (c *CustomerAuthResetPasswordResponse) UnmarshalJSON(data []byte) error {
+func (r *ResetPasswordAuthResponse) UnmarshalJSON(data []byte) error {
 	valueSignInSuccessResponseDto := new(SignInSuccessResponseDto)
 	if err := json.Unmarshal(data, &valueSignInSuccessResponseDto); err == nil {
-		c.typ = "SignInSuccessResponseDto"
-		c.SignInSuccessResponseDto = valueSignInSuccessResponseDto
+		r.typ = "SignInSuccessResponseDto"
+		r.SignInSuccessResponseDto = valueSignInSuccessResponseDto
 		return nil
 	}
 	valueMfaChallengeResponseDto := new(MfaChallengeResponseDto)
 	if err := json.Unmarshal(data, &valueMfaChallengeResponseDto); err == nil {
-		c.typ = "MfaChallengeResponseDto"
-		c.MfaChallengeResponseDto = valueMfaChallengeResponseDto
+		r.typ = "MfaChallengeResponseDto"
+		r.MfaChallengeResponseDto = valueMfaChallengeResponseDto
 		return nil
 	}
-	return fmt.Errorf("%s cannot be deserialized as a %T", data, c)
+	return fmt.Errorf("%s cannot be deserialized as a %T", data, r)
 }
 
-func (c CustomerAuthResetPasswordResponse) MarshalJSON() ([]byte, error) {
-	if c.typ == "SignInSuccessResponseDto" || c.SignInSuccessResponseDto != nil {
-		return json.Marshal(c.SignInSuccessResponseDto)
+func (r ResetPasswordAuthResponse) MarshalJSON() ([]byte, error) {
+	if r.typ == "SignInSuccessResponseDto" || r.SignInSuccessResponseDto != nil {
+		return json.Marshal(r.SignInSuccessResponseDto)
 	}
-	if c.typ == "MfaChallengeResponseDto" || c.MfaChallengeResponseDto != nil {
-		return json.Marshal(c.MfaChallengeResponseDto)
+	if r.typ == "MfaChallengeResponseDto" || r.MfaChallengeResponseDto != nil {
+		return json.Marshal(r.MfaChallengeResponseDto)
 	}
-	return nil, fmt.Errorf("type %T does not include a non-empty union type", c)
+	return nil, fmt.Errorf("type %T does not include a non-empty union type", r)
 }
 
-type CustomerAuthResetPasswordResponseVisitor interface {
+type ResetPasswordAuthResponseVisitor interface {
 	VisitSignInSuccessResponseDto(*SignInSuccessResponseDto) error
 	VisitMfaChallengeResponseDto(*MfaChallengeResponseDto) error
 }
 
-func (c *CustomerAuthResetPasswordResponse) Accept(visitor CustomerAuthResetPasswordResponseVisitor) error {
-	if c.typ == "SignInSuccessResponseDto" || c.SignInSuccessResponseDto != nil {
-		return visitor.VisitSignInSuccessResponseDto(c.SignInSuccessResponseDto)
+func (r *ResetPasswordAuthResponse) Accept(visitor ResetPasswordAuthResponseVisitor) error {
+	if r.typ == "SignInSuccessResponseDto" || r.SignInSuccessResponseDto != nil {
+		return visitor.VisitSignInSuccessResponseDto(r.SignInSuccessResponseDto)
 	}
-	if c.typ == "MfaChallengeResponseDto" || c.MfaChallengeResponseDto != nil {
-		return visitor.VisitMfaChallengeResponseDto(c.MfaChallengeResponseDto)
+	if r.typ == "MfaChallengeResponseDto" || r.MfaChallengeResponseDto != nil {
+		return visitor.VisitMfaChallengeResponseDto(r.MfaChallengeResponseDto)
 	}
-	return fmt.Errorf("type %T does not include a non-empty union type", c)
+	return fmt.Errorf("type %T does not include a non-empty union type", r)
 }
 
-type CustomerAuthSignInResponse struct {
+type SignInAuthResponse struct {
 	SignInSuccessResponseDto *SignInSuccessResponseDto
 	MfaChallengeResponseDto  *MfaChallengeResponseDto
 
 	typ string
 }
 
-func NewCustomerAuthSignInResponseFromSignInSuccessResponseDto(value *SignInSuccessResponseDto) *CustomerAuthSignInResponse {
-	return &CustomerAuthSignInResponse{typ: "SignInSuccessResponseDto", SignInSuccessResponseDto: value}
+func NewSignInAuthResponseFromSignInSuccessResponseDto(value *SignInSuccessResponseDto) *SignInAuthResponse {
+	return &SignInAuthResponse{typ: "SignInSuccessResponseDto", SignInSuccessResponseDto: value}
 }
 
-func NewCustomerAuthSignInResponseFromMfaChallengeResponseDto(value *MfaChallengeResponseDto) *CustomerAuthSignInResponse {
-	return &CustomerAuthSignInResponse{typ: "MfaChallengeResponseDto", MfaChallengeResponseDto: value}
+func NewSignInAuthResponseFromMfaChallengeResponseDto(value *MfaChallengeResponseDto) *SignInAuthResponse {
+	return &SignInAuthResponse{typ: "MfaChallengeResponseDto", MfaChallengeResponseDto: value}
 }
 
-func (c *CustomerAuthSignInResponse) GetSignInSuccessResponseDto() *SignInSuccessResponseDto {
-	if c == nil {
-		return nil
-	}
-	return c.SignInSuccessResponseDto
-}
-
-func (c *CustomerAuthSignInResponse) GetMfaChallengeResponseDto() *MfaChallengeResponseDto {
-	if c == nil {
-		return nil
-	}
-	return c.MfaChallengeResponseDto
-}
-
-func (c *CustomerAuthSignInResponse) UnmarshalJSON(data []byte) error {
-	valueSignInSuccessResponseDto := new(SignInSuccessResponseDto)
-	if err := json.Unmarshal(data, &valueSignInSuccessResponseDto); err == nil {
-		c.typ = "SignInSuccessResponseDto"
-		c.SignInSuccessResponseDto = valueSignInSuccessResponseDto
-		return nil
-	}
-	valueMfaChallengeResponseDto := new(MfaChallengeResponseDto)
-	if err := json.Unmarshal(data, &valueMfaChallengeResponseDto); err == nil {
-		c.typ = "MfaChallengeResponseDto"
-		c.MfaChallengeResponseDto = valueMfaChallengeResponseDto
-		return nil
-	}
-	return fmt.Errorf("%s cannot be deserialized as a %T", data, c)
-}
-
-func (c CustomerAuthSignInResponse) MarshalJSON() ([]byte, error) {
-	if c.typ == "SignInSuccessResponseDto" || c.SignInSuccessResponseDto != nil {
-		return json.Marshal(c.SignInSuccessResponseDto)
-	}
-	if c.typ == "MfaChallengeResponseDto" || c.MfaChallengeResponseDto != nil {
-		return json.Marshal(c.MfaChallengeResponseDto)
-	}
-	return nil, fmt.Errorf("type %T does not include a non-empty union type", c)
-}
-
-type CustomerAuthSignInResponseVisitor interface {
-	VisitSignInSuccessResponseDto(*SignInSuccessResponseDto) error
-	VisitMfaChallengeResponseDto(*MfaChallengeResponseDto) error
-}
-
-func (c *CustomerAuthSignInResponse) Accept(visitor CustomerAuthSignInResponseVisitor) error {
-	if c.typ == "SignInSuccessResponseDto" || c.SignInSuccessResponseDto != nil {
-		return visitor.VisitSignInSuccessResponseDto(c.SignInSuccessResponseDto)
-	}
-	if c.typ == "MfaChallengeResponseDto" || c.MfaChallengeResponseDto != nil {
-		return visitor.VisitMfaChallengeResponseDto(c.MfaChallengeResponseDto)
-	}
-	return fmt.Errorf("type %T does not include a non-empty union type", c)
-}
-
-type CustomerAuthSignUpResponse struct {
-	SignInSuccessResponseDto *SignInSuccessResponseDto
-	MfaChallengeResponseDto  *MfaChallengeResponseDto
-
-	typ string
-}
-
-func NewCustomerAuthSignUpResponseFromSignInSuccessResponseDto(value *SignInSuccessResponseDto) *CustomerAuthSignUpResponse {
-	return &CustomerAuthSignUpResponse{typ: "SignInSuccessResponseDto", SignInSuccessResponseDto: value}
-}
-
-func NewCustomerAuthSignUpResponseFromMfaChallengeResponseDto(value *MfaChallengeResponseDto) *CustomerAuthSignUpResponse {
-	return &CustomerAuthSignUpResponse{typ: "MfaChallengeResponseDto", MfaChallengeResponseDto: value}
-}
-
-func (c *CustomerAuthSignUpResponse) GetSignInSuccessResponseDto() *SignInSuccessResponseDto {
-	if c == nil {
-		return nil
-	}
-	return c.SignInSuccessResponseDto
-}
-
-func (c *CustomerAuthSignUpResponse) GetMfaChallengeResponseDto() *MfaChallengeResponseDto {
-	if c == nil {
-		return nil
-	}
-	return c.MfaChallengeResponseDto
-}
-
-func (c *CustomerAuthSignUpResponse) UnmarshalJSON(data []byte) error {
-	valueSignInSuccessResponseDto := new(SignInSuccessResponseDto)
-	if err := json.Unmarshal(data, &valueSignInSuccessResponseDto); err == nil {
-		c.typ = "SignInSuccessResponseDto"
-		c.SignInSuccessResponseDto = valueSignInSuccessResponseDto
-		return nil
-	}
-	valueMfaChallengeResponseDto := new(MfaChallengeResponseDto)
-	if err := json.Unmarshal(data, &valueMfaChallengeResponseDto); err == nil {
-		c.typ = "MfaChallengeResponseDto"
-		c.MfaChallengeResponseDto = valueMfaChallengeResponseDto
-		return nil
-	}
-	return fmt.Errorf("%s cannot be deserialized as a %T", data, c)
-}
-
-func (c CustomerAuthSignUpResponse) MarshalJSON() ([]byte, error) {
-	if c.typ == "SignInSuccessResponseDto" || c.SignInSuccessResponseDto != nil {
-		return json.Marshal(c.SignInSuccessResponseDto)
-	}
-	if c.typ == "MfaChallengeResponseDto" || c.MfaChallengeResponseDto != nil {
-		return json.Marshal(c.MfaChallengeResponseDto)
-	}
-	return nil, fmt.Errorf("type %T does not include a non-empty union type", c)
-}
-
-type CustomerAuthSignUpResponseVisitor interface {
-	VisitSignInSuccessResponseDto(*SignInSuccessResponseDto) error
-	VisitMfaChallengeResponseDto(*MfaChallengeResponseDto) error
-}
-
-func (c *CustomerAuthSignUpResponse) Accept(visitor CustomerAuthSignUpResponseVisitor) error {
-	if c.typ == "SignInSuccessResponseDto" || c.SignInSuccessResponseDto != nil {
-		return visitor.VisitSignInSuccessResponseDto(c.SignInSuccessResponseDto)
-	}
-	if c.typ == "MfaChallengeResponseDto" || c.MfaChallengeResponseDto != nil {
-		return visitor.VisitMfaChallengeResponseDto(c.MfaChallengeResponseDto)
-	}
-	return fmt.Errorf("type %T does not include a non-empty union type", c)
-}
-
-type CustomerAuthVerifyMagicLinkResponse struct {
-	SignInSuccessResponseDto *SignInSuccessResponseDto
-	MfaChallengeResponseDto  *MfaChallengeResponseDto
-
-	typ string
-}
-
-func NewCustomerAuthVerifyMagicLinkResponseFromSignInSuccessResponseDto(value *SignInSuccessResponseDto) *CustomerAuthVerifyMagicLinkResponse {
-	return &CustomerAuthVerifyMagicLinkResponse{typ: "SignInSuccessResponseDto", SignInSuccessResponseDto: value}
-}
-
-func NewCustomerAuthVerifyMagicLinkResponseFromMfaChallengeResponseDto(value *MfaChallengeResponseDto) *CustomerAuthVerifyMagicLinkResponse {
-	return &CustomerAuthVerifyMagicLinkResponse{typ: "MfaChallengeResponseDto", MfaChallengeResponseDto: value}
-}
-
-func (c *CustomerAuthVerifyMagicLinkResponse) GetSignInSuccessResponseDto() *SignInSuccessResponseDto {
-	if c == nil {
-		return nil
-	}
-	return c.SignInSuccessResponseDto
-}
-
-func (c *CustomerAuthVerifyMagicLinkResponse) GetMfaChallengeResponseDto() *MfaChallengeResponseDto {
-	if c == nil {
-		return nil
-	}
-	return c.MfaChallengeResponseDto
-}
-
-func (c *CustomerAuthVerifyMagicLinkResponse) UnmarshalJSON(data []byte) error {
-	valueSignInSuccessResponseDto := new(SignInSuccessResponseDto)
-	if err := json.Unmarshal(data, &valueSignInSuccessResponseDto); err == nil {
-		c.typ = "SignInSuccessResponseDto"
-		c.SignInSuccessResponseDto = valueSignInSuccessResponseDto
-		return nil
-	}
-	valueMfaChallengeResponseDto := new(MfaChallengeResponseDto)
-	if err := json.Unmarshal(data, &valueMfaChallengeResponseDto); err == nil {
-		c.typ = "MfaChallengeResponseDto"
-		c.MfaChallengeResponseDto = valueMfaChallengeResponseDto
-		return nil
-	}
-	return fmt.Errorf("%s cannot be deserialized as a %T", data, c)
-}
-
-func (c CustomerAuthVerifyMagicLinkResponse) MarshalJSON() ([]byte, error) {
-	if c.typ == "SignInSuccessResponseDto" || c.SignInSuccessResponseDto != nil {
-		return json.Marshal(c.SignInSuccessResponseDto)
-	}
-	if c.typ == "MfaChallengeResponseDto" || c.MfaChallengeResponseDto != nil {
-		return json.Marshal(c.MfaChallengeResponseDto)
-	}
-	return nil, fmt.Errorf("type %T does not include a non-empty union type", c)
-}
-
-type CustomerAuthVerifyMagicLinkResponseVisitor interface {
-	VisitSignInSuccessResponseDto(*SignInSuccessResponseDto) error
-	VisitMfaChallengeResponseDto(*MfaChallengeResponseDto) error
-}
-
-func (c *CustomerAuthVerifyMagicLinkResponse) Accept(visitor CustomerAuthVerifyMagicLinkResponseVisitor) error {
-	if c.typ == "SignInSuccessResponseDto" || c.SignInSuccessResponseDto != nil {
-		return visitor.VisitSignInSuccessResponseDto(c.SignInSuccessResponseDto)
-	}
-	if c.typ == "MfaChallengeResponseDto" || c.MfaChallengeResponseDto != nil {
-		return visitor.VisitMfaChallengeResponseDto(c.MfaChallengeResponseDto)
-	}
-	return fmt.Errorf("type %T does not include a non-empty union type", c)
-}
-
-type CustomerAuthVerifyOtpResponse struct {
-	SignInSuccessResponseDto *SignInSuccessResponseDto
-	MfaChallengeResponseDto  *MfaChallengeResponseDto
-
-	typ string
-}
-
-func NewCustomerAuthVerifyOtpResponseFromSignInSuccessResponseDto(value *SignInSuccessResponseDto) *CustomerAuthVerifyOtpResponse {
-	return &CustomerAuthVerifyOtpResponse{typ: "SignInSuccessResponseDto", SignInSuccessResponseDto: value}
-}
-
-func NewCustomerAuthVerifyOtpResponseFromMfaChallengeResponseDto(value *MfaChallengeResponseDto) *CustomerAuthVerifyOtpResponse {
-	return &CustomerAuthVerifyOtpResponse{typ: "MfaChallengeResponseDto", MfaChallengeResponseDto: value}
-}
-
-func (c *CustomerAuthVerifyOtpResponse) GetSignInSuccessResponseDto() *SignInSuccessResponseDto {
-	if c == nil {
-		return nil
-	}
-	return c.SignInSuccessResponseDto
-}
-
-func (c *CustomerAuthVerifyOtpResponse) GetMfaChallengeResponseDto() *MfaChallengeResponseDto {
-	if c == nil {
-		return nil
-	}
-	return c.MfaChallengeResponseDto
-}
-
-func (c *CustomerAuthVerifyOtpResponse) UnmarshalJSON(data []byte) error {
-	valueSignInSuccessResponseDto := new(SignInSuccessResponseDto)
-	if err := json.Unmarshal(data, &valueSignInSuccessResponseDto); err == nil {
-		c.typ = "SignInSuccessResponseDto"
-		c.SignInSuccessResponseDto = valueSignInSuccessResponseDto
-		return nil
-	}
-	valueMfaChallengeResponseDto := new(MfaChallengeResponseDto)
-	if err := json.Unmarshal(data, &valueMfaChallengeResponseDto); err == nil {
-		c.typ = "MfaChallengeResponseDto"
-		c.MfaChallengeResponseDto = valueMfaChallengeResponseDto
-		return nil
-	}
-	return fmt.Errorf("%s cannot be deserialized as a %T", data, c)
-}
-
-func (c CustomerAuthVerifyOtpResponse) MarshalJSON() ([]byte, error) {
-	if c.typ == "SignInSuccessResponseDto" || c.SignInSuccessResponseDto != nil {
-		return json.Marshal(c.SignInSuccessResponseDto)
-	}
-	if c.typ == "MfaChallengeResponseDto" || c.MfaChallengeResponseDto != nil {
-		return json.Marshal(c.MfaChallengeResponseDto)
-	}
-	return nil, fmt.Errorf("type %T does not include a non-empty union type", c)
-}
-
-type CustomerAuthVerifyOtpResponseVisitor interface {
-	VisitSignInSuccessResponseDto(*SignInSuccessResponseDto) error
-	VisitMfaChallengeResponseDto(*MfaChallengeResponseDto) error
-}
-
-func (c *CustomerAuthVerifyOtpResponse) Accept(visitor CustomerAuthVerifyOtpResponseVisitor) error {
-	if c.typ == "SignInSuccessResponseDto" || c.SignInSuccessResponseDto != nil {
-		return visitor.VisitSignInSuccessResponseDto(c.SignInSuccessResponseDto)
-	}
-	if c.typ == "MfaChallengeResponseDto" || c.MfaChallengeResponseDto != nil {
-		return visitor.VisitMfaChallengeResponseDto(c.MfaChallengeResponseDto)
-	}
-	return fmt.Errorf("type %T does not include a non-empty union type", c)
-}
-
-type CustomerAuthVerifyPhoneOtpResponse struct {
-	SignInSuccessResponseDto *SignInSuccessResponseDto
-	MfaChallengeResponseDto  *MfaChallengeResponseDto
-
-	typ string
-}
-
-func NewCustomerAuthVerifyPhoneOtpResponseFromSignInSuccessResponseDto(value *SignInSuccessResponseDto) *CustomerAuthVerifyPhoneOtpResponse {
-	return &CustomerAuthVerifyPhoneOtpResponse{typ: "SignInSuccessResponseDto", SignInSuccessResponseDto: value}
-}
-
-func NewCustomerAuthVerifyPhoneOtpResponseFromMfaChallengeResponseDto(value *MfaChallengeResponseDto) *CustomerAuthVerifyPhoneOtpResponse {
-	return &CustomerAuthVerifyPhoneOtpResponse{typ: "MfaChallengeResponseDto", MfaChallengeResponseDto: value}
-}
-
-func (c *CustomerAuthVerifyPhoneOtpResponse) GetSignInSuccessResponseDto() *SignInSuccessResponseDto {
-	if c == nil {
-		return nil
-	}
-	return c.SignInSuccessResponseDto
-}
-
-func (c *CustomerAuthVerifyPhoneOtpResponse) GetMfaChallengeResponseDto() *MfaChallengeResponseDto {
-	if c == nil {
-		return nil
-	}
-	return c.MfaChallengeResponseDto
-}
-
-func (c *CustomerAuthVerifyPhoneOtpResponse) UnmarshalJSON(data []byte) error {
-	valueSignInSuccessResponseDto := new(SignInSuccessResponseDto)
-	if err := json.Unmarshal(data, &valueSignInSuccessResponseDto); err == nil {
-		c.typ = "SignInSuccessResponseDto"
-		c.SignInSuccessResponseDto = valueSignInSuccessResponseDto
-		return nil
-	}
-	valueMfaChallengeResponseDto := new(MfaChallengeResponseDto)
-	if err := json.Unmarshal(data, &valueMfaChallengeResponseDto); err == nil {
-		c.typ = "MfaChallengeResponseDto"
-		c.MfaChallengeResponseDto = valueMfaChallengeResponseDto
-		return nil
-	}
-	return fmt.Errorf("%s cannot be deserialized as a %T", data, c)
-}
-
-func (c CustomerAuthVerifyPhoneOtpResponse) MarshalJSON() ([]byte, error) {
-	if c.typ == "SignInSuccessResponseDto" || c.SignInSuccessResponseDto != nil {
-		return json.Marshal(c.SignInSuccessResponseDto)
-	}
-	if c.typ == "MfaChallengeResponseDto" || c.MfaChallengeResponseDto != nil {
-		return json.Marshal(c.MfaChallengeResponseDto)
-	}
-	return nil, fmt.Errorf("type %T does not include a non-empty union type", c)
-}
-
-type CustomerAuthVerifyPhoneOtpResponseVisitor interface {
-	VisitSignInSuccessResponseDto(*SignInSuccessResponseDto) error
-	VisitMfaChallengeResponseDto(*MfaChallengeResponseDto) error
-}
-
-func (c *CustomerAuthVerifyPhoneOtpResponse) Accept(visitor CustomerAuthVerifyPhoneOtpResponseVisitor) error {
-	if c.typ == "SignInSuccessResponseDto" || c.SignInSuccessResponseDto != nil {
-		return visitor.VisitSignInSuccessResponseDto(c.SignInSuccessResponseDto)
-	}
-	if c.typ == "MfaChallengeResponseDto" || c.MfaChallengeResponseDto != nil {
-		return visitor.VisitMfaChallengeResponseDto(c.MfaChallengeResponseDto)
-	}
-	return fmt.Errorf("type %T does not include a non-empty union type", c)
-}
-
-type SSOAuthAcsResponse struct {
-	SignInSuccessResponseDto *SignInSuccessResponseDto
-	MfaChallengeResponseDto  *MfaChallengeResponseDto
-	SSOProfileAcsResponseDto *SSOProfileAcsResponseDto
-
-	typ string
-}
-
-func NewSSOAuthAcsResponseFromSignInSuccessResponseDto(value *SignInSuccessResponseDto) *SSOAuthAcsResponse {
-	return &SSOAuthAcsResponse{typ: "SignInSuccessResponseDto", SignInSuccessResponseDto: value}
-}
-
-func NewSSOAuthAcsResponseFromMfaChallengeResponseDto(value *MfaChallengeResponseDto) *SSOAuthAcsResponse {
-	return &SSOAuthAcsResponse{typ: "MfaChallengeResponseDto", MfaChallengeResponseDto: value}
-}
-
-func NewSSOAuthAcsResponseFromSSOProfileAcsResponseDto(value *SSOProfileAcsResponseDto) *SSOAuthAcsResponse {
-	return &SSOAuthAcsResponse{typ: "SSOProfileAcsResponseDto", SSOProfileAcsResponseDto: value}
-}
-
-func (s *SSOAuthAcsResponse) GetSignInSuccessResponseDto() *SignInSuccessResponseDto {
+func (s *SignInAuthResponse) GetSignInSuccessResponseDto() *SignInSuccessResponseDto {
 	if s == nil {
 		return nil
 	}
 	return s.SignInSuccessResponseDto
 }
 
-func (s *SSOAuthAcsResponse) GetMfaChallengeResponseDto() *MfaChallengeResponseDto {
+func (s *SignInAuthResponse) GetMfaChallengeResponseDto() *MfaChallengeResponseDto {
 	if s == nil {
 		return nil
 	}
 	return s.MfaChallengeResponseDto
 }
 
-func (s *SSOAuthAcsResponse) GetSSOProfileAcsResponseDto() *SSOProfileAcsResponseDto {
-	if s == nil {
-		return nil
-	}
-	return s.SSOProfileAcsResponseDto
-}
-
-func (s *SSOAuthAcsResponse) UnmarshalJSON(data []byte) error {
+func (s *SignInAuthResponse) UnmarshalJSON(data []byte) error {
 	valueSignInSuccessResponseDto := new(SignInSuccessResponseDto)
 	if err := json.Unmarshal(data, &valueSignInSuccessResponseDto); err == nil {
 		s.typ = "SignInSuccessResponseDto"
@@ -3651,89 +1312,64 @@ func (s *SSOAuthAcsResponse) UnmarshalJSON(data []byte) error {
 		s.MfaChallengeResponseDto = valueMfaChallengeResponseDto
 		return nil
 	}
-	valueSSOProfileAcsResponseDto := new(SSOProfileAcsResponseDto)
-	if err := json.Unmarshal(data, &valueSSOProfileAcsResponseDto); err == nil {
-		s.typ = "SSOProfileAcsResponseDto"
-		s.SSOProfileAcsResponseDto = valueSSOProfileAcsResponseDto
-		return nil
-	}
 	return fmt.Errorf("%s cannot be deserialized as a %T", data, s)
 }
 
-func (s SSOAuthAcsResponse) MarshalJSON() ([]byte, error) {
+func (s SignInAuthResponse) MarshalJSON() ([]byte, error) {
 	if s.typ == "SignInSuccessResponseDto" || s.SignInSuccessResponseDto != nil {
 		return json.Marshal(s.SignInSuccessResponseDto)
 	}
 	if s.typ == "MfaChallengeResponseDto" || s.MfaChallengeResponseDto != nil {
 		return json.Marshal(s.MfaChallengeResponseDto)
 	}
-	if s.typ == "SSOProfileAcsResponseDto" || s.SSOProfileAcsResponseDto != nil {
-		return json.Marshal(s.SSOProfileAcsResponseDto)
-	}
 	return nil, fmt.Errorf("type %T does not include a non-empty union type", s)
 }
 
-type SSOAuthAcsResponseVisitor interface {
+type SignInAuthResponseVisitor interface {
 	VisitSignInSuccessResponseDto(*SignInSuccessResponseDto) error
 	VisitMfaChallengeResponseDto(*MfaChallengeResponseDto) error
-	VisitSSOProfileAcsResponseDto(*SSOProfileAcsResponseDto) error
 }
 
-func (s *SSOAuthAcsResponse) Accept(visitor SSOAuthAcsResponseVisitor) error {
+func (s *SignInAuthResponse) Accept(visitor SignInAuthResponseVisitor) error {
 	if s.typ == "SignInSuccessResponseDto" || s.SignInSuccessResponseDto != nil {
 		return visitor.VisitSignInSuccessResponseDto(s.SignInSuccessResponseDto)
 	}
 	if s.typ == "MfaChallengeResponseDto" || s.MfaChallengeResponseDto != nil {
 		return visitor.VisitMfaChallengeResponseDto(s.MfaChallengeResponseDto)
 	}
-	if s.typ == "SSOProfileAcsResponseDto" || s.SSOProfileAcsResponseDto != nil {
-		return visitor.VisitSSOProfileAcsResponseDto(s.SSOProfileAcsResponseDto)
-	}
 	return fmt.Errorf("type %T does not include a non-empty union type", s)
 }
 
-type SSOAuthCallbackResponse struct {
+type SignUpAuthResponse struct {
 	SignInSuccessResponseDto *SignInSuccessResponseDto
 	MfaChallengeResponseDto  *MfaChallengeResponseDto
-	SSOProfileAcsResponseDto *SSOProfileAcsResponseDto
 
 	typ string
 }
 
-func NewSSOAuthCallbackResponseFromSignInSuccessResponseDto(value *SignInSuccessResponseDto) *SSOAuthCallbackResponse {
-	return &SSOAuthCallbackResponse{typ: "SignInSuccessResponseDto", SignInSuccessResponseDto: value}
+func NewSignUpAuthResponseFromSignInSuccessResponseDto(value *SignInSuccessResponseDto) *SignUpAuthResponse {
+	return &SignUpAuthResponse{typ: "SignInSuccessResponseDto", SignInSuccessResponseDto: value}
 }
 
-func NewSSOAuthCallbackResponseFromMfaChallengeResponseDto(value *MfaChallengeResponseDto) *SSOAuthCallbackResponse {
-	return &SSOAuthCallbackResponse{typ: "MfaChallengeResponseDto", MfaChallengeResponseDto: value}
+func NewSignUpAuthResponseFromMfaChallengeResponseDto(value *MfaChallengeResponseDto) *SignUpAuthResponse {
+	return &SignUpAuthResponse{typ: "MfaChallengeResponseDto", MfaChallengeResponseDto: value}
 }
 
-func NewSSOAuthCallbackResponseFromSSOProfileAcsResponseDto(value *SSOProfileAcsResponseDto) *SSOAuthCallbackResponse {
-	return &SSOAuthCallbackResponse{typ: "SSOProfileAcsResponseDto", SSOProfileAcsResponseDto: value}
-}
-
-func (s *SSOAuthCallbackResponse) GetSignInSuccessResponseDto() *SignInSuccessResponseDto {
+func (s *SignUpAuthResponse) GetSignInSuccessResponseDto() *SignInSuccessResponseDto {
 	if s == nil {
 		return nil
 	}
 	return s.SignInSuccessResponseDto
 }
 
-func (s *SSOAuthCallbackResponse) GetMfaChallengeResponseDto() *MfaChallengeResponseDto {
+func (s *SignUpAuthResponse) GetMfaChallengeResponseDto() *MfaChallengeResponseDto {
 	if s == nil {
 		return nil
 	}
 	return s.MfaChallengeResponseDto
 }
 
-func (s *SSOAuthCallbackResponse) GetSSOProfileAcsResponseDto() *SSOProfileAcsResponseDto {
-	if s == nil {
-		return nil
-	}
-	return s.SSOProfileAcsResponseDto
-}
-
-func (s *SSOAuthCallbackResponse) UnmarshalJSON(data []byte) error {
+func (s *SignUpAuthResponse) UnmarshalJSON(data []byte) error {
 	valueSignInSuccessResponseDto := new(SignInSuccessResponseDto)
 	if err := json.Unmarshal(data, &valueSignInSuccessResponseDto); err == nil {
 		s.typ = "SignInSuccessResponseDto"
@@ -3746,233 +1382,265 @@ func (s *SSOAuthCallbackResponse) UnmarshalJSON(data []byte) error {
 		s.MfaChallengeResponseDto = valueMfaChallengeResponseDto
 		return nil
 	}
-	valueSSOProfileAcsResponseDto := new(SSOProfileAcsResponseDto)
-	if err := json.Unmarshal(data, &valueSSOProfileAcsResponseDto); err == nil {
-		s.typ = "SSOProfileAcsResponseDto"
-		s.SSOProfileAcsResponseDto = valueSSOProfileAcsResponseDto
-		return nil
-	}
 	return fmt.Errorf("%s cannot be deserialized as a %T", data, s)
 }
 
-func (s SSOAuthCallbackResponse) MarshalJSON() ([]byte, error) {
+func (s SignUpAuthResponse) MarshalJSON() ([]byte, error) {
 	if s.typ == "SignInSuccessResponseDto" || s.SignInSuccessResponseDto != nil {
 		return json.Marshal(s.SignInSuccessResponseDto)
 	}
 	if s.typ == "MfaChallengeResponseDto" || s.MfaChallengeResponseDto != nil {
 		return json.Marshal(s.MfaChallengeResponseDto)
 	}
-	if s.typ == "SSOProfileAcsResponseDto" || s.SSOProfileAcsResponseDto != nil {
-		return json.Marshal(s.SSOProfileAcsResponseDto)
-	}
 	return nil, fmt.Errorf("type %T does not include a non-empty union type", s)
 }
 
-type SSOAuthCallbackResponseVisitor interface {
+type SignUpAuthResponseVisitor interface {
 	VisitSignInSuccessResponseDto(*SignInSuccessResponseDto) error
 	VisitMfaChallengeResponseDto(*MfaChallengeResponseDto) error
-	VisitSSOProfileAcsResponseDto(*SSOProfileAcsResponseDto) error
 }
 
-func (s *SSOAuthCallbackResponse) Accept(visitor SSOAuthCallbackResponseVisitor) error {
+func (s *SignUpAuthResponse) Accept(visitor SignUpAuthResponseVisitor) error {
 	if s.typ == "SignInSuccessResponseDto" || s.SignInSuccessResponseDto != nil {
 		return visitor.VisitSignInSuccessResponseDto(s.SignInSuccessResponseDto)
 	}
 	if s.typ == "MfaChallengeResponseDto" || s.MfaChallengeResponseDto != nil {
 		return visitor.VisitMfaChallengeResponseDto(s.MfaChallengeResponseDto)
 	}
-	if s.typ == "SSOProfileAcsResponseDto" || s.SSOProfileAcsResponseDto != nil {
-		return visitor.VisitSSOProfileAcsResponseDto(s.SSOProfileAcsResponseDto)
-	}
 	return fmt.Errorf("type %T does not include a non-empty union type", s)
 }
 
-// session (default) signs the person in with Mailmus Auth. profile sends the person back to redirectUri with a one-time code, which your server exchanges for the verified profile: use it when you sign people in yourself.
-type SSOStartDtoFlow string
+type VerifyMagicLinkAuthResponse struct {
+	SignInSuccessResponseDto *SignInSuccessResponseDto
+	MfaChallengeResponseDto  *MfaChallengeResponseDto
 
-const (
-	SSOStartDtoFlowSession SSOStartDtoFlow = "session"
-	SSOStartDtoFlowProfile SSOStartDtoFlow = "profile"
-)
+	typ string
+}
 
-func NewSSOStartDtoFlowFromString(s string) (SSOStartDtoFlow, error) {
-	switch s {
-	case "session":
-		return SSOStartDtoFlowSession, nil
-	case "profile":
-		return SSOStartDtoFlowProfile, nil
+func NewVerifyMagicLinkAuthResponseFromSignInSuccessResponseDto(value *SignInSuccessResponseDto) *VerifyMagicLinkAuthResponse {
+	return &VerifyMagicLinkAuthResponse{typ: "SignInSuccessResponseDto", SignInSuccessResponseDto: value}
+}
+
+func NewVerifyMagicLinkAuthResponseFromMfaChallengeResponseDto(value *MfaChallengeResponseDto) *VerifyMagicLinkAuthResponse {
+	return &VerifyMagicLinkAuthResponse{typ: "MfaChallengeResponseDto", MfaChallengeResponseDto: value}
+}
+
+func (v *VerifyMagicLinkAuthResponse) GetSignInSuccessResponseDto() *SignInSuccessResponseDto {
+	if v == nil {
+		return nil
 	}
-	var t SSOStartDtoFlow
-	return "", fmt.Errorf("%s is not a valid %T", s, t)
+	return v.SignInSuccessResponseDto
 }
 
-func (s SSOStartDtoFlow) Ptr() *SSOStartDtoFlow {
-	return &s
-}
-
-type UpdateAuthSettingsDtoAllowedProvidersItem string
-
-const (
-	UpdateAuthSettingsDtoAllowedProvidersItemPassword  UpdateAuthSettingsDtoAllowedProvidersItem = "PASSWORD"
-	UpdateAuthSettingsDtoAllowedProvidersItemEmailCode UpdateAuthSettingsDtoAllowedProvidersItem = "EMAIL_CODE"
-	UpdateAuthSettingsDtoAllowedProvidersItemPhoneCode UpdateAuthSettingsDtoAllowedProvidersItem = "PHONE_CODE"
-	UpdateAuthSettingsDtoAllowedProvidersItemGoogle    UpdateAuthSettingsDtoAllowedProvidersItem = "GOOGLE"
-	UpdateAuthSettingsDtoAllowedProvidersItemGithub    UpdateAuthSettingsDtoAllowedProvidersItem = "GITHUB"
-	UpdateAuthSettingsDtoAllowedProvidersItemApple     UpdateAuthSettingsDtoAllowedProvidersItem = "APPLE"
-	UpdateAuthSettingsDtoAllowedProvidersItemSAML      UpdateAuthSettingsDtoAllowedProvidersItem = "SAML"
-	UpdateAuthSettingsDtoAllowedProvidersItemOidc      UpdateAuthSettingsDtoAllowedProvidersItem = "OIDC"
-)
-
-func NewUpdateAuthSettingsDtoAllowedProvidersItemFromString(s string) (UpdateAuthSettingsDtoAllowedProvidersItem, error) {
-	switch s {
-	case "PASSWORD":
-		return UpdateAuthSettingsDtoAllowedProvidersItemPassword, nil
-	case "EMAIL_CODE":
-		return UpdateAuthSettingsDtoAllowedProvidersItemEmailCode, nil
-	case "PHONE_CODE":
-		return UpdateAuthSettingsDtoAllowedProvidersItemPhoneCode, nil
-	case "GOOGLE":
-		return UpdateAuthSettingsDtoAllowedProvidersItemGoogle, nil
-	case "GITHUB":
-		return UpdateAuthSettingsDtoAllowedProvidersItemGithub, nil
-	case "APPLE":
-		return UpdateAuthSettingsDtoAllowedProvidersItemApple, nil
-	case "SAML":
-		return UpdateAuthSettingsDtoAllowedProvidersItemSAML, nil
-	case "OIDC":
-		return UpdateAuthSettingsDtoAllowedProvidersItemOidc, nil
+func (v *VerifyMagicLinkAuthResponse) GetMfaChallengeResponseDto() *MfaChallengeResponseDto {
+	if v == nil {
+		return nil
 	}
-	var t UpdateAuthSettingsDtoAllowedProvidersItem
-	return "", fmt.Errorf("%s is not a valid %T", s, t)
+	return v.MfaChallengeResponseDto
 }
 
-func (u UpdateAuthSettingsDtoAllowedProvidersItem) Ptr() *UpdateAuthSettingsDtoAllowedProvidersItem {
-	return &u
-}
-
-// Typeface of the hosted pages.
-type UpdateAuthSettingsDtoHostedFont string
-
-const (
-	UpdateAuthSettingsDtoHostedFontDefault UpdateAuthSettingsDtoHostedFont = "DEFAULT"
-	UpdateAuthSettingsDtoHostedFontInter   UpdateAuthSettingsDtoHostedFont = "INTER"
-	UpdateAuthSettingsDtoHostedFontDmSans  UpdateAuthSettingsDtoHostedFont = "DM_SANS"
-	UpdateAuthSettingsDtoHostedFontLora    UpdateAuthSettingsDtoHostedFont = "LORA"
-)
-
-func NewUpdateAuthSettingsDtoHostedFontFromString(s string) (UpdateAuthSettingsDtoHostedFont, error) {
-	switch s {
-	case "DEFAULT":
-		return UpdateAuthSettingsDtoHostedFontDefault, nil
-	case "INTER":
-		return UpdateAuthSettingsDtoHostedFontInter, nil
-	case "DM_SANS":
-		return UpdateAuthSettingsDtoHostedFontDmSans, nil
-	case "LORA":
-		return UpdateAuthSettingsDtoHostedFontLora, nil
+func (v *VerifyMagicLinkAuthResponse) UnmarshalJSON(data []byte) error {
+	valueSignInSuccessResponseDto := new(SignInSuccessResponseDto)
+	if err := json.Unmarshal(data, &valueSignInSuccessResponseDto); err == nil {
+		v.typ = "SignInSuccessResponseDto"
+		v.SignInSuccessResponseDto = valueSignInSuccessResponseDto
+		return nil
 	}
-	var t UpdateAuthSettingsDtoHostedFont
-	return "", fmt.Errorf("%s is not a valid %T", s, t)
-}
-
-func (u UpdateAuthSettingsDtoHostedFont) Ptr() *UpdateAuthSettingsDtoHostedFont {
-	return &u
-}
-
-// Layout of the hosted pages: CENTERED (a card on a plain background), SPLIT (the form beside an image panel) or MINIMAL (the form alone, no card).
-type UpdateAuthSettingsDtoHostedLayout string
-
-const (
-	UpdateAuthSettingsDtoHostedLayoutCentered UpdateAuthSettingsDtoHostedLayout = "CENTERED"
-	UpdateAuthSettingsDtoHostedLayoutSplit    UpdateAuthSettingsDtoHostedLayout = "SPLIT"
-	UpdateAuthSettingsDtoHostedLayoutMinimal  UpdateAuthSettingsDtoHostedLayout = "MINIMAL"
-)
-
-func NewUpdateAuthSettingsDtoHostedLayoutFromString(s string) (UpdateAuthSettingsDtoHostedLayout, error) {
-	switch s {
-	case "CENTERED":
-		return UpdateAuthSettingsDtoHostedLayoutCentered, nil
-	case "SPLIT":
-		return UpdateAuthSettingsDtoHostedLayoutSplit, nil
-	case "MINIMAL":
-		return UpdateAuthSettingsDtoHostedLayoutMinimal, nil
+	valueMfaChallengeResponseDto := new(MfaChallengeResponseDto)
+	if err := json.Unmarshal(data, &valueMfaChallengeResponseDto); err == nil {
+		v.typ = "MfaChallengeResponseDto"
+		v.MfaChallengeResponseDto = valueMfaChallengeResponseDto
+		return nil
 	}
-	var t UpdateAuthSettingsDtoHostedLayout
-	return "", fmt.Errorf("%s is not a valid %T", s, t)
+	return fmt.Errorf("%s cannot be deserialized as a %T", data, v)
 }
 
-func (u UpdateAuthSettingsDtoHostedLayout) Ptr() *UpdateAuthSettingsDtoHostedLayout {
-	return &u
-}
-
-// With the SPLIT layout, the side the image panel sits on.
-type UpdateAuthSettingsDtoHostedPanelSide string
-
-const (
-	UpdateAuthSettingsDtoHostedPanelSideLeft  UpdateAuthSettingsDtoHostedPanelSide = "LEFT"
-	UpdateAuthSettingsDtoHostedPanelSideRight UpdateAuthSettingsDtoHostedPanelSide = "RIGHT"
-)
-
-func NewUpdateAuthSettingsDtoHostedPanelSideFromString(s string) (UpdateAuthSettingsDtoHostedPanelSide, error) {
-	switch s {
-	case "LEFT":
-		return UpdateAuthSettingsDtoHostedPanelSideLeft, nil
-	case "RIGHT":
-		return UpdateAuthSettingsDtoHostedPanelSideRight, nil
+func (v VerifyMagicLinkAuthResponse) MarshalJSON() ([]byte, error) {
+	if v.typ == "SignInSuccessResponseDto" || v.SignInSuccessResponseDto != nil {
+		return json.Marshal(v.SignInSuccessResponseDto)
 	}
-	var t UpdateAuthSettingsDtoHostedPanelSide
-	return "", fmt.Errorf("%s is not a valid %T", s, t)
-}
-
-func (u UpdateAuthSettingsDtoHostedPanelSide) Ptr() *UpdateAuthSettingsDtoHostedPanelSide {
-	return &u
-}
-
-// Corner rounding of fields, buttons and card.
-type UpdateAuthSettingsDtoHostedRadius string
-
-const (
-	UpdateAuthSettingsDtoHostedRadiusSharp UpdateAuthSettingsDtoHostedRadius = "SHARP"
-	UpdateAuthSettingsDtoHostedRadiusSoft  UpdateAuthSettingsDtoHostedRadius = "SOFT"
-	UpdateAuthSettingsDtoHostedRadiusRound UpdateAuthSettingsDtoHostedRadius = "ROUND"
-)
-
-func NewUpdateAuthSettingsDtoHostedRadiusFromString(s string) (UpdateAuthSettingsDtoHostedRadius, error) {
-	switch s {
-	case "SHARP":
-		return UpdateAuthSettingsDtoHostedRadiusSharp, nil
-	case "SOFT":
-		return UpdateAuthSettingsDtoHostedRadiusSoft, nil
-	case "ROUND":
-		return UpdateAuthSettingsDtoHostedRadiusRound, nil
+	if v.typ == "MfaChallengeResponseDto" || v.MfaChallengeResponseDto != nil {
+		return json.Marshal(v.MfaChallengeResponseDto)
 	}
-	var t UpdateAuthSettingsDtoHostedRadius
-	return "", fmt.Errorf("%s is not a valid %T", s, t)
+	return nil, fmt.Errorf("type %T does not include a non-empty union type", v)
 }
 
-func (u UpdateAuthSettingsDtoHostedRadius) Ptr() *UpdateAuthSettingsDtoHostedRadius {
-	return &u
+type VerifyMagicLinkAuthResponseVisitor interface {
+	VisitSignInSuccessResponseDto(*SignInSuccessResponseDto) error
+	VisitMfaChallengeResponseDto(*MfaChallengeResponseDto) error
 }
 
-// Language your end-users are served in: hosted sign-in pages and authentication emails. English by default.
-type UpdateAuthSettingsDtoLocale string
-
-const (
-	UpdateAuthSettingsDtoLocaleEn UpdateAuthSettingsDtoLocale = "en"
-	UpdateAuthSettingsDtoLocaleFr UpdateAuthSettingsDtoLocale = "fr"
-)
-
-func NewUpdateAuthSettingsDtoLocaleFromString(s string) (UpdateAuthSettingsDtoLocale, error) {
-	switch s {
-	case "en":
-		return UpdateAuthSettingsDtoLocaleEn, nil
-	case "fr":
-		return UpdateAuthSettingsDtoLocaleFr, nil
+func (v *VerifyMagicLinkAuthResponse) Accept(visitor VerifyMagicLinkAuthResponseVisitor) error {
+	if v.typ == "SignInSuccessResponseDto" || v.SignInSuccessResponseDto != nil {
+		return visitor.VisitSignInSuccessResponseDto(v.SignInSuccessResponseDto)
 	}
-	var t UpdateAuthSettingsDtoLocale
-	return "", fmt.Errorf("%s is not a valid %T", s, t)
+	if v.typ == "MfaChallengeResponseDto" || v.MfaChallengeResponseDto != nil {
+		return visitor.VisitMfaChallengeResponseDto(v.MfaChallengeResponseDto)
+	}
+	return fmt.Errorf("type %T does not include a non-empty union type", v)
 }
 
-func (u UpdateAuthSettingsDtoLocale) Ptr() *UpdateAuthSettingsDtoLocale {
-	return &u
+type VerifyOtpAuthResponse struct {
+	SignInSuccessResponseDto *SignInSuccessResponseDto
+	MfaChallengeResponseDto  *MfaChallengeResponseDto
+
+	typ string
+}
+
+func NewVerifyOtpAuthResponseFromSignInSuccessResponseDto(value *SignInSuccessResponseDto) *VerifyOtpAuthResponse {
+	return &VerifyOtpAuthResponse{typ: "SignInSuccessResponseDto", SignInSuccessResponseDto: value}
+}
+
+func NewVerifyOtpAuthResponseFromMfaChallengeResponseDto(value *MfaChallengeResponseDto) *VerifyOtpAuthResponse {
+	return &VerifyOtpAuthResponse{typ: "MfaChallengeResponseDto", MfaChallengeResponseDto: value}
+}
+
+func (v *VerifyOtpAuthResponse) GetSignInSuccessResponseDto() *SignInSuccessResponseDto {
+	if v == nil {
+		return nil
+	}
+	return v.SignInSuccessResponseDto
+}
+
+func (v *VerifyOtpAuthResponse) GetMfaChallengeResponseDto() *MfaChallengeResponseDto {
+	if v == nil {
+		return nil
+	}
+	return v.MfaChallengeResponseDto
+}
+
+func (v *VerifyOtpAuthResponse) UnmarshalJSON(data []byte) error {
+	valueSignInSuccessResponseDto := new(SignInSuccessResponseDto)
+	if err := json.Unmarshal(data, &valueSignInSuccessResponseDto); err == nil {
+		v.typ = "SignInSuccessResponseDto"
+		v.SignInSuccessResponseDto = valueSignInSuccessResponseDto
+		return nil
+	}
+	valueMfaChallengeResponseDto := new(MfaChallengeResponseDto)
+	if err := json.Unmarshal(data, &valueMfaChallengeResponseDto); err == nil {
+		v.typ = "MfaChallengeResponseDto"
+		v.MfaChallengeResponseDto = valueMfaChallengeResponseDto
+		return nil
+	}
+	return fmt.Errorf("%s cannot be deserialized as a %T", data, v)
+}
+
+func (v VerifyOtpAuthResponse) MarshalJSON() ([]byte, error) {
+	if v.typ == "SignInSuccessResponseDto" || v.SignInSuccessResponseDto != nil {
+		return json.Marshal(v.SignInSuccessResponseDto)
+	}
+	if v.typ == "MfaChallengeResponseDto" || v.MfaChallengeResponseDto != nil {
+		return json.Marshal(v.MfaChallengeResponseDto)
+	}
+	return nil, fmt.Errorf("type %T does not include a non-empty union type", v)
+}
+
+type VerifyOtpAuthResponseVisitor interface {
+	VisitSignInSuccessResponseDto(*SignInSuccessResponseDto) error
+	VisitMfaChallengeResponseDto(*MfaChallengeResponseDto) error
+}
+
+func (v *VerifyOtpAuthResponse) Accept(visitor VerifyOtpAuthResponseVisitor) error {
+	if v.typ == "SignInSuccessResponseDto" || v.SignInSuccessResponseDto != nil {
+		return visitor.VisitSignInSuccessResponseDto(v.SignInSuccessResponseDto)
+	}
+	if v.typ == "MfaChallengeResponseDto" || v.MfaChallengeResponseDto != nil {
+		return visitor.VisitMfaChallengeResponseDto(v.MfaChallengeResponseDto)
+	}
+	return fmt.Errorf("type %T does not include a non-empty union type", v)
+}
+
+type VerifyPhoneOtpAuthResponse struct {
+	SignInSuccessResponseDto *SignInSuccessResponseDto
+	MfaChallengeResponseDto  *MfaChallengeResponseDto
+
+	typ string
+}
+
+func NewVerifyPhoneOtpAuthResponseFromSignInSuccessResponseDto(value *SignInSuccessResponseDto) *VerifyPhoneOtpAuthResponse {
+	return &VerifyPhoneOtpAuthResponse{typ: "SignInSuccessResponseDto", SignInSuccessResponseDto: value}
+}
+
+func NewVerifyPhoneOtpAuthResponseFromMfaChallengeResponseDto(value *MfaChallengeResponseDto) *VerifyPhoneOtpAuthResponse {
+	return &VerifyPhoneOtpAuthResponse{typ: "MfaChallengeResponseDto", MfaChallengeResponseDto: value}
+}
+
+func (v *VerifyPhoneOtpAuthResponse) GetSignInSuccessResponseDto() *SignInSuccessResponseDto {
+	if v == nil {
+		return nil
+	}
+	return v.SignInSuccessResponseDto
+}
+
+func (v *VerifyPhoneOtpAuthResponse) GetMfaChallengeResponseDto() *MfaChallengeResponseDto {
+	if v == nil {
+		return nil
+	}
+	return v.MfaChallengeResponseDto
+}
+
+func (v *VerifyPhoneOtpAuthResponse) UnmarshalJSON(data []byte) error {
+	valueSignInSuccessResponseDto := new(SignInSuccessResponseDto)
+	if err := json.Unmarshal(data, &valueSignInSuccessResponseDto); err == nil {
+		v.typ = "SignInSuccessResponseDto"
+		v.SignInSuccessResponseDto = valueSignInSuccessResponseDto
+		return nil
+	}
+	valueMfaChallengeResponseDto := new(MfaChallengeResponseDto)
+	if err := json.Unmarshal(data, &valueMfaChallengeResponseDto); err == nil {
+		v.typ = "MfaChallengeResponseDto"
+		v.MfaChallengeResponseDto = valueMfaChallengeResponseDto
+		return nil
+	}
+	return fmt.Errorf("%s cannot be deserialized as a %T", data, v)
+}
+
+func (v VerifyPhoneOtpAuthResponse) MarshalJSON() ([]byte, error) {
+	if v.typ == "SignInSuccessResponseDto" || v.SignInSuccessResponseDto != nil {
+		return json.Marshal(v.SignInSuccessResponseDto)
+	}
+	if v.typ == "MfaChallengeResponseDto" || v.MfaChallengeResponseDto != nil {
+		return json.Marshal(v.MfaChallengeResponseDto)
+	}
+	return nil, fmt.Errorf("type %T does not include a non-empty union type", v)
+}
+
+type VerifyPhoneOtpAuthResponseVisitor interface {
+	VisitSignInSuccessResponseDto(*SignInSuccessResponseDto) error
+	VisitMfaChallengeResponseDto(*MfaChallengeResponseDto) error
+}
+
+func (v *VerifyPhoneOtpAuthResponse) Accept(visitor VerifyPhoneOtpAuthResponseVisitor) error {
+	if v.typ == "SignInSuccessResponseDto" || v.SignInSuccessResponseDto != nil {
+		return visitor.VisitSignInSuccessResponseDto(v.SignInSuccessResponseDto)
+	}
+	if v.typ == "MfaChallengeResponseDto" || v.MfaChallengeResponseDto != nil {
+		return visitor.VisitMfaChallengeResponseDto(v.MfaChallengeResponseDto)
+	}
+	return fmt.Errorf("type %T does not include a non-empty union type", v)
+}
+
+type VerifyEmailDto struct {
+	Token string `json:"token" url:"-"`
+}
+
+type MagicLinkVerifyDto struct {
+	Token string `json:"token" url:"-"`
+}
+
+type MfaVerifyDto struct {
+	ChallengeToken string `json:"challengeToken" url:"-"`
+	// 6-digit TOTP code, or a 10-character backup code.
+	Code string `json:"code" url:"-"`
+}
+
+type OtpVerifyDto struct {
+	Email string `json:"email" url:"-"`
+	Code  string `json:"code" url:"-"`
+}
+
+type PhoneOtpVerifyDto struct {
+	// Number in E.164 format (for example +33612345678). The "+" is required.
+	Phone string `json:"phone" url:"-"`
+	Code  string `json:"code" url:"-"`
 }

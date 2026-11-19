@@ -463,88 +463,6 @@ func (c *Client) Impersonate(
 	return response, nil
 }
 
-func (c *Client) Ban(
-	ctx context.Context,
-	projectID string,
-	id string,
-	opts ...option.RequestOption,
-) (*mailmusgo.UserResponseDto, error) {
-	options := core.NewRequestOptions(opts...)
-	baseURL := internal.ResolveBaseURL(
-		options.BaseURL,
-		c.baseURL,
-		"https://api.mailmus.app",
-	)
-	endpointURL := internal.EncodeURL(
-		baseURL+"/projects/%v/users/%v/ban",
-		projectID,
-		id,
-	)
-	headers := internal.MergeHeaders(
-		c.header.Clone(),
-		options.ToHeader(),
-	)
-
-	var response *mailmusgo.UserResponseDto
-	if err := c.caller.Call(
-		ctx,
-		&internal.CallParams{
-			URL:             endpointURL,
-			Method:          http.MethodPost,
-			Headers:         headers,
-			MaxAttempts:     options.MaxAttempts,
-			BodyProperties:  options.BodyProperties,
-			QueryParameters: options.QueryParameters,
-			Client:          options.HTTPClient,
-			Response:        &response,
-		},
-	); err != nil {
-		return nil, err
-	}
-	return response, nil
-}
-
-func (c *Client) Unban(
-	ctx context.Context,
-	projectID string,
-	id string,
-	opts ...option.RequestOption,
-) (*mailmusgo.UserResponseDto, error) {
-	options := core.NewRequestOptions(opts...)
-	baseURL := internal.ResolveBaseURL(
-		options.BaseURL,
-		c.baseURL,
-		"https://api.mailmus.app",
-	)
-	endpointURL := internal.EncodeURL(
-		baseURL+"/projects/%v/users/%v/unban",
-		projectID,
-		id,
-	)
-	headers := internal.MergeHeaders(
-		c.header.Clone(),
-		options.ToHeader(),
-	)
-
-	var response *mailmusgo.UserResponseDto
-	if err := c.caller.Call(
-		ctx,
-		&internal.CallParams{
-			URL:             endpointURL,
-			Method:          http.MethodPost,
-			Headers:         headers,
-			MaxAttempts:     options.MaxAttempts,
-			BodyProperties:  options.BodyProperties,
-			QueryParameters: options.QueryParameters,
-			Client:          options.HTTPClient,
-			Response:        &response,
-		},
-	); err != nil {
-		return nil, err
-	}
-	return response, nil
-}
-
 func (c *Client) RevokeSession(
 	ctx context.Context,
 	projectID string,
@@ -662,6 +580,219 @@ func (c *Client) ResetMfa(
 		return err
 	}
 	return nil
+}
+
+func (c *Client) UnlockSignIn(
+	ctx context.Context,
+	projectID string,
+	id string,
+	opts ...option.RequestOption,
+) error {
+	options := core.NewRequestOptions(opts...)
+	baseURL := internal.ResolveBaseURL(
+		options.BaseURL,
+		c.baseURL,
+		"https://api.mailmus.app",
+	)
+	endpointURL := internal.EncodeURL(
+		baseURL+"/projects/%v/users/%v/unlock-sign-in",
+		projectID,
+		id,
+	)
+	headers := internal.MergeHeaders(
+		c.header.Clone(),
+		options.ToHeader(),
+	)
+
+	if err := c.caller.Call(
+		ctx,
+		&internal.CallParams{
+			URL:             endpointURL,
+			Method:          http.MethodPost,
+			Headers:         headers,
+			MaxAttempts:     options.MaxAttempts,
+			BodyProperties:  options.BodyProperties,
+			QueryParameters: options.QueryParameters,
+			Client:          options.HTTPClient,
+		},
+	); err != nil {
+		return err
+	}
+	return nil
+}
+
+// Refuses every sign-in until the user is reinstated, and signs them out everywhere. A sanction already in force is replaced. Banning without a reason is free; a reason, a note or a message is part of the Pro plan.
+func (c *Client) Ban(
+	ctx context.Context,
+	projectID string,
+	id string,
+	request *mailmusgo.BanUserDto,
+	opts ...option.RequestOption,
+) (*mailmusgo.UserResponseDto, error) {
+	options := core.NewRequestOptions(opts...)
+	baseURL := internal.ResolveBaseURL(
+		options.BaseURL,
+		c.baseURL,
+		"https://api.mailmus.app",
+	)
+	endpointURL := internal.EncodeURL(
+		baseURL+"/projects/%v/users/%v/ban",
+		projectID,
+		id,
+	)
+	headers := internal.MergeHeaders(
+		c.header.Clone(),
+		options.ToHeader(),
+	)
+	headers.Set("Content-Type", "application/json")
+
+	var response *mailmusgo.UserResponseDto
+	if err := c.caller.Call(
+		ctx,
+		&internal.CallParams{
+			URL:             endpointURL,
+			Method:          http.MethodPost,
+			Headers:         headers,
+			MaxAttempts:     options.MaxAttempts,
+			BodyProperties:  options.BodyProperties,
+			QueryParameters: options.QueryParameters,
+			Client:          options.HTTPClient,
+			Request:         request,
+			Response:        &response,
+		},
+	); err != nil {
+		return nil, err
+	}
+	return response, nil
+}
+
+// Refuses every sign-in until `endsAt`, then gives access back on its own, and signs the user out everywhere. A sanction already in force is replaced. Part of the Pro plan.
+func (c *Client) Suspend(
+	ctx context.Context,
+	projectID string,
+	id string,
+	request *mailmusgo.SuspendUserDto,
+	opts ...option.RequestOption,
+) (*mailmusgo.UserResponseDto, error) {
+	options := core.NewRequestOptions(opts...)
+	baseURL := internal.ResolveBaseURL(
+		options.BaseURL,
+		c.baseURL,
+		"https://api.mailmus.app",
+	)
+	endpointURL := internal.EncodeURL(
+		baseURL+"/projects/%v/users/%v/suspend",
+		projectID,
+		id,
+	)
+	headers := internal.MergeHeaders(
+		c.header.Clone(),
+		options.ToHeader(),
+	)
+	headers.Set("Content-Type", "application/json")
+
+	var response *mailmusgo.UserResponseDto
+	if err := c.caller.Call(
+		ctx,
+		&internal.CallParams{
+			URL:             endpointURL,
+			Method:          http.MethodPost,
+			Headers:         headers,
+			MaxAttempts:     options.MaxAttempts,
+			BodyProperties:  options.BodyProperties,
+			QueryParameters: options.QueryParameters,
+			Client:          options.HTTPClient,
+			Request:         request,
+			Response:        &response,
+		},
+	); err != nil {
+		return nil, err
+	}
+	return response, nil
+}
+
+// Lifts the ban or the suspension in force. Without one, nothing changes and the user is returned as is.
+func (c *Client) Reinstate(
+	ctx context.Context,
+	projectID string,
+	id string,
+	opts ...option.RequestOption,
+) (*mailmusgo.UserResponseDto, error) {
+	options := core.NewRequestOptions(opts...)
+	baseURL := internal.ResolveBaseURL(
+		options.BaseURL,
+		c.baseURL,
+		"https://api.mailmus.app",
+	)
+	endpointURL := internal.EncodeURL(
+		baseURL+"/projects/%v/users/%v/reinstate",
+		projectID,
+		id,
+	)
+	headers := internal.MergeHeaders(
+		c.header.Clone(),
+		options.ToHeader(),
+	)
+
+	var response *mailmusgo.UserResponseDto
+	if err := c.caller.Call(
+		ctx,
+		&internal.CallParams{
+			URL:             endpointURL,
+			Method:          http.MethodPost,
+			Headers:         headers,
+			MaxAttempts:     options.MaxAttempts,
+			BodyProperties:  options.BodyProperties,
+			QueryParameters: options.QueryParameters,
+			Client:          options.HTTPClient,
+			Response:        &response,
+		},
+	); err != nil {
+		return nil, err
+	}
+	return response, nil
+}
+
+// Every ban and suspension of this user, most recent first, each with its decisions: who decided, when, and why.
+func (c *Client) History(
+	ctx context.Context,
+	projectID string,
+	id string,
+	opts ...option.RequestOption,
+) ([]*mailmusgo.UserSanctionDto, error) {
+	options := core.NewRequestOptions(opts...)
+	baseURL := internal.ResolveBaseURL(
+		options.BaseURL,
+		c.baseURL,
+		"https://api.mailmus.app",
+	)
+	endpointURL := internal.EncodeURL(
+		baseURL+"/projects/%v/users/%v/sanctions",
+		projectID,
+		id,
+	)
+	headers := internal.MergeHeaders(
+		c.header.Clone(),
+		options.ToHeader(),
+	)
+
+	var response []*mailmusgo.UserSanctionDto
+	if err := c.caller.Call(
+		ctx,
+		&internal.CallParams{
+			URL:             endpointURL,
+			Method:          http.MethodGet,
+			Headers:         headers,
+			MaxAttempts:     options.MaxAttempts,
+			BodyProperties:  options.BodyProperties,
+			QueryParameters: options.QueryParameters,
+			Client:          options.HTTPClient,
+			Response:        &response,
+		},
+	); err != nil {
+		return nil, err
+	}
+	return response, nil
 }
 
 func (c *Client) UpdateMetadata(

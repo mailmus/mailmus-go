@@ -515,9 +515,11 @@ const (
 	CreateWebhookDtoEventsItemUserSignedIn                           CreateWebhookDtoEventsItem = "user.signed_in"
 	CreateWebhookDtoEventsItemUserEmailVerified                      CreateWebhookDtoEventsItem = "user.email_verified"
 	CreateWebhookDtoEventsItemUserBanned                             CreateWebhookDtoEventsItem = "user.banned"
-	CreateWebhookDtoEventsItemUserUnbanned                           CreateWebhookDtoEventsItem = "user.unbanned"
+	CreateWebhookDtoEventsItemUserSuspended                          CreateWebhookDtoEventsItem = "user.suspended"
+	CreateWebhookDtoEventsItemUserReinstated                         CreateWebhookDtoEventsItem = "user.reinstated"
 	CreateWebhookDtoEventsItemUserDeleted                            CreateWebhookDtoEventsItem = "user.deleted"
 	CreateWebhookDtoEventsItemUserMfaReset                           CreateWebhookDtoEventsItem = "user.mfa_reset"
+	CreateWebhookDtoEventsItemUserSignInUnlocked                     CreateWebhookDtoEventsItem = "user.sign_in_unlocked"
 	CreateWebhookDtoEventsItemUserSessionRevoked                     CreateWebhookDtoEventsItem = "user.session_revoked"
 	CreateWebhookDtoEventsItemUserLinked                             CreateWebhookDtoEventsItem = "user.linked"
 	CreateWebhookDtoEventsItemUserImpersonated                       CreateWebhookDtoEventsItem = "user.impersonated"
@@ -595,12 +597,16 @@ func NewCreateWebhookDtoEventsItemFromString(s string) (CreateWebhookDtoEventsIt
 		return CreateWebhookDtoEventsItemUserEmailVerified, nil
 	case "user.banned":
 		return CreateWebhookDtoEventsItemUserBanned, nil
-	case "user.unbanned":
-		return CreateWebhookDtoEventsItemUserUnbanned, nil
+	case "user.suspended":
+		return CreateWebhookDtoEventsItemUserSuspended, nil
+	case "user.reinstated":
+		return CreateWebhookDtoEventsItemUserReinstated, nil
 	case "user.deleted":
 		return CreateWebhookDtoEventsItemUserDeleted, nil
 	case "user.mfa_reset":
 		return CreateWebhookDtoEventsItemUserMfaReset, nil
+	case "user.sign_in_unlocked":
+		return CreateWebhookDtoEventsItemUserSignInUnlocked, nil
 	case "user.session_revoked":
 		return CreateWebhookDtoEventsItemUserSessionRevoked, nil
 	case "user.linked":
@@ -705,9 +711,11 @@ const (
 	UpdateWebhookDtoEventsItemUserSignedIn                           UpdateWebhookDtoEventsItem = "user.signed_in"
 	UpdateWebhookDtoEventsItemUserEmailVerified                      UpdateWebhookDtoEventsItem = "user.email_verified"
 	UpdateWebhookDtoEventsItemUserBanned                             UpdateWebhookDtoEventsItem = "user.banned"
-	UpdateWebhookDtoEventsItemUserUnbanned                           UpdateWebhookDtoEventsItem = "user.unbanned"
+	UpdateWebhookDtoEventsItemUserSuspended                          UpdateWebhookDtoEventsItem = "user.suspended"
+	UpdateWebhookDtoEventsItemUserReinstated                         UpdateWebhookDtoEventsItem = "user.reinstated"
 	UpdateWebhookDtoEventsItemUserDeleted                            UpdateWebhookDtoEventsItem = "user.deleted"
 	UpdateWebhookDtoEventsItemUserMfaReset                           UpdateWebhookDtoEventsItem = "user.mfa_reset"
+	UpdateWebhookDtoEventsItemUserSignInUnlocked                     UpdateWebhookDtoEventsItem = "user.sign_in_unlocked"
 	UpdateWebhookDtoEventsItemUserSessionRevoked                     UpdateWebhookDtoEventsItem = "user.session_revoked"
 	UpdateWebhookDtoEventsItemUserLinked                             UpdateWebhookDtoEventsItem = "user.linked"
 	UpdateWebhookDtoEventsItemUserImpersonated                       UpdateWebhookDtoEventsItem = "user.impersonated"
@@ -785,12 +793,16 @@ func NewUpdateWebhookDtoEventsItemFromString(s string) (UpdateWebhookDtoEventsIt
 		return UpdateWebhookDtoEventsItemUserEmailVerified, nil
 	case "user.banned":
 		return UpdateWebhookDtoEventsItemUserBanned, nil
-	case "user.unbanned":
-		return UpdateWebhookDtoEventsItemUserUnbanned, nil
+	case "user.suspended":
+		return UpdateWebhookDtoEventsItemUserSuspended, nil
+	case "user.reinstated":
+		return UpdateWebhookDtoEventsItemUserReinstated, nil
 	case "user.deleted":
 		return UpdateWebhookDtoEventsItemUserDeleted, nil
 	case "user.mfa_reset":
 		return UpdateWebhookDtoEventsItemUserMfaReset, nil
+	case "user.sign_in_unlocked":
+		return UpdateWebhookDtoEventsItemUserSignInUnlocked, nil
 	case "user.session_revoked":
 		return UpdateWebhookDtoEventsItemUserSessionRevoked, nil
 	case "user.linked":

@@ -295,7 +295,7 @@ type AuthProviderIncidentDto struct {
 	ID string `json:"id" url:"id"`
 	// The provider concerned.
 	Provider AuthProviderIncidentDtoProvider `json:"provider" url:"provider"`
-	// Where the sign-in gave way: CONFIGURATION, CODE_EXCHANGE, TOKEN_VERIFICATION, PROFILE_READ or DELIVERY. CONFIGURATION points at a setting to fix; DELIVERY means Mailmus could not deliver the SMS code, with nothing to change on your side; the others usually concern a single attempt.
+	// Where the sign-in gave way: CONFIGURATION, CODE_EXCHANGE, TOKEN_VERIFICATION, PROFILE_READ or DELIVERY. CONFIGURATION means the credentials Mailmus holds with the provider are missing, unusable or refused, and DELIVERY that Mailmus could not deliver the SMS code: both stop every sign-in with the method, and both are fixed by Mailmus, with nothing to change on your side. The others usually concern a single attempt.
 	Stage AuthProviderIncidentDtoStage `json:"stage" url:"stage"`
 	// Stable reason, comparable over time.
 	Reason string `json:"reason" url:"reason"`
@@ -463,7 +463,7 @@ func (a AuthProviderIncidentDtoProvider) Ptr() *AuthProviderIncidentDtoProvider 
 	return &a
 }
 
-// Where the sign-in gave way: CONFIGURATION, CODE_EXCHANGE, TOKEN_VERIFICATION, PROFILE_READ or DELIVERY. CONFIGURATION points at a setting to fix; DELIVERY means Mailmus could not deliver the SMS code, with nothing to change on your side; the others usually concern a single attempt.
+// Where the sign-in gave way: CONFIGURATION, CODE_EXCHANGE, TOKEN_VERIFICATION, PROFILE_READ or DELIVERY. CONFIGURATION means the credentials Mailmus holds with the provider are missing, unusable or refused, and DELIVERY that Mailmus could not deliver the SMS code: both stop every sign-in with the method, and both are fixed by Mailmus, with nothing to change on your side. The others usually concern a single attempt.
 type AuthProviderIncidentDtoStage string
 
 const (

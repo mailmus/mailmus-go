@@ -16,6 +16,17 @@ type AuditLogUsersRequest struct {
 	Page *int `json:"-" url:"page,omitempty"`
 }
 
+type BanUserDto struct {
+	// Why. Left out, the ban has no stated reason. A reason, the note and the message are part of the Pro plan.
+	Reason *BanUserDtoReason `json:"reason,omitempty" url:"-"`
+	// Required with the reason OTHER, refused otherwise.
+	ReasonText *string `json:"reasonText,omitempty" url:"-"`
+	// Seen by your team only, never sent in a webhook nor shown to the user.
+	InternalNote *string `json:"internalNote,omitempty" url:"-"`
+	// Shown to the user when their sign-in is refused.
+	EndUserMessage *string `json:"endUserMessage,omitempty" url:"-"`
+}
+
 type EventsUsersRequest struct {
 	Limit *int `json:"-" url:"limit,omitempty"`
 	// The `nextCursor` of the previous page.
@@ -44,6 +55,8 @@ type ListUsersRequest struct {
 	Verification *ListUsersRequestVerification `json:"-" url:"verification,omitempty"`
 	Provider     *ListUsersRequestProvider     `json:"-" url:"provider,omitempty"`
 	LastSignIn   *ListUsersRequestLastSignIn   `json:"-" url:"lastSignIn,omitempty"`
+	// Users banned or suspended right now for this reason. A sanction already over does not count.
+	SanctionReason *ListUsersRequestSanctionReason `json:"-" url:"sanctionReason,omitempty"`
 }
 
 type SetRolesUsersRequest struct {
@@ -61,6 +74,19 @@ func (s *SetRolesUsersRequest) UnmarshalJSON(data []byte) error {
 
 func (s *SetRolesUsersRequest) MarshalJSON() ([]byte, error) {
 	return json.Marshal(s.Body)
+}
+
+type SuspendUserDto struct {
+	// Why. Left out, the ban has no stated reason. A reason, the note and the message are part of the Pro plan.
+	Reason *SuspendUserDtoReason `json:"reason,omitempty" url:"-"`
+	// Required with the reason OTHER, refused otherwise.
+	ReasonText *string `json:"reasonText,omitempty" url:"-"`
+	// Seen by your team only, never sent in a webhook nor shown to the user.
+	InternalNote *string `json:"internalNote,omitempty" url:"-"`
+	// Shown to the user when their sign-in is refused.
+	EndUserMessage *string `json:"endUserMessage,omitempty" url:"-"`
+	// When access comes back on its own, in the future. Part of the Pro plan.
+	EndsAt string `json:"endsAt" url:"-"`
 }
 
 type AuditLogEntryResponseDto struct {
@@ -393,6 +419,210 @@ func (l *LinkUserResponseDto) String() string {
 	return fmt.Sprintf("%#v", l)
 }
 
+type SanctionDecisionDto struct {
+	Action SanctionDecisionDtoAction `json:"action" url:"action"`
+	Reason SanctionDecisionDtoReason `json:"reason" url:"reason"`
+	EndsAt *time.Time                `json:"endsAt,omitempty" url:"endsAt,omitempty"`
+	// A member of your team, your server with its key, or Mailmus itself (an expired suspension).
+	ActorType SanctionDecisionDtoActorType `json:"actorType" url:"actorType"`
+	// The team member, when a member decided.
+	ActorID   *string   `json:"actorId,omitempty" url:"actorId,omitempty"`
+	CreatedAt time.Time `json:"createdAt" url:"createdAt"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (s *SanctionDecisionDto) GetAction() SanctionDecisionDtoAction {
+	if s == nil {
+		return ""
+	}
+	return s.Action
+}
+
+func (s *SanctionDecisionDto) GetReason() SanctionDecisionDtoReason {
+	if s == nil {
+		return ""
+	}
+	return s.Reason
+}
+
+func (s *SanctionDecisionDto) GetEndsAt() *time.Time {
+	if s == nil {
+		return nil
+	}
+	return s.EndsAt
+}
+
+func (s *SanctionDecisionDto) GetActorType() SanctionDecisionDtoActorType {
+	if s == nil {
+		return ""
+	}
+	return s.ActorType
+}
+
+func (s *SanctionDecisionDto) GetActorID() *string {
+	if s == nil {
+		return nil
+	}
+	return s.ActorID
+}
+
+func (s *SanctionDecisionDto) GetCreatedAt() time.Time {
+	if s == nil {
+		return time.Time{}
+	}
+	return s.CreatedAt
+}
+
+func (s *SanctionDecisionDto) GetExtraProperties() map[string]interface{} {
+	return s.extraProperties
+}
+
+func (s *SanctionDecisionDto) UnmarshalJSON(data []byte) error {
+	type embed SanctionDecisionDto
+	var unmarshaler = struct {
+		embed
+		EndsAt    *internal.DateTime `json:"endsAt,omitempty"`
+		CreatedAt *internal.DateTime `json:"createdAt"`
+	}{
+		embed: embed(*s),
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
+		return err
+	}
+	*s = SanctionDecisionDto(unmarshaler.embed)
+	s.EndsAt = unmarshaler.EndsAt.TimePtr()
+	s.CreatedAt = unmarshaler.CreatedAt.Time()
+	extraProperties, err := internal.ExtractExtraProperties(data, *s)
+	if err != nil {
+		return err
+	}
+	s.extraProperties = extraProperties
+	s.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (s *SanctionDecisionDto) MarshalJSON() ([]byte, error) {
+	type embed SanctionDecisionDto
+	var marshaler = struct {
+		embed
+		EndsAt    *internal.DateTime `json:"endsAt,omitempty"`
+		CreatedAt *internal.DateTime `json:"createdAt"`
+	}{
+		embed:     embed(*s),
+		EndsAt:    internal.NewOptionalDateTime(s.EndsAt),
+		CreatedAt: internal.NewDateTime(s.CreatedAt),
+	}
+	return json.Marshal(marshaler)
+}
+
+func (s *SanctionDecisionDto) String() string {
+	if len(s.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(s.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(s); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", s)
+}
+
+type SanctionDecisionDtoAction string
+
+const (
+	SanctionDecisionDtoActionBanned     SanctionDecisionDtoAction = "BANNED"
+	SanctionDecisionDtoActionSuspended  SanctionDecisionDtoAction = "SUSPENDED"
+	SanctionDecisionDtoActionReinstated SanctionDecisionDtoAction = "REINSTATED"
+	SanctionDecisionDtoActionExpired    SanctionDecisionDtoAction = "EXPIRED"
+	SanctionDecisionDtoActionReplaced   SanctionDecisionDtoAction = "REPLACED"
+)
+
+func NewSanctionDecisionDtoActionFromString(s string) (SanctionDecisionDtoAction, error) {
+	switch s {
+	case "BANNED":
+		return SanctionDecisionDtoActionBanned, nil
+	case "SUSPENDED":
+		return SanctionDecisionDtoActionSuspended, nil
+	case "REINSTATED":
+		return SanctionDecisionDtoActionReinstated, nil
+	case "EXPIRED":
+		return SanctionDecisionDtoActionExpired, nil
+	case "REPLACED":
+		return SanctionDecisionDtoActionReplaced, nil
+	}
+	var t SanctionDecisionDtoAction
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (s SanctionDecisionDtoAction) Ptr() *SanctionDecisionDtoAction {
+	return &s
+}
+
+// A member of your team, your server with its key, or Mailmus itself (an expired suspension).
+type SanctionDecisionDtoActorType string
+
+const (
+	SanctionDecisionDtoActorTypeMailmusCustomerMember SanctionDecisionDtoActorType = "MAILMUS_CUSTOMER_MEMBER"
+	SanctionDecisionDtoActorTypeAPIKey                SanctionDecisionDtoActorType = "API_KEY"
+	SanctionDecisionDtoActorTypeSystem                SanctionDecisionDtoActorType = "SYSTEM"
+)
+
+func NewSanctionDecisionDtoActorTypeFromString(s string) (SanctionDecisionDtoActorType, error) {
+	switch s {
+	case "MAILMUS_CUSTOMER_MEMBER":
+		return SanctionDecisionDtoActorTypeMailmusCustomerMember, nil
+	case "API_KEY":
+		return SanctionDecisionDtoActorTypeAPIKey, nil
+	case "SYSTEM":
+		return SanctionDecisionDtoActorTypeSystem, nil
+	}
+	var t SanctionDecisionDtoActorType
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (s SanctionDecisionDtoActorType) Ptr() *SanctionDecisionDtoActorType {
+	return &s
+}
+
+type SanctionDecisionDtoReason string
+
+const (
+	SanctionDecisionDtoReasonFraudOrFakeAccount SanctionDecisionDtoReason = "FRAUD_OR_FAKE_ACCOUNT"
+	SanctionDecisionDtoReasonAbuse              SanctionDecisionDtoReason = "ABUSE"
+	SanctionDecisionDtoReasonSpam               SanctionDecisionDtoReason = "SPAM"
+	SanctionDecisionDtoReasonTermsViolation     SanctionDecisionDtoReason = "TERMS_VIOLATION"
+	SanctionDecisionDtoReasonCompromisedAccount SanctionDecisionDtoReason = "COMPROMISED_ACCOUNT"
+	SanctionDecisionDtoReasonOther              SanctionDecisionDtoReason = "OTHER"
+	SanctionDecisionDtoReasonUnspecified        SanctionDecisionDtoReason = "UNSPECIFIED"
+)
+
+func NewSanctionDecisionDtoReasonFromString(s string) (SanctionDecisionDtoReason, error) {
+	switch s {
+	case "FRAUD_OR_FAKE_ACCOUNT":
+		return SanctionDecisionDtoReasonFraudOrFakeAccount, nil
+	case "ABUSE":
+		return SanctionDecisionDtoReasonAbuse, nil
+	case "SPAM":
+		return SanctionDecisionDtoReasonSpam, nil
+	case "TERMS_VIOLATION":
+		return SanctionDecisionDtoReasonTermsViolation, nil
+	case "COMPROMISED_ACCOUNT":
+		return SanctionDecisionDtoReasonCompromisedAccount, nil
+	case "OTHER":
+		return SanctionDecisionDtoReasonOther, nil
+	case "UNSPECIFIED":
+		return SanctionDecisionDtoReasonUnspecified, nil
+	}
+	var t SanctionDecisionDtoReason
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (s SanctionDecisionDtoReason) Ptr() *SanctionDecisionDtoReason {
+	return &s
+}
+
 type UpdateRolesDto struct {
 	Roles []string `json:"roles,omitempty" url:"roles,omitempty"`
 
@@ -449,10 +679,15 @@ type UserDetailResponseDto struct {
 	Metadata        map[string]interface{} `json:"metadata,omitempty" url:"metadata,omitempty"`
 	Roles           []string               `json:"roles,omitempty" url:"roles,omitempty"`
 	LastSignInAt    *time.Time             `json:"lastSignInAt,omitempty" url:"lastSignInAt,omitempty"`
-	BannedAt        *time.Time             `json:"bannedAt,omitempty" url:"bannedAt,omitempty"`
-	CreatedAt       time.Time              `json:"createdAt" url:"createdAt"`
-	UpdatedAt       time.Time              `json:"updatedAt" url:"updatedAt"`
-	MfaEnabledAt    *time.Time             `json:"mfaEnabledAt,omitempty" url:"mfaEnabledAt,omitempty"`
+	// Since when a ban or a suspension refuses every sign-in. Null when none is in force.
+	BannedAt *time.Time `json:"bannedAt,omitempty" url:"bannedAt,omitempty"`
+	// When the suspension in force ends. Null for a ban, or when none is in force.
+	BannedUntil *time.Time `json:"bannedUntil,omitempty" url:"bannedUntil,omitempty"`
+	// Why the ban or the suspension in force was decided. Null when none is in force.
+	BannedReason *UserDetailResponseDtoBannedReason `json:"bannedReason,omitempty" url:"bannedReason,omitempty"`
+	CreatedAt    time.Time                          `json:"createdAt" url:"createdAt"`
+	UpdatedAt    time.Time                          `json:"updatedAt" url:"updatedAt"`
+	MfaEnabledAt *time.Time                         `json:"mfaEnabledAt,omitempty" url:"mfaEnabledAt,omitempty"`
 	// Consecutive failed sign-in attempts (brute-force lock, reset on a successful sign-in).
 	FailedSignInAttempts float64 `json:"failedSignInAttempts" url:"failedSignInAttempts"`
 	// Account locked until this date (password brute-force).
@@ -541,6 +776,20 @@ func (u *UserDetailResponseDto) GetBannedAt() *time.Time {
 	return u.BannedAt
 }
 
+func (u *UserDetailResponseDto) GetBannedUntil() *time.Time {
+	if u == nil {
+		return nil
+	}
+	return u.BannedUntil
+}
+
+func (u *UserDetailResponseDto) GetBannedReason() *UserDetailResponseDtoBannedReason {
+	if u == nil {
+		return nil
+	}
+	return u.BannedReason
+}
+
 func (u *UserDetailResponseDto) GetCreatedAt() time.Time {
 	if u == nil {
 		return time.Time{}
@@ -623,6 +872,7 @@ func (u *UserDetailResponseDto) UnmarshalJSON(data []byte) error {
 		PhoneVerifiedAt   *internal.DateTime `json:"phoneVerifiedAt,omitempty"`
 		LastSignInAt      *internal.DateTime `json:"lastSignInAt,omitempty"`
 		BannedAt          *internal.DateTime `json:"bannedAt,omitempty"`
+		BannedUntil       *internal.DateTime `json:"bannedUntil,omitempty"`
 		CreatedAt         *internal.DateTime `json:"createdAt"`
 		UpdatedAt         *internal.DateTime `json:"updatedAt"`
 		MfaEnabledAt      *internal.DateTime `json:"mfaEnabledAt,omitempty"`
@@ -638,6 +888,7 @@ func (u *UserDetailResponseDto) UnmarshalJSON(data []byte) error {
 	u.PhoneVerifiedAt = unmarshaler.PhoneVerifiedAt.TimePtr()
 	u.LastSignInAt = unmarshaler.LastSignInAt.TimePtr()
 	u.BannedAt = unmarshaler.BannedAt.TimePtr()
+	u.BannedUntil = unmarshaler.BannedUntil.TimePtr()
 	u.CreatedAt = unmarshaler.CreatedAt.Time()
 	u.UpdatedAt = unmarshaler.UpdatedAt.Time()
 	u.MfaEnabledAt = unmarshaler.MfaEnabledAt.TimePtr()
@@ -659,6 +910,7 @@ func (u *UserDetailResponseDto) MarshalJSON() ([]byte, error) {
 		PhoneVerifiedAt   *internal.DateTime `json:"phoneVerifiedAt,omitempty"`
 		LastSignInAt      *internal.DateTime `json:"lastSignInAt,omitempty"`
 		BannedAt          *internal.DateTime `json:"bannedAt,omitempty"`
+		BannedUntil       *internal.DateTime `json:"bannedUntil,omitempty"`
 		CreatedAt         *internal.DateTime `json:"createdAt"`
 		UpdatedAt         *internal.DateTime `json:"updatedAt"`
 		MfaEnabledAt      *internal.DateTime `json:"mfaEnabledAt,omitempty"`
@@ -669,6 +921,7 @@ func (u *UserDetailResponseDto) MarshalJSON() ([]byte, error) {
 		PhoneVerifiedAt:   internal.NewOptionalDateTime(u.PhoneVerifiedAt),
 		LastSignInAt:      internal.NewOptionalDateTime(u.LastSignInAt),
 		BannedAt:          internal.NewOptionalDateTime(u.BannedAt),
+		BannedUntil:       internal.NewOptionalDateTime(u.BannedUntil),
 		CreatedAt:         internal.NewDateTime(u.CreatedAt),
 		UpdatedAt:         internal.NewDateTime(u.UpdatedAt),
 		MfaEnabledAt:      internal.NewOptionalDateTime(u.MfaEnabledAt),
@@ -687,6 +940,44 @@ func (u *UserDetailResponseDto) String() string {
 		return value
 	}
 	return fmt.Sprintf("%#v", u)
+}
+
+// Why the ban or the suspension in force was decided. Null when none is in force.
+type UserDetailResponseDtoBannedReason string
+
+const (
+	UserDetailResponseDtoBannedReasonFraudOrFakeAccount UserDetailResponseDtoBannedReason = "FRAUD_OR_FAKE_ACCOUNT"
+	UserDetailResponseDtoBannedReasonAbuse              UserDetailResponseDtoBannedReason = "ABUSE"
+	UserDetailResponseDtoBannedReasonSpam               UserDetailResponseDtoBannedReason = "SPAM"
+	UserDetailResponseDtoBannedReasonTermsViolation     UserDetailResponseDtoBannedReason = "TERMS_VIOLATION"
+	UserDetailResponseDtoBannedReasonCompromisedAccount UserDetailResponseDtoBannedReason = "COMPROMISED_ACCOUNT"
+	UserDetailResponseDtoBannedReasonOther              UserDetailResponseDtoBannedReason = "OTHER"
+	UserDetailResponseDtoBannedReasonUnspecified        UserDetailResponseDtoBannedReason = "UNSPECIFIED"
+)
+
+func NewUserDetailResponseDtoBannedReasonFromString(s string) (UserDetailResponseDtoBannedReason, error) {
+	switch s {
+	case "FRAUD_OR_FAKE_ACCOUNT":
+		return UserDetailResponseDtoBannedReasonFraudOrFakeAccount, nil
+	case "ABUSE":
+		return UserDetailResponseDtoBannedReasonAbuse, nil
+	case "SPAM":
+		return UserDetailResponseDtoBannedReasonSpam, nil
+	case "TERMS_VIOLATION":
+		return UserDetailResponseDtoBannedReasonTermsViolation, nil
+	case "COMPROMISED_ACCOUNT":
+		return UserDetailResponseDtoBannedReasonCompromisedAccount, nil
+	case "OTHER":
+		return UserDetailResponseDtoBannedReasonOther, nil
+	case "UNSPECIFIED":
+		return UserDetailResponseDtoBannedReasonUnspecified, nil
+	}
+	var t UserDetailResponseDtoBannedReason
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (u UserDetailResponseDtoBannedReason) Ptr() *UserDetailResponseDtoBannedReason {
+	return &u
 }
 
 // Who holds this identity. EXTERNAL means you authenticate this user yourself; it becomes MAILMUS_AUTH the first time they sign in with Mailmus.
@@ -1082,10 +1373,15 @@ type UserListItemResponseDto struct {
 	Metadata        map[string]interface{} `json:"metadata,omitempty" url:"metadata,omitempty"`
 	Roles           []string               `json:"roles,omitempty" url:"roles,omitempty"`
 	LastSignInAt    *time.Time             `json:"lastSignInAt,omitempty" url:"lastSignInAt,omitempty"`
-	BannedAt        *time.Time             `json:"bannedAt,omitempty" url:"bannedAt,omitempty"`
-	CreatedAt       time.Time              `json:"createdAt" url:"createdAt"`
-	UpdatedAt       time.Time              `json:"updatedAt" url:"updatedAt"`
-	MfaEnabledAt    *time.Time             `json:"mfaEnabledAt,omitempty" url:"mfaEnabledAt,omitempty"`
+	// Since when a ban or a suspension refuses every sign-in. Null when none is in force.
+	BannedAt *time.Time `json:"bannedAt,omitempty" url:"bannedAt,omitempty"`
+	// When the suspension in force ends. Null for a ban, or when none is in force.
+	BannedUntil *time.Time `json:"bannedUntil,omitempty" url:"bannedUntil,omitempty"`
+	// Why the ban or the suspension in force was decided. Null when none is in force.
+	BannedReason *UserListItemResponseDtoBannedReason `json:"bannedReason,omitempty" url:"bannedReason,omitempty"`
+	CreatedAt    time.Time                            `json:"createdAt" url:"createdAt"`
+	UpdatedAt    time.Time                            `json:"updatedAt" url:"updatedAt"`
+	MfaEnabledAt *time.Time                           `json:"mfaEnabledAt,omitempty" url:"mfaEnabledAt,omitempty"`
 	// Consecutive failed sign-in attempts (brute-force lock, reset on a successful sign-in).
 	FailedSignInAttempts float64 `json:"failedSignInAttempts" url:"failedSignInAttempts"`
 	// Account locked until this date (password brute-force).
@@ -1172,6 +1468,20 @@ func (u *UserListItemResponseDto) GetBannedAt() *time.Time {
 	return u.BannedAt
 }
 
+func (u *UserListItemResponseDto) GetBannedUntil() *time.Time {
+	if u == nil {
+		return nil
+	}
+	return u.BannedUntil
+}
+
+func (u *UserListItemResponseDto) GetBannedReason() *UserListItemResponseDtoBannedReason {
+	if u == nil {
+		return nil
+	}
+	return u.BannedReason
+}
+
 func (u *UserListItemResponseDto) GetCreatedAt() time.Time {
 	if u == nil {
 		return time.Time{}
@@ -1247,6 +1557,7 @@ func (u *UserListItemResponseDto) UnmarshalJSON(data []byte) error {
 		PhoneVerifiedAt   *internal.DateTime `json:"phoneVerifiedAt,omitempty"`
 		LastSignInAt      *internal.DateTime `json:"lastSignInAt,omitempty"`
 		BannedAt          *internal.DateTime `json:"bannedAt,omitempty"`
+		BannedUntil       *internal.DateTime `json:"bannedUntil,omitempty"`
 		CreatedAt         *internal.DateTime `json:"createdAt"`
 		UpdatedAt         *internal.DateTime `json:"updatedAt"`
 		MfaEnabledAt      *internal.DateTime `json:"mfaEnabledAt,omitempty"`
@@ -1262,6 +1573,7 @@ func (u *UserListItemResponseDto) UnmarshalJSON(data []byte) error {
 	u.PhoneVerifiedAt = unmarshaler.PhoneVerifiedAt.TimePtr()
 	u.LastSignInAt = unmarshaler.LastSignInAt.TimePtr()
 	u.BannedAt = unmarshaler.BannedAt.TimePtr()
+	u.BannedUntil = unmarshaler.BannedUntil.TimePtr()
 	u.CreatedAt = unmarshaler.CreatedAt.Time()
 	u.UpdatedAt = unmarshaler.UpdatedAt.Time()
 	u.MfaEnabledAt = unmarshaler.MfaEnabledAt.TimePtr()
@@ -1283,6 +1595,7 @@ func (u *UserListItemResponseDto) MarshalJSON() ([]byte, error) {
 		PhoneVerifiedAt   *internal.DateTime `json:"phoneVerifiedAt,omitempty"`
 		LastSignInAt      *internal.DateTime `json:"lastSignInAt,omitempty"`
 		BannedAt          *internal.DateTime `json:"bannedAt,omitempty"`
+		BannedUntil       *internal.DateTime `json:"bannedUntil,omitempty"`
 		CreatedAt         *internal.DateTime `json:"createdAt"`
 		UpdatedAt         *internal.DateTime `json:"updatedAt"`
 		MfaEnabledAt      *internal.DateTime `json:"mfaEnabledAt,omitempty"`
@@ -1293,6 +1606,7 @@ func (u *UserListItemResponseDto) MarshalJSON() ([]byte, error) {
 		PhoneVerifiedAt:   internal.NewOptionalDateTime(u.PhoneVerifiedAt),
 		LastSignInAt:      internal.NewOptionalDateTime(u.LastSignInAt),
 		BannedAt:          internal.NewOptionalDateTime(u.BannedAt),
+		BannedUntil:       internal.NewOptionalDateTime(u.BannedUntil),
 		CreatedAt:         internal.NewDateTime(u.CreatedAt),
 		UpdatedAt:         internal.NewDateTime(u.UpdatedAt),
 		MfaEnabledAt:      internal.NewOptionalDateTime(u.MfaEnabledAt),
@@ -1311,6 +1625,44 @@ func (u *UserListItemResponseDto) String() string {
 		return value
 	}
 	return fmt.Sprintf("%#v", u)
+}
+
+// Why the ban or the suspension in force was decided. Null when none is in force.
+type UserListItemResponseDtoBannedReason string
+
+const (
+	UserListItemResponseDtoBannedReasonFraudOrFakeAccount UserListItemResponseDtoBannedReason = "FRAUD_OR_FAKE_ACCOUNT"
+	UserListItemResponseDtoBannedReasonAbuse              UserListItemResponseDtoBannedReason = "ABUSE"
+	UserListItemResponseDtoBannedReasonSpam               UserListItemResponseDtoBannedReason = "SPAM"
+	UserListItemResponseDtoBannedReasonTermsViolation     UserListItemResponseDtoBannedReason = "TERMS_VIOLATION"
+	UserListItemResponseDtoBannedReasonCompromisedAccount UserListItemResponseDtoBannedReason = "COMPROMISED_ACCOUNT"
+	UserListItemResponseDtoBannedReasonOther              UserListItemResponseDtoBannedReason = "OTHER"
+	UserListItemResponseDtoBannedReasonUnspecified        UserListItemResponseDtoBannedReason = "UNSPECIFIED"
+)
+
+func NewUserListItemResponseDtoBannedReasonFromString(s string) (UserListItemResponseDtoBannedReason, error) {
+	switch s {
+	case "FRAUD_OR_FAKE_ACCOUNT":
+		return UserListItemResponseDtoBannedReasonFraudOrFakeAccount, nil
+	case "ABUSE":
+		return UserListItemResponseDtoBannedReasonAbuse, nil
+	case "SPAM":
+		return UserListItemResponseDtoBannedReasonSpam, nil
+	case "TERMS_VIOLATION":
+		return UserListItemResponseDtoBannedReasonTermsViolation, nil
+	case "COMPROMISED_ACCOUNT":
+		return UserListItemResponseDtoBannedReasonCompromisedAccount, nil
+	case "OTHER":
+		return UserListItemResponseDtoBannedReasonOther, nil
+	case "UNSPECIFIED":
+		return UserListItemResponseDtoBannedReasonUnspecified, nil
+	}
+	var t UserListItemResponseDtoBannedReason
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (u UserListItemResponseDtoBannedReason) Ptr() *UserListItemResponseDtoBannedReason {
+	return &u
 }
 
 // Who holds this identity. EXTERNAL means you authenticate this user yourself; it becomes MAILMUS_AUTH the first time they sign in with Mailmus.
@@ -1441,10 +1793,15 @@ type UserResponseDto struct {
 	Metadata        map[string]interface{} `json:"metadata,omitempty" url:"metadata,omitempty"`
 	Roles           []string               `json:"roles,omitempty" url:"roles,omitempty"`
 	LastSignInAt    *time.Time             `json:"lastSignInAt,omitempty" url:"lastSignInAt,omitempty"`
-	BannedAt        *time.Time             `json:"bannedAt,omitempty" url:"bannedAt,omitempty"`
-	CreatedAt       time.Time              `json:"createdAt" url:"createdAt"`
-	UpdatedAt       time.Time              `json:"updatedAt" url:"updatedAt"`
-	MfaEnabledAt    *time.Time             `json:"mfaEnabledAt,omitempty" url:"mfaEnabledAt,omitempty"`
+	// Since when a ban or a suspension refuses every sign-in. Null when none is in force.
+	BannedAt *time.Time `json:"bannedAt,omitempty" url:"bannedAt,omitempty"`
+	// When the suspension in force ends. Null for a ban, or when none is in force.
+	BannedUntil *time.Time `json:"bannedUntil,omitempty" url:"bannedUntil,omitempty"`
+	// Why the ban or the suspension in force was decided. Null when none is in force.
+	BannedReason *UserResponseDtoBannedReason `json:"bannedReason,omitempty" url:"bannedReason,omitempty"`
+	CreatedAt    time.Time                    `json:"createdAt" url:"createdAt"`
+	UpdatedAt    time.Time                    `json:"updatedAt" url:"updatedAt"`
+	MfaEnabledAt *time.Time                   `json:"mfaEnabledAt,omitempty" url:"mfaEnabledAt,omitempty"`
 	// Consecutive failed sign-in attempts (brute-force lock, reset on a successful sign-in).
 	FailedSignInAttempts float64 `json:"failedSignInAttempts" url:"failedSignInAttempts"`
 	// Account locked until this date (password brute-force).
@@ -1530,6 +1887,20 @@ func (u *UserResponseDto) GetBannedAt() *time.Time {
 	return u.BannedAt
 }
 
+func (u *UserResponseDto) GetBannedUntil() *time.Time {
+	if u == nil {
+		return nil
+	}
+	return u.BannedUntil
+}
+
+func (u *UserResponseDto) GetBannedReason() *UserResponseDtoBannedReason {
+	if u == nil {
+		return nil
+	}
+	return u.BannedReason
+}
+
 func (u *UserResponseDto) GetCreatedAt() time.Time {
 	if u == nil {
 		return time.Time{}
@@ -1598,6 +1969,7 @@ func (u *UserResponseDto) UnmarshalJSON(data []byte) error {
 		PhoneVerifiedAt   *internal.DateTime `json:"phoneVerifiedAt,omitempty"`
 		LastSignInAt      *internal.DateTime `json:"lastSignInAt,omitempty"`
 		BannedAt          *internal.DateTime `json:"bannedAt,omitempty"`
+		BannedUntil       *internal.DateTime `json:"bannedUntil,omitempty"`
 		CreatedAt         *internal.DateTime `json:"createdAt"`
 		UpdatedAt         *internal.DateTime `json:"updatedAt"`
 		MfaEnabledAt      *internal.DateTime `json:"mfaEnabledAt,omitempty"`
@@ -1613,6 +1985,7 @@ func (u *UserResponseDto) UnmarshalJSON(data []byte) error {
 	u.PhoneVerifiedAt = unmarshaler.PhoneVerifiedAt.TimePtr()
 	u.LastSignInAt = unmarshaler.LastSignInAt.TimePtr()
 	u.BannedAt = unmarshaler.BannedAt.TimePtr()
+	u.BannedUntil = unmarshaler.BannedUntil.TimePtr()
 	u.CreatedAt = unmarshaler.CreatedAt.Time()
 	u.UpdatedAt = unmarshaler.UpdatedAt.Time()
 	u.MfaEnabledAt = unmarshaler.MfaEnabledAt.TimePtr()
@@ -1634,6 +2007,7 @@ func (u *UserResponseDto) MarshalJSON() ([]byte, error) {
 		PhoneVerifiedAt   *internal.DateTime `json:"phoneVerifiedAt,omitempty"`
 		LastSignInAt      *internal.DateTime `json:"lastSignInAt,omitempty"`
 		BannedAt          *internal.DateTime `json:"bannedAt,omitempty"`
+		BannedUntil       *internal.DateTime `json:"bannedUntil,omitempty"`
 		CreatedAt         *internal.DateTime `json:"createdAt"`
 		UpdatedAt         *internal.DateTime `json:"updatedAt"`
 		MfaEnabledAt      *internal.DateTime `json:"mfaEnabledAt,omitempty"`
@@ -1644,6 +2018,7 @@ func (u *UserResponseDto) MarshalJSON() ([]byte, error) {
 		PhoneVerifiedAt:   internal.NewOptionalDateTime(u.PhoneVerifiedAt),
 		LastSignInAt:      internal.NewOptionalDateTime(u.LastSignInAt),
 		BannedAt:          internal.NewOptionalDateTime(u.BannedAt),
+		BannedUntil:       internal.NewOptionalDateTime(u.BannedUntil),
 		CreatedAt:         internal.NewDateTime(u.CreatedAt),
 		UpdatedAt:         internal.NewDateTime(u.UpdatedAt),
 		MfaEnabledAt:      internal.NewOptionalDateTime(u.MfaEnabledAt),
@@ -1662,6 +2037,44 @@ func (u *UserResponseDto) String() string {
 		return value
 	}
 	return fmt.Sprintf("%#v", u)
+}
+
+// Why the ban or the suspension in force was decided. Null when none is in force.
+type UserResponseDtoBannedReason string
+
+const (
+	UserResponseDtoBannedReasonFraudOrFakeAccount UserResponseDtoBannedReason = "FRAUD_OR_FAKE_ACCOUNT"
+	UserResponseDtoBannedReasonAbuse              UserResponseDtoBannedReason = "ABUSE"
+	UserResponseDtoBannedReasonSpam               UserResponseDtoBannedReason = "SPAM"
+	UserResponseDtoBannedReasonTermsViolation     UserResponseDtoBannedReason = "TERMS_VIOLATION"
+	UserResponseDtoBannedReasonCompromisedAccount UserResponseDtoBannedReason = "COMPROMISED_ACCOUNT"
+	UserResponseDtoBannedReasonOther              UserResponseDtoBannedReason = "OTHER"
+	UserResponseDtoBannedReasonUnspecified        UserResponseDtoBannedReason = "UNSPECIFIED"
+)
+
+func NewUserResponseDtoBannedReasonFromString(s string) (UserResponseDtoBannedReason, error) {
+	switch s {
+	case "FRAUD_OR_FAKE_ACCOUNT":
+		return UserResponseDtoBannedReasonFraudOrFakeAccount, nil
+	case "ABUSE":
+		return UserResponseDtoBannedReasonAbuse, nil
+	case "SPAM":
+		return UserResponseDtoBannedReasonSpam, nil
+	case "TERMS_VIOLATION":
+		return UserResponseDtoBannedReasonTermsViolation, nil
+	case "COMPROMISED_ACCOUNT":
+		return UserResponseDtoBannedReasonCompromisedAccount, nil
+	case "OTHER":
+		return UserResponseDtoBannedReasonOther, nil
+	case "UNSPECIFIED":
+		return UserResponseDtoBannedReasonUnspecified, nil
+	}
+	var t UserResponseDtoBannedReason
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (u UserResponseDtoBannedReason) Ptr() *UserResponseDtoBannedReason {
+	return &u
 }
 
 // Who holds this identity. EXTERNAL means you authenticate this user yourself; it becomes MAILMUS_AUTH the first time they sign in with Mailmus.
@@ -1709,6 +2122,211 @@ func NewUserResponseDtoRiskFlagsItemFromString(s string) (UserResponseDtoRiskFla
 }
 
 func (u UserResponseDtoRiskFlagsItem) Ptr() *UserResponseDtoRiskFlagsItem {
+	return &u
+}
+
+type UserSanctionDto struct {
+	ID             string                `json:"id" url:"id"`
+	Kind           UserSanctionDtoKind   `json:"kind" url:"kind"`
+	Reason         UserSanctionDtoReason `json:"reason" url:"reason"`
+	ReasonText     *string               `json:"reasonText,omitempty" url:"reasonText,omitempty"`
+	InternalNote   *string               `json:"internalNote,omitempty" url:"internalNote,omitempty"`
+	EndUserMessage *string               `json:"endUserMessage,omitempty" url:"endUserMessage,omitempty"`
+	StartsAt       time.Time             `json:"startsAt" url:"startsAt"`
+	// Null for a ban.
+	EndsAt *time.Time `json:"endsAt,omitempty" url:"endsAt,omitempty"`
+	// When it stopped applying: reinstated or expired.
+	LiftedAt  *time.Time             `json:"liftedAt,omitempty" url:"liftedAt,omitempty"`
+	Decisions []*SanctionDecisionDto `json:"decisions,omitempty" url:"decisions,omitempty"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (u *UserSanctionDto) GetID() string {
+	if u == nil {
+		return ""
+	}
+	return u.ID
+}
+
+func (u *UserSanctionDto) GetKind() UserSanctionDtoKind {
+	if u == nil {
+		return ""
+	}
+	return u.Kind
+}
+
+func (u *UserSanctionDto) GetReason() UserSanctionDtoReason {
+	if u == nil {
+		return ""
+	}
+	return u.Reason
+}
+
+func (u *UserSanctionDto) GetReasonText() *string {
+	if u == nil {
+		return nil
+	}
+	return u.ReasonText
+}
+
+func (u *UserSanctionDto) GetInternalNote() *string {
+	if u == nil {
+		return nil
+	}
+	return u.InternalNote
+}
+
+func (u *UserSanctionDto) GetEndUserMessage() *string {
+	if u == nil {
+		return nil
+	}
+	return u.EndUserMessage
+}
+
+func (u *UserSanctionDto) GetStartsAt() time.Time {
+	if u == nil {
+		return time.Time{}
+	}
+	return u.StartsAt
+}
+
+func (u *UserSanctionDto) GetEndsAt() *time.Time {
+	if u == nil {
+		return nil
+	}
+	return u.EndsAt
+}
+
+func (u *UserSanctionDto) GetLiftedAt() *time.Time {
+	if u == nil {
+		return nil
+	}
+	return u.LiftedAt
+}
+
+func (u *UserSanctionDto) GetDecisions() []*SanctionDecisionDto {
+	if u == nil {
+		return nil
+	}
+	return u.Decisions
+}
+
+func (u *UserSanctionDto) GetExtraProperties() map[string]interface{} {
+	return u.extraProperties
+}
+
+func (u *UserSanctionDto) UnmarshalJSON(data []byte) error {
+	type embed UserSanctionDto
+	var unmarshaler = struct {
+		embed
+		StartsAt *internal.DateTime `json:"startsAt"`
+		EndsAt   *internal.DateTime `json:"endsAt,omitempty"`
+		LiftedAt *internal.DateTime `json:"liftedAt,omitempty"`
+	}{
+		embed: embed(*u),
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
+		return err
+	}
+	*u = UserSanctionDto(unmarshaler.embed)
+	u.StartsAt = unmarshaler.StartsAt.Time()
+	u.EndsAt = unmarshaler.EndsAt.TimePtr()
+	u.LiftedAt = unmarshaler.LiftedAt.TimePtr()
+	extraProperties, err := internal.ExtractExtraProperties(data, *u)
+	if err != nil {
+		return err
+	}
+	u.extraProperties = extraProperties
+	u.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (u *UserSanctionDto) MarshalJSON() ([]byte, error) {
+	type embed UserSanctionDto
+	var marshaler = struct {
+		embed
+		StartsAt *internal.DateTime `json:"startsAt"`
+		EndsAt   *internal.DateTime `json:"endsAt,omitempty"`
+		LiftedAt *internal.DateTime `json:"liftedAt,omitempty"`
+	}{
+		embed:    embed(*u),
+		StartsAt: internal.NewDateTime(u.StartsAt),
+		EndsAt:   internal.NewOptionalDateTime(u.EndsAt),
+		LiftedAt: internal.NewOptionalDateTime(u.LiftedAt),
+	}
+	return json.Marshal(marshaler)
+}
+
+func (u *UserSanctionDto) String() string {
+	if len(u.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(u.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(u); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", u)
+}
+
+type UserSanctionDtoKind string
+
+const (
+	UserSanctionDtoKindBan        UserSanctionDtoKind = "BAN"
+	UserSanctionDtoKindSuspension UserSanctionDtoKind = "SUSPENSION"
+)
+
+func NewUserSanctionDtoKindFromString(s string) (UserSanctionDtoKind, error) {
+	switch s {
+	case "BAN":
+		return UserSanctionDtoKindBan, nil
+	case "SUSPENSION":
+		return UserSanctionDtoKindSuspension, nil
+	}
+	var t UserSanctionDtoKind
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (u UserSanctionDtoKind) Ptr() *UserSanctionDtoKind {
+	return &u
+}
+
+type UserSanctionDtoReason string
+
+const (
+	UserSanctionDtoReasonFraudOrFakeAccount UserSanctionDtoReason = "FRAUD_OR_FAKE_ACCOUNT"
+	UserSanctionDtoReasonAbuse              UserSanctionDtoReason = "ABUSE"
+	UserSanctionDtoReasonSpam               UserSanctionDtoReason = "SPAM"
+	UserSanctionDtoReasonTermsViolation     UserSanctionDtoReason = "TERMS_VIOLATION"
+	UserSanctionDtoReasonCompromisedAccount UserSanctionDtoReason = "COMPROMISED_ACCOUNT"
+	UserSanctionDtoReasonOther              UserSanctionDtoReason = "OTHER"
+	UserSanctionDtoReasonUnspecified        UserSanctionDtoReason = "UNSPECIFIED"
+)
+
+func NewUserSanctionDtoReasonFromString(s string) (UserSanctionDtoReason, error) {
+	switch s {
+	case "FRAUD_OR_FAKE_ACCOUNT":
+		return UserSanctionDtoReasonFraudOrFakeAccount, nil
+	case "ABUSE":
+		return UserSanctionDtoReasonAbuse, nil
+	case "SPAM":
+		return UserSanctionDtoReasonSpam, nil
+	case "TERMS_VIOLATION":
+		return UserSanctionDtoReasonTermsViolation, nil
+	case "COMPROMISED_ACCOUNT":
+		return UserSanctionDtoReasonCompromisedAccount, nil
+	case "OTHER":
+		return UserSanctionDtoReasonOther, nil
+	case "UNSPECIFIED":
+		return UserSanctionDtoReasonUnspecified, nil
+	}
+	var t UserSanctionDtoReason
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (u UserSanctionDtoReason) Ptr() *UserSanctionDtoReason {
 	return &u
 }
 
@@ -1891,6 +2509,41 @@ func (u *UserStatsResponseDto) String() string {
 	return fmt.Sprintf("%#v", u)
 }
 
+// Why. Left out, the ban has no stated reason. A reason, the note and the message are part of the Pro plan.
+type BanUserDtoReason string
+
+const (
+	BanUserDtoReasonFraudOrFakeAccount BanUserDtoReason = "FRAUD_OR_FAKE_ACCOUNT"
+	BanUserDtoReasonAbuse              BanUserDtoReason = "ABUSE"
+	BanUserDtoReasonSpam               BanUserDtoReason = "SPAM"
+	BanUserDtoReasonTermsViolation     BanUserDtoReason = "TERMS_VIOLATION"
+	BanUserDtoReasonCompromisedAccount BanUserDtoReason = "COMPROMISED_ACCOUNT"
+	BanUserDtoReasonOther              BanUserDtoReason = "OTHER"
+)
+
+func NewBanUserDtoReasonFromString(s string) (BanUserDtoReason, error) {
+	switch s {
+	case "FRAUD_OR_FAKE_ACCOUNT":
+		return BanUserDtoReasonFraudOrFakeAccount, nil
+	case "ABUSE":
+		return BanUserDtoReasonAbuse, nil
+	case "SPAM":
+		return BanUserDtoReasonSpam, nil
+	case "TERMS_VIOLATION":
+		return BanUserDtoReasonTermsViolation, nil
+	case "COMPROMISED_ACCOUNT":
+		return BanUserDtoReasonCompromisedAccount, nil
+	case "OTHER":
+		return BanUserDtoReasonOther, nil
+	}
+	var t BanUserDtoReason
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (b BanUserDtoReason) Ptr() *BanUserDtoReason {
+	return &b
+}
+
 type ListUsersRequestLastSignIn string
 
 const (
@@ -1956,6 +2609,43 @@ func (l ListUsersRequestProvider) Ptr() *ListUsersRequestProvider {
 	return &l
 }
 
+type ListUsersRequestSanctionReason string
+
+const (
+	ListUsersRequestSanctionReasonFraudOrFakeAccount ListUsersRequestSanctionReason = "FRAUD_OR_FAKE_ACCOUNT"
+	ListUsersRequestSanctionReasonAbuse              ListUsersRequestSanctionReason = "ABUSE"
+	ListUsersRequestSanctionReasonSpam               ListUsersRequestSanctionReason = "SPAM"
+	ListUsersRequestSanctionReasonTermsViolation     ListUsersRequestSanctionReason = "TERMS_VIOLATION"
+	ListUsersRequestSanctionReasonCompromisedAccount ListUsersRequestSanctionReason = "COMPROMISED_ACCOUNT"
+	ListUsersRequestSanctionReasonOther              ListUsersRequestSanctionReason = "OTHER"
+	ListUsersRequestSanctionReasonUnspecified        ListUsersRequestSanctionReason = "UNSPECIFIED"
+)
+
+func NewListUsersRequestSanctionReasonFromString(s string) (ListUsersRequestSanctionReason, error) {
+	switch s {
+	case "FRAUD_OR_FAKE_ACCOUNT":
+		return ListUsersRequestSanctionReasonFraudOrFakeAccount, nil
+	case "ABUSE":
+		return ListUsersRequestSanctionReasonAbuse, nil
+	case "SPAM":
+		return ListUsersRequestSanctionReasonSpam, nil
+	case "TERMS_VIOLATION":
+		return ListUsersRequestSanctionReasonTermsViolation, nil
+	case "COMPROMISED_ACCOUNT":
+		return ListUsersRequestSanctionReasonCompromisedAccount, nil
+	case "OTHER":
+		return ListUsersRequestSanctionReasonOther, nil
+	case "UNSPECIFIED":
+		return ListUsersRequestSanctionReasonUnspecified, nil
+	}
+	var t ListUsersRequestSanctionReason
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (l ListUsersRequestSanctionReason) Ptr() *ListUsersRequestSanctionReason {
+	return &l
+}
+
 type ListUsersRequestStatus string
 
 const (
@@ -2001,6 +2691,41 @@ func NewListUsersRequestVerificationFromString(s string) (ListUsersRequestVerifi
 
 func (l ListUsersRequestVerification) Ptr() *ListUsersRequestVerification {
 	return &l
+}
+
+// Why. Left out, the ban has no stated reason. A reason, the note and the message are part of the Pro plan.
+type SuspendUserDtoReason string
+
+const (
+	SuspendUserDtoReasonFraudOrFakeAccount SuspendUserDtoReason = "FRAUD_OR_FAKE_ACCOUNT"
+	SuspendUserDtoReasonAbuse              SuspendUserDtoReason = "ABUSE"
+	SuspendUserDtoReasonSpam               SuspendUserDtoReason = "SPAM"
+	SuspendUserDtoReasonTermsViolation     SuspendUserDtoReason = "TERMS_VIOLATION"
+	SuspendUserDtoReasonCompromisedAccount SuspendUserDtoReason = "COMPROMISED_ACCOUNT"
+	SuspendUserDtoReasonOther              SuspendUserDtoReason = "OTHER"
+)
+
+func NewSuspendUserDtoReasonFromString(s string) (SuspendUserDtoReason, error) {
+	switch s {
+	case "FRAUD_OR_FAKE_ACCOUNT":
+		return SuspendUserDtoReasonFraudOrFakeAccount, nil
+	case "ABUSE":
+		return SuspendUserDtoReasonAbuse, nil
+	case "SPAM":
+		return SuspendUserDtoReasonSpam, nil
+	case "TERMS_VIOLATION":
+		return SuspendUserDtoReasonTermsViolation, nil
+	case "COMPROMISED_ACCOUNT":
+		return SuspendUserDtoReasonCompromisedAccount, nil
+	case "OTHER":
+		return SuspendUserDtoReasonOther, nil
+	}
+	var t SuspendUserDtoReason
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (s SuspendUserDtoReason) Ptr() *SuspendUserDtoReason {
+	return &s
 }
 
 type UpdateMetadataDto struct {

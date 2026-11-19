@@ -10,8 +10,13 @@ import (
 )
 
 type LogsEmailsRequest struct {
-	Status string `json:"-" url:"status"`
-	Q      string `json:"-" url:"q"`
+	Status *LogsEmailsRequestStatus `json:"-" url:"status,omitempty"`
+	// Text to search for.
+	Q *string `json:"-" url:"q,omitempty"`
+	// Items per page.
+	Limit *int `json:"-" url:"limit,omitempty"`
+	// Page number, from 1.
+	Page *int `json:"-" url:"page,omitempty"`
 }
 
 type SendEmailsRequest struct {
@@ -1038,4 +1043,44 @@ func (s *SendWebhookEventDto) String() string {
 		return value
 	}
 	return fmt.Sprintf("%#v", s)
+}
+
+type LogsEmailsRequestStatus string
+
+const (
+	LogsEmailsRequestStatusQueued     LogsEmailsRequestStatus = "QUEUED"
+	LogsEmailsRequestStatusSent       LogsEmailsRequestStatus = "SENT"
+	LogsEmailsRequestStatusDelivered  LogsEmailsRequestStatus = "DELIVERED"
+	LogsEmailsRequestStatusOpened     LogsEmailsRequestStatus = "OPENED"
+	LogsEmailsRequestStatusClicked    LogsEmailsRequestStatus = "CLICKED"
+	LogsEmailsRequestStatusBounced    LogsEmailsRequestStatus = "BOUNCED"
+	LogsEmailsRequestStatusComplained LogsEmailsRequestStatus = "COMPLAINED"
+	LogsEmailsRequestStatusFailed     LogsEmailsRequestStatus = "FAILED"
+)
+
+func NewLogsEmailsRequestStatusFromString(s string) (LogsEmailsRequestStatus, error) {
+	switch s {
+	case "QUEUED":
+		return LogsEmailsRequestStatusQueued, nil
+	case "SENT":
+		return LogsEmailsRequestStatusSent, nil
+	case "DELIVERED":
+		return LogsEmailsRequestStatusDelivered, nil
+	case "OPENED":
+		return LogsEmailsRequestStatusOpened, nil
+	case "CLICKED":
+		return LogsEmailsRequestStatusClicked, nil
+	case "BOUNCED":
+		return LogsEmailsRequestStatusBounced, nil
+	case "COMPLAINED":
+		return LogsEmailsRequestStatusComplained, nil
+	case "FAILED":
+		return LogsEmailsRequestStatusFailed, nil
+	}
+	var t LogsEmailsRequestStatus
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (l LogsEmailsRequestStatus) Ptr() *LogsEmailsRequestStatus {
+	return &l
 }

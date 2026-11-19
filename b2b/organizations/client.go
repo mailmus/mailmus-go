@@ -37,7 +37,7 @@ func (c *Client) List(
 	projectID string,
 	request *b2b.ListOrganizationsRequest,
 	opts ...option.RequestOption,
-) ([]*mailmusgo.OrganizationResponseDto, error) {
+) ([]*mailmusgo.OrganizationListItemResponseDto, error) {
 	options := core.NewRequestOptions(opts...)
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
@@ -60,7 +60,7 @@ func (c *Client) List(
 		options.ToHeader(),
 	)
 
-	var response []*mailmusgo.OrganizationResponseDto
+	var response []*mailmusgo.OrganizationListItemResponseDto
 	if err := c.caller.Call(
 		ctx,
 		&internal.CallParams{
@@ -126,7 +126,7 @@ func (c *Client) FindOne(
 	projectID string,
 	id string,
 	opts ...option.RequestOption,
-) (*mailmusgo.OrganizationResponseDto, error) {
+) (*mailmusgo.OrganizationDetailResponseDto, error) {
 	options := core.NewRequestOptions(opts...)
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
@@ -143,7 +143,7 @@ func (c *Client) FindOne(
 		options.ToHeader(),
 	)
 
-	var response *mailmusgo.OrganizationResponseDto
+	var response *mailmusgo.OrganizationDetailResponseDto
 	if err := c.caller.Call(
 		ctx,
 		&internal.CallParams{

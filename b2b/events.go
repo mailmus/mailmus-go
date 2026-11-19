@@ -3,7 +3,7 @@
 package b2b
 
 type ListEventsRequest struct {
-	Limit *float64 `json:"-" url:"limit,omitempty"`
+	Limit *int `json:"-" url:"limit,omitempty"`
 	// The `nextCursor` of the previous page.
 	Cursor *string `json:"-" url:"cursor,omitempty"`
 }

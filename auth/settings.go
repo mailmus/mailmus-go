@@ -184,9 +184,9 @@ type UpdateAuthSettingsDto struct {
 	RedirectURLAllowlist  []string                                    `json:"redirectUrlAllowlist,omitempty" url:"-"`
 	AccessTokenTTLSeconds *float64                                    `json:"accessTokenTtlSeconds,omitempty" url:"-"`
 	RefreshTokenTTLDays   *float64                                    `json:"refreshTokenTtlDays,omitempty" url:"-"`
-	// Logo shown on the hosted pages.
+	// Logo shown on the hosted pages. Null removes it.
 	LogoURL *string `json:"logoUrl,omitempty" url:"-"`
-	// Primary color of the hosted pages, in hex (#2563eb).
+	// Primary color of the hosted pages, in hex (#2563eb). Null removes it.
 	PrimaryColor *string `json:"primaryColor,omitempty" url:"-"`
 	// Custom domain for the hosted pages, for example auth.yourapp.com.
 	CustomDomain *string `json:"customDomain,omitempty" url:"-"`

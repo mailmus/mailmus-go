@@ -34,6 +34,7 @@ func NewClient(opts ...option.RequestOption) *Client {
 func (c *Client) List(
 	ctx context.Context,
 	projectID string,
+	request *mailmusgo.ListInboundEmailsRequest,
 	opts ...option.RequestOption,
 ) (*mailmusgo.InboundEmailListResponseDto, error) {
 	options := core.NewRequestOptions(opts...)
@@ -46,6 +47,13 @@ func (c *Client) List(
 		baseURL+"/projects/%v/inbound-emails",
 		projectID,
 	)
+	queryParams, err := internal.QueryValues(request)
+	if err != nil {
+		return nil, err
+	}
+	if len(queryParams) > 0 {
+		endpointURL += "?" + queryParams.Encode()
+	}
 	headers := internal.MergeHeaders(
 		c.header.Clone(),
 		options.ToHeader(),

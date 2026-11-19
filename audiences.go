@@ -27,6 +27,13 @@ type CreateAudienceDto struct {
 	Rules *AudienceRulesDto `json:"rules,omitempty" url:"-"`
 }
 
+type GetContactsAudiencesRequest struct {
+	// Items per page.
+	Limit *int `json:"-" url:"limit,omitempty"`
+	// Page number, from 1.
+	Page *int `json:"-" url:"page,omitempty"`
+}
+
 type RenameAudienceDto struct {
 	Name string `json:"name" url:"-"`
 }
@@ -277,6 +284,8 @@ type AudienceResponseDto struct {
 	// Project this audience belongs to.
 	ProjectID string    `json:"projectId" url:"projectId"`
 	CreatedAt time.Time `json:"createdAt" url:"createdAt"`
+	// Number of contacts in the audience. Returned when listing audiences and reading one.
+	ContactCount *float64 `json:"contactCount,omitempty" url:"contactCount,omitempty"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -322,6 +331,13 @@ func (a *AudienceResponseDto) GetCreatedAt() time.Time {
 		return time.Time{}
 	}
 	return a.CreatedAt
+}
+
+func (a *AudienceResponseDto) GetContactCount() *float64 {
+	if a == nil {
+		return nil
+	}
+	return a.ContactCount
 }
 
 func (a *AudienceResponseDto) GetExtraProperties() map[string]interface{} {

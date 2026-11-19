@@ -37,7 +37,7 @@ func (c *Client) List(
 	projectID string,
 	id string,
 	opts ...option.RequestOption,
-) ([]*mailmusgo.OrganizationMembershipResponseDto, error) {
+) ([]*mailmusgo.OrganizationMemberResponseDto, error) {
 	options := core.NewRequestOptions(opts...)
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
@@ -54,7 +54,7 @@ func (c *Client) List(
 		options.ToHeader(),
 	)
 
-	var response []*mailmusgo.OrganizationMembershipResponseDto
+	var response []*mailmusgo.OrganizationMemberResponseDto
 	if err := c.caller.Call(
 		ctx,
 		&internal.CallParams{

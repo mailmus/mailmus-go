@@ -6,6 +6,7 @@ import (
 	json "encoding/json"
 	fmt "fmt"
 	internal "github.com/mailmus/mailmus-go/internal"
+	time "time"
 )
 
 type BatchDeleteContactsDto struct {
@@ -24,10 +25,117 @@ type CreateContactDto struct {
 }
 
 type ListContactsRequest struct {
-	Status    string `json:"-" url:"status"`
-	Q         string `json:"-" url:"q"`
-	AttrKey   string `json:"-" url:"attrKey"`
-	AttrValue string `json:"-" url:"attrValue"`
+	Status *ListContactsRequestStatus `json:"-" url:"status,omitempty"`
+	// Text to search for.
+	Q *string `json:"-" url:"q,omitempty"`
+	// A contact attribute to filter on (with attrValue).
+	AttrKey *string `json:"-" url:"attrKey,omitempty"`
+	// The value that attribute must have.
+	AttrValue *string `json:"-" url:"attrValue,omitempty"`
+	// Items per page.
+	Limit *int `json:"-" url:"limit,omitempty"`
+	// Page number, from 1.
+	Page *int `json:"-" url:"page,omitempty"`
+}
+
+type ContactAudienceMembershipDto struct {
+	Audience *ContactAudienceSummaryDto `json:"audience,omitempty" url:"audience,omitempty"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (c *ContactAudienceMembershipDto) GetAudience() *ContactAudienceSummaryDto {
+	if c == nil {
+		return nil
+	}
+	return c.Audience
+}
+
+func (c *ContactAudienceMembershipDto) GetExtraProperties() map[string]interface{} {
+	return c.extraProperties
+}
+
+func (c *ContactAudienceMembershipDto) UnmarshalJSON(data []byte) error {
+	type unmarshaler ContactAudienceMembershipDto
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*c = ContactAudienceMembershipDto(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *c)
+	if err != nil {
+		return err
+	}
+	c.extraProperties = extraProperties
+	c.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (c *ContactAudienceMembershipDto) String() string {
+	if len(c.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(c.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(c); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", c)
+}
+
+type ContactAudienceSummaryDto struct {
+	ID   string `json:"id" url:"id"`
+	Name string `json:"name" url:"name"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (c *ContactAudienceSummaryDto) GetID() string {
+	if c == nil {
+		return ""
+	}
+	return c.ID
+}
+
+func (c *ContactAudienceSummaryDto) GetName() string {
+	if c == nil {
+		return ""
+	}
+	return c.Name
+}
+
+func (c *ContactAudienceSummaryDto) GetExtraProperties() map[string]interface{} {
+	return c.extraProperties
+}
+
+func (c *ContactAudienceSummaryDto) UnmarshalJSON(data []byte) error {
+	type unmarshaler ContactAudienceSummaryDto
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*c = ContactAudienceSummaryDto(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *c)
+	if err != nil {
+		return err
+	}
+	c.extraProperties = extraProperties
+	c.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (c *ContactAudienceSummaryDto) String() string {
+	if len(c.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(c.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(c); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", c)
 }
 
 type ContactDeletedResponseDto struct {
@@ -65,6 +173,142 @@ func (c *ContactDeletedResponseDto) UnmarshalJSON(data []byte) error {
 }
 
 func (c *ContactDeletedResponseDto) String() string {
+	if len(c.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(c.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(c); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", c)
+}
+
+type ContactDetailResponseDto struct {
+	ID    string `json:"id" url:"id"`
+	Email string `json:"email" url:"email"`
+	// Free-form attributes you attach to the contact, usable as personalization variables and as audience criteria.
+	Attributes map[string]interface{} `json:"attributes,omitempty" url:"attributes,omitempty"`
+	// True if the contact unsubscribed. An unsubscribed contact is excluded from every marketing send, never from transactional ones.
+	Unsubscribed bool `json:"unsubscribed" url:"unsubscribed"`
+	// Project this contact belongs to.
+	ProjectID string                          `json:"projectId" url:"projectId"`
+	CreatedAt time.Time                       `json:"createdAt" url:"createdAt"`
+	UpdatedAt time.Time                       `json:"updatedAt" url:"updatedAt"`
+	Audiences []*ContactAudienceMembershipDto `json:"audiences,omitempty" url:"audiences,omitempty"`
+	// The 50 latest sends, newest first.
+	Sends []*ContactSendDto `json:"sends,omitempty" url:"sends,omitempty"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (c *ContactDetailResponseDto) GetID() string {
+	if c == nil {
+		return ""
+	}
+	return c.ID
+}
+
+func (c *ContactDetailResponseDto) GetEmail() string {
+	if c == nil {
+		return ""
+	}
+	return c.Email
+}
+
+func (c *ContactDetailResponseDto) GetAttributes() map[string]interface{} {
+	if c == nil {
+		return nil
+	}
+	return c.Attributes
+}
+
+func (c *ContactDetailResponseDto) GetUnsubscribed() bool {
+	if c == nil {
+		return false
+	}
+	return c.Unsubscribed
+}
+
+func (c *ContactDetailResponseDto) GetProjectID() string {
+	if c == nil {
+		return ""
+	}
+	return c.ProjectID
+}
+
+func (c *ContactDetailResponseDto) GetCreatedAt() time.Time {
+	if c == nil {
+		return time.Time{}
+	}
+	return c.CreatedAt
+}
+
+func (c *ContactDetailResponseDto) GetUpdatedAt() time.Time {
+	if c == nil {
+		return time.Time{}
+	}
+	return c.UpdatedAt
+}
+
+func (c *ContactDetailResponseDto) GetAudiences() []*ContactAudienceMembershipDto {
+	if c == nil {
+		return nil
+	}
+	return c.Audiences
+}
+
+func (c *ContactDetailResponseDto) GetSends() []*ContactSendDto {
+	if c == nil {
+		return nil
+	}
+	return c.Sends
+}
+
+func (c *ContactDetailResponseDto) GetExtraProperties() map[string]interface{} {
+	return c.extraProperties
+}
+
+func (c *ContactDetailResponseDto) UnmarshalJSON(data []byte) error {
+	type embed ContactDetailResponseDto
+	var unmarshaler = struct {
+		embed
+		CreatedAt *internal.DateTime `json:"createdAt"`
+		UpdatedAt *internal.DateTime `json:"updatedAt"`
+	}{
+		embed: embed(*c),
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
+		return err
+	}
+	*c = ContactDetailResponseDto(unmarshaler.embed)
+	c.CreatedAt = unmarshaler.CreatedAt.Time()
+	c.UpdatedAt = unmarshaler.UpdatedAt.Time()
+	extraProperties, err := internal.ExtractExtraProperties(data, *c)
+	if err != nil {
+		return err
+	}
+	c.extraProperties = extraProperties
+	c.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (c *ContactDetailResponseDto) MarshalJSON() ([]byte, error) {
+	type embed ContactDetailResponseDto
+	var marshaler = struct {
+		embed
+		CreatedAt *internal.DateTime `json:"createdAt"`
+		UpdatedAt *internal.DateTime `json:"updatedAt"`
+	}{
+		embed:     embed(*c),
+		CreatedAt: internal.NewDateTime(c.CreatedAt),
+		UpdatedAt: internal.NewDateTime(c.UpdatedAt),
+	}
+	return json.Marshal(marshaler)
+}
+
+func (c *ContactDetailResponseDto) String() string {
 	if len(c.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(c.rawJSON); err == nil {
 			return value
@@ -300,6 +544,197 @@ func (c *ContactListResponseDto) String() string {
 	return fmt.Sprintf("%#v", c)
 }
 
+type ContactSendCampaignDto struct {
+	ID   string `json:"id" url:"id"`
+	Name string `json:"name" url:"name"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (c *ContactSendCampaignDto) GetID() string {
+	if c == nil {
+		return ""
+	}
+	return c.ID
+}
+
+func (c *ContactSendCampaignDto) GetName() string {
+	if c == nil {
+		return ""
+	}
+	return c.Name
+}
+
+func (c *ContactSendCampaignDto) GetExtraProperties() map[string]interface{} {
+	return c.extraProperties
+}
+
+func (c *ContactSendCampaignDto) UnmarshalJSON(data []byte) error {
+	type unmarshaler ContactSendCampaignDto
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*c = ContactSendCampaignDto(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *c)
+	if err != nil {
+		return err
+	}
+	c.extraProperties = extraProperties
+	c.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (c *ContactSendCampaignDto) String() string {
+	if len(c.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(c.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(c); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", c)
+}
+
+type ContactSendDto struct {
+	ID      string               `json:"id" url:"id"`
+	Status  ContactSendDtoStatus `json:"status" url:"status"`
+	Subject *string              `json:"subject,omitempty" url:"subject,omitempty"`
+	// Null for a transactional send.
+	Campaign  *ContactSendCampaignDto `json:"campaign,omitempty" url:"campaign,omitempty"`
+	CreatedAt time.Time               `json:"createdAt" url:"createdAt"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (c *ContactSendDto) GetID() string {
+	if c == nil {
+		return ""
+	}
+	return c.ID
+}
+
+func (c *ContactSendDto) GetStatus() ContactSendDtoStatus {
+	if c == nil {
+		return ""
+	}
+	return c.Status
+}
+
+func (c *ContactSendDto) GetSubject() *string {
+	if c == nil {
+		return nil
+	}
+	return c.Subject
+}
+
+func (c *ContactSendDto) GetCampaign() *ContactSendCampaignDto {
+	if c == nil {
+		return nil
+	}
+	return c.Campaign
+}
+
+func (c *ContactSendDto) GetCreatedAt() time.Time {
+	if c == nil {
+		return time.Time{}
+	}
+	return c.CreatedAt
+}
+
+func (c *ContactSendDto) GetExtraProperties() map[string]interface{} {
+	return c.extraProperties
+}
+
+func (c *ContactSendDto) UnmarshalJSON(data []byte) error {
+	type embed ContactSendDto
+	var unmarshaler = struct {
+		embed
+		CreatedAt *internal.DateTime `json:"createdAt"`
+	}{
+		embed: embed(*c),
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
+		return err
+	}
+	*c = ContactSendDto(unmarshaler.embed)
+	c.CreatedAt = unmarshaler.CreatedAt.Time()
+	extraProperties, err := internal.ExtractExtraProperties(data, *c)
+	if err != nil {
+		return err
+	}
+	c.extraProperties = extraProperties
+	c.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (c *ContactSendDto) MarshalJSON() ([]byte, error) {
+	type embed ContactSendDto
+	var marshaler = struct {
+		embed
+		CreatedAt *internal.DateTime `json:"createdAt"`
+	}{
+		embed:     embed(*c),
+		CreatedAt: internal.NewDateTime(c.CreatedAt),
+	}
+	return json.Marshal(marshaler)
+}
+
+func (c *ContactSendDto) String() string {
+	if len(c.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(c.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(c); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", c)
+}
+
+type ContactSendDtoStatus string
+
+const (
+	ContactSendDtoStatusQueued     ContactSendDtoStatus = "QUEUED"
+	ContactSendDtoStatusSent       ContactSendDtoStatus = "SENT"
+	ContactSendDtoStatusDelivered  ContactSendDtoStatus = "DELIVERED"
+	ContactSendDtoStatusOpened     ContactSendDtoStatus = "OPENED"
+	ContactSendDtoStatusClicked    ContactSendDtoStatus = "CLICKED"
+	ContactSendDtoStatusBounced    ContactSendDtoStatus = "BOUNCED"
+	ContactSendDtoStatusComplained ContactSendDtoStatus = "COMPLAINED"
+	ContactSendDtoStatusFailed     ContactSendDtoStatus = "FAILED"
+)
+
+func NewContactSendDtoStatusFromString(s string) (ContactSendDtoStatus, error) {
+	switch s {
+	case "QUEUED":
+		return ContactSendDtoStatusQueued, nil
+	case "SENT":
+		return ContactSendDtoStatusSent, nil
+	case "DELIVERED":
+		return ContactSendDtoStatusDelivered, nil
+	case "OPENED":
+		return ContactSendDtoStatusOpened, nil
+	case "CLICKED":
+		return ContactSendDtoStatusClicked, nil
+	case "BOUNCED":
+		return ContactSendDtoStatusBounced, nil
+	case "COMPLAINED":
+		return ContactSendDtoStatusComplained, nil
+	case "FAILED":
+		return ContactSendDtoStatusFailed, nil
+	}
+	var t ContactSendDtoStatus
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (c ContactSendDtoStatus) Ptr() *ContactSendDtoStatus {
+	return &c
+}
+
 type ContactsBatchDeletedResponseDto struct {
 	// How many contacts were deleted.
 	Deleted float64 `json:"deleted" url:"deleted"`
@@ -345,6 +780,28 @@ func (c *ContactsBatchDeletedResponseDto) String() string {
 		return value
 	}
 	return fmt.Sprintf("%#v", c)
+}
+
+type ListContactsRequestStatus string
+
+const (
+	ListContactsRequestStatusActive       ListContactsRequestStatus = "ACTIVE"
+	ListContactsRequestStatusUnsubscribed ListContactsRequestStatus = "UNSUBSCRIBED"
+)
+
+func NewListContactsRequestStatusFromString(s string) (ListContactsRequestStatus, error) {
+	switch s {
+	case "ACTIVE":
+		return ListContactsRequestStatusActive, nil
+	case "UNSUBSCRIBED":
+		return ListContactsRequestStatusUnsubscribed, nil
+	}
+	var t ListContactsRequestStatus
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (l ListContactsRequestStatus) Ptr() *ListContactsRequestStatus {
+	return &l
 }
 
 type UpdateContactDto struct {

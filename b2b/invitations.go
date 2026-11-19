@@ -21,7 +21,7 @@ type CreateInvitationDto struct {
 }
 
 type ListInvitationsRequest struct {
-	Status string `json:"-" url:"status"`
+	Status *ListInvitationsRequestStatus `json:"-" url:"status,omitempty"`
 }
 
 type CreateInvitationDtoRole string
@@ -47,4 +47,32 @@ func NewCreateInvitationDtoRoleFromString(s string) (CreateInvitationDtoRole, er
 
 func (c CreateInvitationDtoRole) Ptr() *CreateInvitationDtoRole {
 	return &c
+}
+
+type ListInvitationsRequestStatus string
+
+const (
+	ListInvitationsRequestStatusPending  ListInvitationsRequestStatus = "PENDING"
+	ListInvitationsRequestStatusAccepted ListInvitationsRequestStatus = "ACCEPTED"
+	ListInvitationsRequestStatusRevoked  ListInvitationsRequestStatus = "REVOKED"
+	ListInvitationsRequestStatusExpired  ListInvitationsRequestStatus = "EXPIRED"
+)
+
+func NewListInvitationsRequestStatusFromString(s string) (ListInvitationsRequestStatus, error) {
+	switch s {
+	case "PENDING":
+		return ListInvitationsRequestStatusPending, nil
+	case "ACCEPTED":
+		return ListInvitationsRequestStatusAccepted, nil
+	case "REVOKED":
+		return ListInvitationsRequestStatusRevoked, nil
+	case "EXPIRED":
+		return ListInvitationsRequestStatusExpired, nil
+	}
+	var t ListInvitationsRequestStatus
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (l ListInvitationsRequestStatus) Ptr() *ListInvitationsRequestStatus {
+	return &l
 }

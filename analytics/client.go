@@ -122,6 +122,7 @@ func (c *Client) ExportCsv(
 func (c *Client) TimeSeries(
 	ctx context.Context,
 	projectID string,
+	request *mailmusgo.TimeSeriesAnalyticsRequest,
 	opts ...option.RequestOption,
 ) ([]*mailmusgo.MailTimeSeriesPointDto, error) {
 	options := core.NewRequestOptions(opts...)
@@ -134,6 +135,13 @@ func (c *Client) TimeSeries(
 		baseURL+"/projects/%v/analytics/time-series",
 		projectID,
 	)
+	queryParams, err := internal.QueryValues(request)
+	if err != nil {
+		return nil, err
+	}
+	if len(queryParams) > 0 {
+		endpointURL += "?" + queryParams.Encode()
+	}
 	headers := internal.MergeHeaders(
 		c.header.Clone(),
 		options.ToHeader(),

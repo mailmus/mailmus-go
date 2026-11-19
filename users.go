@@ -9,8 +9,15 @@ import (
 	time "time"
 )
 
+type AuditLogUsersRequest struct {
+	// Items per page.
+	Limit *int `json:"-" url:"limit,omitempty"`
+	// Page number, from 1.
+	Page *int `json:"-" url:"page,omitempty"`
+}
+
 type EventsUsersRequest struct {
-	Limit *float64 `json:"-" url:"limit,omitempty"`
+	Limit *int `json:"-" url:"limit,omitempty"`
 	// The `nextCursor` of the previous page.
 	Cursor *string `json:"-" url:"cursor,omitempty"`
 }
@@ -28,9 +35,9 @@ type LinkUserDto struct {
 }
 
 type ListUsersRequest struct {
-	Page *string `json:"-" url:"page,omitempty"`
+	Page *int `json:"-" url:"page,omitempty"`
 	// At most 200.
-	Limit *string `json:"-" url:"limit,omitempty"`
+	Limit *int `json:"-" url:"limit,omitempty"`
 	// Part of an email or phone number.
 	Q            *string                       `json:"-" url:"q,omitempty"`
 	Status       *ListUsersRequestStatus       `json:"-" url:"status,omitempty"`
@@ -332,7 +339,7 @@ func (i *ImpersonationTicketResponseDto) String() string {
 }
 
 type LinkUserResponseDto struct {
-	User *UserResponseDto `json:"user,omitempty" url:"user,omitempty"`
+	User *UserDetailResponseDto `json:"user,omitempty" url:"user,omitempty"`
 	// The external user merged into user and deleted, or null when there was nothing to merge.
 	MergedUserID *string `json:"mergedUserId,omitempty" url:"mergedUserId,omitempty"`
 
@@ -340,7 +347,7 @@ type LinkUserResponseDto struct {
 	rawJSON         json.RawMessage
 }
 
-func (l *LinkUserResponseDto) GetUser() *UserResponseDto {
+func (l *LinkUserResponseDto) GetUser() *UserDetailResponseDto {
 	if l == nil {
 		return nil
 	}
@@ -430,6 +437,304 @@ func (u *UpdateRolesDto) String() string {
 		return value
 	}
 	return fmt.Sprintf("%#v", u)
+}
+
+type UserDetailResponseDto struct {
+	ID              string                 `json:"id" url:"id"`
+	ProjectID       string                 `json:"projectId" url:"projectId"`
+	Email           *string                `json:"email,omitempty" url:"email,omitempty"`
+	EmailVerifiedAt *time.Time             `json:"emailVerifiedAt,omitempty" url:"emailVerifiedAt,omitempty"`
+	Phone           *string                `json:"phone,omitempty" url:"phone,omitempty"`
+	PhoneVerifiedAt *time.Time             `json:"phoneVerifiedAt,omitempty" url:"phoneVerifiedAt,omitempty"`
+	Metadata        map[string]interface{} `json:"metadata,omitempty" url:"metadata,omitempty"`
+	Roles           []string               `json:"roles,omitempty" url:"roles,omitempty"`
+	LastSignInAt    *time.Time             `json:"lastSignInAt,omitempty" url:"lastSignInAt,omitempty"`
+	BannedAt        *time.Time             `json:"bannedAt,omitempty" url:"bannedAt,omitempty"`
+	CreatedAt       time.Time              `json:"createdAt" url:"createdAt"`
+	UpdatedAt       time.Time              `json:"updatedAt" url:"updatedAt"`
+	MfaEnabledAt    *time.Time             `json:"mfaEnabledAt,omitempty" url:"mfaEnabledAt,omitempty"`
+	// Consecutive failed sign-in attempts (brute-force lock, reset on a successful sign-in).
+	FailedSignInAttempts float64 `json:"failedSignInAttempts" url:"failedSignInAttempts"`
+	// Account locked until this date (password brute-force).
+	SignInLockedUntil *time.Time `json:"signInLockedUntil,omitempty" url:"signInLockedUntil,omitempty"`
+	// Your own ID for this user, when you authenticate them yourself (organizations without Mailmus Auth).
+	ExternalID *string `json:"externalId,omitempty" url:"externalId,omitempty"`
+	// Who holds this identity. EXTERNAL means you authenticate this user yourself; it becomes MAILMUS_AUTH the first time they sign in with Mailmus.
+	IdentitySource UserDetailResponseDtoIdentitySource `json:"identitySource" url:"identitySource"`
+	// Fraud signals raised at sign-up (never blocking): you decide what to do with them.
+	RiskFlags  []UserDetailResponseDtoRiskFlagsItem `json:"riskFlags,omitempty" url:"riskFlags,omitempty"`
+	Identities []*UserIdentityResponseDto           `json:"identities,omitempty" url:"identities,omitempty"`
+	// Active sessions.
+	Sessions []*UserSessionResponseDto `json:"sessions,omitempty" url:"sessions,omitempty"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (u *UserDetailResponseDto) GetID() string {
+	if u == nil {
+		return ""
+	}
+	return u.ID
+}
+
+func (u *UserDetailResponseDto) GetProjectID() string {
+	if u == nil {
+		return ""
+	}
+	return u.ProjectID
+}
+
+func (u *UserDetailResponseDto) GetEmail() *string {
+	if u == nil {
+		return nil
+	}
+	return u.Email
+}
+
+func (u *UserDetailResponseDto) GetEmailVerifiedAt() *time.Time {
+	if u == nil {
+		return nil
+	}
+	return u.EmailVerifiedAt
+}
+
+func (u *UserDetailResponseDto) GetPhone() *string {
+	if u == nil {
+		return nil
+	}
+	return u.Phone
+}
+
+func (u *UserDetailResponseDto) GetPhoneVerifiedAt() *time.Time {
+	if u == nil {
+		return nil
+	}
+	return u.PhoneVerifiedAt
+}
+
+func (u *UserDetailResponseDto) GetMetadata() map[string]interface{} {
+	if u == nil {
+		return nil
+	}
+	return u.Metadata
+}
+
+func (u *UserDetailResponseDto) GetRoles() []string {
+	if u == nil {
+		return nil
+	}
+	return u.Roles
+}
+
+func (u *UserDetailResponseDto) GetLastSignInAt() *time.Time {
+	if u == nil {
+		return nil
+	}
+	return u.LastSignInAt
+}
+
+func (u *UserDetailResponseDto) GetBannedAt() *time.Time {
+	if u == nil {
+		return nil
+	}
+	return u.BannedAt
+}
+
+func (u *UserDetailResponseDto) GetCreatedAt() time.Time {
+	if u == nil {
+		return time.Time{}
+	}
+	return u.CreatedAt
+}
+
+func (u *UserDetailResponseDto) GetUpdatedAt() time.Time {
+	if u == nil {
+		return time.Time{}
+	}
+	return u.UpdatedAt
+}
+
+func (u *UserDetailResponseDto) GetMfaEnabledAt() *time.Time {
+	if u == nil {
+		return nil
+	}
+	return u.MfaEnabledAt
+}
+
+func (u *UserDetailResponseDto) GetFailedSignInAttempts() float64 {
+	if u == nil {
+		return 0
+	}
+	return u.FailedSignInAttempts
+}
+
+func (u *UserDetailResponseDto) GetSignInLockedUntil() *time.Time {
+	if u == nil {
+		return nil
+	}
+	return u.SignInLockedUntil
+}
+
+func (u *UserDetailResponseDto) GetExternalID() *string {
+	if u == nil {
+		return nil
+	}
+	return u.ExternalID
+}
+
+func (u *UserDetailResponseDto) GetIdentitySource() UserDetailResponseDtoIdentitySource {
+	if u == nil {
+		return ""
+	}
+	return u.IdentitySource
+}
+
+func (u *UserDetailResponseDto) GetRiskFlags() []UserDetailResponseDtoRiskFlagsItem {
+	if u == nil {
+		return nil
+	}
+	return u.RiskFlags
+}
+
+func (u *UserDetailResponseDto) GetIdentities() []*UserIdentityResponseDto {
+	if u == nil {
+		return nil
+	}
+	return u.Identities
+}
+
+func (u *UserDetailResponseDto) GetSessions() []*UserSessionResponseDto {
+	if u == nil {
+		return nil
+	}
+	return u.Sessions
+}
+
+func (u *UserDetailResponseDto) GetExtraProperties() map[string]interface{} {
+	return u.extraProperties
+}
+
+func (u *UserDetailResponseDto) UnmarshalJSON(data []byte) error {
+	type embed UserDetailResponseDto
+	var unmarshaler = struct {
+		embed
+		EmailVerifiedAt   *internal.DateTime `json:"emailVerifiedAt,omitempty"`
+		PhoneVerifiedAt   *internal.DateTime `json:"phoneVerifiedAt,omitempty"`
+		LastSignInAt      *internal.DateTime `json:"lastSignInAt,omitempty"`
+		BannedAt          *internal.DateTime `json:"bannedAt,omitempty"`
+		CreatedAt         *internal.DateTime `json:"createdAt"`
+		UpdatedAt         *internal.DateTime `json:"updatedAt"`
+		MfaEnabledAt      *internal.DateTime `json:"mfaEnabledAt,omitempty"`
+		SignInLockedUntil *internal.DateTime `json:"signInLockedUntil,omitempty"`
+	}{
+		embed: embed(*u),
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
+		return err
+	}
+	*u = UserDetailResponseDto(unmarshaler.embed)
+	u.EmailVerifiedAt = unmarshaler.EmailVerifiedAt.TimePtr()
+	u.PhoneVerifiedAt = unmarshaler.PhoneVerifiedAt.TimePtr()
+	u.LastSignInAt = unmarshaler.LastSignInAt.TimePtr()
+	u.BannedAt = unmarshaler.BannedAt.TimePtr()
+	u.CreatedAt = unmarshaler.CreatedAt.Time()
+	u.UpdatedAt = unmarshaler.UpdatedAt.Time()
+	u.MfaEnabledAt = unmarshaler.MfaEnabledAt.TimePtr()
+	u.SignInLockedUntil = unmarshaler.SignInLockedUntil.TimePtr()
+	extraProperties, err := internal.ExtractExtraProperties(data, *u)
+	if err != nil {
+		return err
+	}
+	u.extraProperties = extraProperties
+	u.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (u *UserDetailResponseDto) MarshalJSON() ([]byte, error) {
+	type embed UserDetailResponseDto
+	var marshaler = struct {
+		embed
+		EmailVerifiedAt   *internal.DateTime `json:"emailVerifiedAt,omitempty"`
+		PhoneVerifiedAt   *internal.DateTime `json:"phoneVerifiedAt,omitempty"`
+		LastSignInAt      *internal.DateTime `json:"lastSignInAt,omitempty"`
+		BannedAt          *internal.DateTime `json:"bannedAt,omitempty"`
+		CreatedAt         *internal.DateTime `json:"createdAt"`
+		UpdatedAt         *internal.DateTime `json:"updatedAt"`
+		MfaEnabledAt      *internal.DateTime `json:"mfaEnabledAt,omitempty"`
+		SignInLockedUntil *internal.DateTime `json:"signInLockedUntil,omitempty"`
+	}{
+		embed:             embed(*u),
+		EmailVerifiedAt:   internal.NewOptionalDateTime(u.EmailVerifiedAt),
+		PhoneVerifiedAt:   internal.NewOptionalDateTime(u.PhoneVerifiedAt),
+		LastSignInAt:      internal.NewOptionalDateTime(u.LastSignInAt),
+		BannedAt:          internal.NewOptionalDateTime(u.BannedAt),
+		CreatedAt:         internal.NewDateTime(u.CreatedAt),
+		UpdatedAt:         internal.NewDateTime(u.UpdatedAt),
+		MfaEnabledAt:      internal.NewOptionalDateTime(u.MfaEnabledAt),
+		SignInLockedUntil: internal.NewOptionalDateTime(u.SignInLockedUntil),
+	}
+	return json.Marshal(marshaler)
+}
+
+func (u *UserDetailResponseDto) String() string {
+	if len(u.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(u.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(u); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", u)
+}
+
+// Who holds this identity. EXTERNAL means you authenticate this user yourself; it becomes MAILMUS_AUTH the first time they sign in with Mailmus.
+type UserDetailResponseDtoIdentitySource string
+
+const (
+	UserDetailResponseDtoIdentitySourceMailmusAuth UserDetailResponseDtoIdentitySource = "MAILMUS_AUTH"
+	UserDetailResponseDtoIdentitySourceExternal    UserDetailResponseDtoIdentitySource = "EXTERNAL"
+)
+
+func NewUserDetailResponseDtoIdentitySourceFromString(s string) (UserDetailResponseDtoIdentitySource, error) {
+	switch s {
+	case "MAILMUS_AUTH":
+		return UserDetailResponseDtoIdentitySourceMailmusAuth, nil
+	case "EXTERNAL":
+		return UserDetailResponseDtoIdentitySourceExternal, nil
+	}
+	var t UserDetailResponseDtoIdentitySource
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (u UserDetailResponseDtoIdentitySource) Ptr() *UserDetailResponseDtoIdentitySource {
+	return &u
+}
+
+type UserDetailResponseDtoRiskFlagsItem string
+
+const (
+	UserDetailResponseDtoRiskFlagsItemVelocityIP            UserDetailResponseDtoRiskFlagsItem = "VELOCITY_IP"
+	UserDetailResponseDtoRiskFlagsItemVelocityFingerprint   UserDetailResponseDtoRiskFlagsItem = "VELOCITY_FINGERPRINT"
+	UserDetailResponseDtoRiskFlagsItemBanEvasionFingerprint UserDetailResponseDtoRiskFlagsItem = "BAN_EVASION_FINGERPRINT"
+)
+
+func NewUserDetailResponseDtoRiskFlagsItemFromString(s string) (UserDetailResponseDtoRiskFlagsItem, error) {
+	switch s {
+	case "VELOCITY_IP":
+		return UserDetailResponseDtoRiskFlagsItemVelocityIP, nil
+	case "VELOCITY_FINGERPRINT":
+		return UserDetailResponseDtoRiskFlagsItemVelocityFingerprint, nil
+	case "BAN_EVASION_FINGERPRINT":
+		return UserDetailResponseDtoRiskFlagsItemBanEvasionFingerprint, nil
+	}
+	var t UserDetailResponseDtoRiskFlagsItem
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (u UserDetailResponseDtoRiskFlagsItem) Ptr() *UserDetailResponseDtoRiskFlagsItem {
+	return &u
 }
 
 type UserEventDto struct {
@@ -767,17 +1072,306 @@ func (u UserIdentityResponseDtoProvider) Ptr() *UserIdentityResponseDtoProvider 
 	return &u
 }
 
-type UserListResponseDto struct {
-	Data  []*UserResponseDto `json:"data,omitempty" url:"data,omitempty"`
-	Total float64            `json:"total" url:"total"`
-	Page  float64            `json:"page" url:"page"`
-	Pages float64            `json:"pages" url:"pages"`
+type UserListItemResponseDto struct {
+	ID              string                 `json:"id" url:"id"`
+	ProjectID       string                 `json:"projectId" url:"projectId"`
+	Email           *string                `json:"email,omitempty" url:"email,omitempty"`
+	EmailVerifiedAt *time.Time             `json:"emailVerifiedAt,omitempty" url:"emailVerifiedAt,omitempty"`
+	Phone           *string                `json:"phone,omitempty" url:"phone,omitempty"`
+	PhoneVerifiedAt *time.Time             `json:"phoneVerifiedAt,omitempty" url:"phoneVerifiedAt,omitempty"`
+	Metadata        map[string]interface{} `json:"metadata,omitempty" url:"metadata,omitempty"`
+	Roles           []string               `json:"roles,omitempty" url:"roles,omitempty"`
+	LastSignInAt    *time.Time             `json:"lastSignInAt,omitempty" url:"lastSignInAt,omitempty"`
+	BannedAt        *time.Time             `json:"bannedAt,omitempty" url:"bannedAt,omitempty"`
+	CreatedAt       time.Time              `json:"createdAt" url:"createdAt"`
+	UpdatedAt       time.Time              `json:"updatedAt" url:"updatedAt"`
+	MfaEnabledAt    *time.Time             `json:"mfaEnabledAt,omitempty" url:"mfaEnabledAt,omitempty"`
+	// Consecutive failed sign-in attempts (brute-force lock, reset on a successful sign-in).
+	FailedSignInAttempts float64 `json:"failedSignInAttempts" url:"failedSignInAttempts"`
+	// Account locked until this date (password brute-force).
+	SignInLockedUntil *time.Time `json:"signInLockedUntil,omitempty" url:"signInLockedUntil,omitempty"`
+	// Your own ID for this user, when you authenticate them yourself (organizations without Mailmus Auth).
+	ExternalID *string `json:"externalId,omitempty" url:"externalId,omitempty"`
+	// Who holds this identity. EXTERNAL means you authenticate this user yourself; it becomes MAILMUS_AUTH the first time they sign in with Mailmus.
+	IdentitySource UserListItemResponseDtoIdentitySource `json:"identitySource" url:"identitySource"`
+	// Fraud signals raised at sign-up (never blocking): you decide what to do with them.
+	RiskFlags  []UserListItemResponseDtoRiskFlagsItem `json:"riskFlags,omitempty" url:"riskFlags,omitempty"`
+	Identities []*UserIdentityResponseDto             `json:"identities,omitempty" url:"identities,omitempty"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
 }
 
-func (u *UserListResponseDto) GetData() []*UserResponseDto {
+func (u *UserListItemResponseDto) GetID() string {
+	if u == nil {
+		return ""
+	}
+	return u.ID
+}
+
+func (u *UserListItemResponseDto) GetProjectID() string {
+	if u == nil {
+		return ""
+	}
+	return u.ProjectID
+}
+
+func (u *UserListItemResponseDto) GetEmail() *string {
+	if u == nil {
+		return nil
+	}
+	return u.Email
+}
+
+func (u *UserListItemResponseDto) GetEmailVerifiedAt() *time.Time {
+	if u == nil {
+		return nil
+	}
+	return u.EmailVerifiedAt
+}
+
+func (u *UserListItemResponseDto) GetPhone() *string {
+	if u == nil {
+		return nil
+	}
+	return u.Phone
+}
+
+func (u *UserListItemResponseDto) GetPhoneVerifiedAt() *time.Time {
+	if u == nil {
+		return nil
+	}
+	return u.PhoneVerifiedAt
+}
+
+func (u *UserListItemResponseDto) GetMetadata() map[string]interface{} {
+	if u == nil {
+		return nil
+	}
+	return u.Metadata
+}
+
+func (u *UserListItemResponseDto) GetRoles() []string {
+	if u == nil {
+		return nil
+	}
+	return u.Roles
+}
+
+func (u *UserListItemResponseDto) GetLastSignInAt() *time.Time {
+	if u == nil {
+		return nil
+	}
+	return u.LastSignInAt
+}
+
+func (u *UserListItemResponseDto) GetBannedAt() *time.Time {
+	if u == nil {
+		return nil
+	}
+	return u.BannedAt
+}
+
+func (u *UserListItemResponseDto) GetCreatedAt() time.Time {
+	if u == nil {
+		return time.Time{}
+	}
+	return u.CreatedAt
+}
+
+func (u *UserListItemResponseDto) GetUpdatedAt() time.Time {
+	if u == nil {
+		return time.Time{}
+	}
+	return u.UpdatedAt
+}
+
+func (u *UserListItemResponseDto) GetMfaEnabledAt() *time.Time {
+	if u == nil {
+		return nil
+	}
+	return u.MfaEnabledAt
+}
+
+func (u *UserListItemResponseDto) GetFailedSignInAttempts() float64 {
+	if u == nil {
+		return 0
+	}
+	return u.FailedSignInAttempts
+}
+
+func (u *UserListItemResponseDto) GetSignInLockedUntil() *time.Time {
+	if u == nil {
+		return nil
+	}
+	return u.SignInLockedUntil
+}
+
+func (u *UserListItemResponseDto) GetExternalID() *string {
+	if u == nil {
+		return nil
+	}
+	return u.ExternalID
+}
+
+func (u *UserListItemResponseDto) GetIdentitySource() UserListItemResponseDtoIdentitySource {
+	if u == nil {
+		return ""
+	}
+	return u.IdentitySource
+}
+
+func (u *UserListItemResponseDto) GetRiskFlags() []UserListItemResponseDtoRiskFlagsItem {
+	if u == nil {
+		return nil
+	}
+	return u.RiskFlags
+}
+
+func (u *UserListItemResponseDto) GetIdentities() []*UserIdentityResponseDto {
+	if u == nil {
+		return nil
+	}
+	return u.Identities
+}
+
+func (u *UserListItemResponseDto) GetExtraProperties() map[string]interface{} {
+	return u.extraProperties
+}
+
+func (u *UserListItemResponseDto) UnmarshalJSON(data []byte) error {
+	type embed UserListItemResponseDto
+	var unmarshaler = struct {
+		embed
+		EmailVerifiedAt   *internal.DateTime `json:"emailVerifiedAt,omitempty"`
+		PhoneVerifiedAt   *internal.DateTime `json:"phoneVerifiedAt,omitempty"`
+		LastSignInAt      *internal.DateTime `json:"lastSignInAt,omitempty"`
+		BannedAt          *internal.DateTime `json:"bannedAt,omitempty"`
+		CreatedAt         *internal.DateTime `json:"createdAt"`
+		UpdatedAt         *internal.DateTime `json:"updatedAt"`
+		MfaEnabledAt      *internal.DateTime `json:"mfaEnabledAt,omitempty"`
+		SignInLockedUntil *internal.DateTime `json:"signInLockedUntil,omitempty"`
+	}{
+		embed: embed(*u),
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
+		return err
+	}
+	*u = UserListItemResponseDto(unmarshaler.embed)
+	u.EmailVerifiedAt = unmarshaler.EmailVerifiedAt.TimePtr()
+	u.PhoneVerifiedAt = unmarshaler.PhoneVerifiedAt.TimePtr()
+	u.LastSignInAt = unmarshaler.LastSignInAt.TimePtr()
+	u.BannedAt = unmarshaler.BannedAt.TimePtr()
+	u.CreatedAt = unmarshaler.CreatedAt.Time()
+	u.UpdatedAt = unmarshaler.UpdatedAt.Time()
+	u.MfaEnabledAt = unmarshaler.MfaEnabledAt.TimePtr()
+	u.SignInLockedUntil = unmarshaler.SignInLockedUntil.TimePtr()
+	extraProperties, err := internal.ExtractExtraProperties(data, *u)
+	if err != nil {
+		return err
+	}
+	u.extraProperties = extraProperties
+	u.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (u *UserListItemResponseDto) MarshalJSON() ([]byte, error) {
+	type embed UserListItemResponseDto
+	var marshaler = struct {
+		embed
+		EmailVerifiedAt   *internal.DateTime `json:"emailVerifiedAt,omitempty"`
+		PhoneVerifiedAt   *internal.DateTime `json:"phoneVerifiedAt,omitempty"`
+		LastSignInAt      *internal.DateTime `json:"lastSignInAt,omitempty"`
+		BannedAt          *internal.DateTime `json:"bannedAt,omitempty"`
+		CreatedAt         *internal.DateTime `json:"createdAt"`
+		UpdatedAt         *internal.DateTime `json:"updatedAt"`
+		MfaEnabledAt      *internal.DateTime `json:"mfaEnabledAt,omitempty"`
+		SignInLockedUntil *internal.DateTime `json:"signInLockedUntil,omitempty"`
+	}{
+		embed:             embed(*u),
+		EmailVerifiedAt:   internal.NewOptionalDateTime(u.EmailVerifiedAt),
+		PhoneVerifiedAt:   internal.NewOptionalDateTime(u.PhoneVerifiedAt),
+		LastSignInAt:      internal.NewOptionalDateTime(u.LastSignInAt),
+		BannedAt:          internal.NewOptionalDateTime(u.BannedAt),
+		CreatedAt:         internal.NewDateTime(u.CreatedAt),
+		UpdatedAt:         internal.NewDateTime(u.UpdatedAt),
+		MfaEnabledAt:      internal.NewOptionalDateTime(u.MfaEnabledAt),
+		SignInLockedUntil: internal.NewOptionalDateTime(u.SignInLockedUntil),
+	}
+	return json.Marshal(marshaler)
+}
+
+func (u *UserListItemResponseDto) String() string {
+	if len(u.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(u.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(u); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", u)
+}
+
+// Who holds this identity. EXTERNAL means you authenticate this user yourself; it becomes MAILMUS_AUTH the first time they sign in with Mailmus.
+type UserListItemResponseDtoIdentitySource string
+
+const (
+	UserListItemResponseDtoIdentitySourceMailmusAuth UserListItemResponseDtoIdentitySource = "MAILMUS_AUTH"
+	UserListItemResponseDtoIdentitySourceExternal    UserListItemResponseDtoIdentitySource = "EXTERNAL"
+)
+
+func NewUserListItemResponseDtoIdentitySourceFromString(s string) (UserListItemResponseDtoIdentitySource, error) {
+	switch s {
+	case "MAILMUS_AUTH":
+		return UserListItemResponseDtoIdentitySourceMailmusAuth, nil
+	case "EXTERNAL":
+		return UserListItemResponseDtoIdentitySourceExternal, nil
+	}
+	var t UserListItemResponseDtoIdentitySource
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (u UserListItemResponseDtoIdentitySource) Ptr() *UserListItemResponseDtoIdentitySource {
+	return &u
+}
+
+type UserListItemResponseDtoRiskFlagsItem string
+
+const (
+	UserListItemResponseDtoRiskFlagsItemVelocityIP            UserListItemResponseDtoRiskFlagsItem = "VELOCITY_IP"
+	UserListItemResponseDtoRiskFlagsItemVelocityFingerprint   UserListItemResponseDtoRiskFlagsItem = "VELOCITY_FINGERPRINT"
+	UserListItemResponseDtoRiskFlagsItemBanEvasionFingerprint UserListItemResponseDtoRiskFlagsItem = "BAN_EVASION_FINGERPRINT"
+)
+
+func NewUserListItemResponseDtoRiskFlagsItemFromString(s string) (UserListItemResponseDtoRiskFlagsItem, error) {
+	switch s {
+	case "VELOCITY_IP":
+		return UserListItemResponseDtoRiskFlagsItemVelocityIP, nil
+	case "VELOCITY_FINGERPRINT":
+		return UserListItemResponseDtoRiskFlagsItemVelocityFingerprint, nil
+	case "BAN_EVASION_FINGERPRINT":
+		return UserListItemResponseDtoRiskFlagsItemBanEvasionFingerprint, nil
+	}
+	var t UserListItemResponseDtoRiskFlagsItem
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (u UserListItemResponseDtoRiskFlagsItem) Ptr() *UserListItemResponseDtoRiskFlagsItem {
+	return &u
+}
+
+type UserListResponseDto struct {
+	Data  []*UserListItemResponseDto `json:"data,omitempty" url:"data,omitempty"`
+	Total float64                    `json:"total" url:"total"`
+	Page  float64                    `json:"page" url:"page"`
+	Pages float64                    `json:"pages" url:"pages"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (u *UserListResponseDto) GetData() []*UserListItemResponseDto {
 	if u == nil {
 		return nil
 	}
@@ -860,10 +1454,7 @@ type UserResponseDto struct {
 	// Who holds this identity. EXTERNAL means you authenticate this user yourself; it becomes MAILMUS_AUTH the first time they sign in with Mailmus.
 	IdentitySource UserResponseDtoIdentitySource `json:"identitySource" url:"identitySource"`
 	// Fraud signals raised at sign-up (never blocking): you decide what to do with them.
-	RiskFlags  []UserResponseDtoRiskFlagsItem `json:"riskFlags,omitempty" url:"riskFlags,omitempty"`
-	Identities []*UserIdentityResponseDto     `json:"identities,omitempty" url:"identities,omitempty"`
-	// Active sessions, present only on GET /users/:id.
-	Sessions []*UserSessionResponseDto `json:"sessions,omitempty" url:"sessions,omitempty"`
+	RiskFlags []UserResponseDtoRiskFlagsItem `json:"riskFlags,omitempty" url:"riskFlags,omitempty"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -993,20 +1584,6 @@ func (u *UserResponseDto) GetRiskFlags() []UserResponseDtoRiskFlagsItem {
 		return nil
 	}
 	return u.RiskFlags
-}
-
-func (u *UserResponseDto) GetIdentities() []*UserIdentityResponseDto {
-	if u == nil {
-		return nil
-	}
-	return u.Identities
-}
-
-func (u *UserResponseDto) GetSessions() []*UserSessionResponseDto {
-	if u == nil {
-		return nil
-	}
-	return u.Sessions
 }
 
 func (u *UserResponseDto) GetExtraProperties() map[string]interface{} {

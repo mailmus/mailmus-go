@@ -160,17 +160,17 @@ func (w *WebhookDeliveryResponseDto) String() string {
 type WebhookDeliveryResponseDtoStatus string
 
 const (
-	WebhookDeliveryResponseDtoStatusPending WebhookDeliveryResponseDtoStatus = "PENDING"
-	WebhookDeliveryResponseDtoStatusSuccess WebhookDeliveryResponseDtoStatus = "SUCCESS"
-	WebhookDeliveryResponseDtoStatusFailed  WebhookDeliveryResponseDtoStatus = "FAILED"
+	WebhookDeliveryResponseDtoStatusPending   WebhookDeliveryResponseDtoStatus = "PENDING"
+	WebhookDeliveryResponseDtoStatusSucceeded WebhookDeliveryResponseDtoStatus = "SUCCEEDED"
+	WebhookDeliveryResponseDtoStatusFailed    WebhookDeliveryResponseDtoStatus = "FAILED"
 )
 
 func NewWebhookDeliveryResponseDtoStatusFromString(s string) (WebhookDeliveryResponseDtoStatus, error) {
 	switch s {
 	case "PENDING":
 		return WebhookDeliveryResponseDtoStatusPending, nil
-	case "SUCCESS":
-		return WebhookDeliveryResponseDtoStatusSuccess, nil
+	case "SUCCEEDED":
+		return WebhookDeliveryResponseDtoStatusSucceeded, nil
 	case "FAILED":
 		return WebhookDeliveryResponseDtoStatusFailed, nil
 	}

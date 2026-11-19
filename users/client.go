@@ -163,7 +163,7 @@ func (c *Client) FindOne(
 	projectID string,
 	id string,
 	opts ...option.RequestOption,
-) (*mailmusgo.UserResponseDto, error) {
+) (*mailmusgo.UserDetailResponseDto, error) {
 	options := core.NewRequestOptions(opts...)
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
@@ -180,7 +180,7 @@ func (c *Client) FindOne(
 		options.ToHeader(),
 	)
 
-	var response *mailmusgo.UserResponseDto
+	var response *mailmusgo.UserDetailResponseDto
 	if err := c.caller.Call(
 		ctx,
 		&internal.CallParams{
@@ -332,6 +332,7 @@ func (c *Client) AuditLog(
 	ctx context.Context,
 	projectID string,
 	id string,
+	request *mailmusgo.AuditLogUsersRequest,
 	opts ...option.RequestOption,
 ) (*mailmusgo.AuditLogListResponseDto, error) {
 	options := core.NewRequestOptions(opts...)
@@ -345,6 +346,13 @@ func (c *Client) AuditLog(
 		projectID,
 		id,
 	)
+	queryParams, err := internal.QueryValues(request)
+	if err != nil {
+		return nil, err
+	}
+	if len(queryParams) > 0 {
+		endpointURL += "?" + queryParams.Encode()
+	}
 	headers := internal.MergeHeaders(
 		c.header.Clone(),
 		options.ToHeader(),

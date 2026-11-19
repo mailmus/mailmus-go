@@ -145,16 +145,63 @@ func (a *AutomationResponseDto) String() string {
 	return fmt.Sprintf("%#v", a)
 }
 
+type AutomationRunContactDto struct {
+	Email string `json:"email" url:"email"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (a *AutomationRunContactDto) GetEmail() string {
+	if a == nil {
+		return ""
+	}
+	return a.Email
+}
+
+func (a *AutomationRunContactDto) GetExtraProperties() map[string]interface{} {
+	return a.extraProperties
+}
+
+func (a *AutomationRunContactDto) UnmarshalJSON(data []byte) error {
+	type unmarshaler AutomationRunContactDto
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*a = AutomationRunContactDto(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *a)
+	if err != nil {
+		return err
+	}
+	a.extraProperties = extraProperties
+	a.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (a *AutomationRunContactDto) String() string {
+	if len(a.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(a.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(a); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", a)
+}
+
 type AutomationRunResponseDto struct {
 	ID           string `json:"id" url:"id"`
 	AutomationID string `json:"automationId" url:"automationId"`
 	// Contact this run is for.
-	ContactID string `json:"contactId" url:"contactId"`
+	ContactID string                   `json:"contactId" url:"contactId"`
+	Contact   *AutomationRunContactDto `json:"contact,omitempty" url:"contact,omitempty"`
 	// Index of the current step, starting at 0.
-	CurrentStep float64    `json:"currentStep" url:"currentStep"`
-	Status      string     `json:"status" url:"status"`
-	StartedAt   time.Time  `json:"startedAt" url:"startedAt"`
-	FinishedAt  *time.Time `json:"finishedAt,omitempty" url:"finishedAt,omitempty"`
+	CurrentStep float64                        `json:"currentStep" url:"currentStep"`
+	Status      AutomationRunResponseDtoStatus `json:"status" url:"status"`
+	StartedAt   time.Time                      `json:"startedAt" url:"startedAt"`
+	FinishedAt  *time.Time                     `json:"finishedAt,omitempty" url:"finishedAt,omitempty"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -181,6 +228,13 @@ func (a *AutomationRunResponseDto) GetContactID() string {
 	return a.ContactID
 }
 
+func (a *AutomationRunResponseDto) GetContact() *AutomationRunContactDto {
+	if a == nil {
+		return nil
+	}
+	return a.Contact
+}
+
 func (a *AutomationRunResponseDto) GetCurrentStep() float64 {
 	if a == nil {
 		return 0
@@ -188,7 +242,7 @@ func (a *AutomationRunResponseDto) GetCurrentStep() float64 {
 	return a.CurrentStep
 }
 
-func (a *AutomationRunResponseDto) GetStatus() string {
+func (a *AutomationRunResponseDto) GetStatus() AutomationRunResponseDtoStatus {
 	if a == nil {
 		return ""
 	}
@@ -261,4 +315,32 @@ func (a *AutomationRunResponseDto) String() string {
 		return value
 	}
 	return fmt.Sprintf("%#v", a)
+}
+
+type AutomationRunResponseDtoStatus string
+
+const (
+	AutomationRunResponseDtoStatusRunning   AutomationRunResponseDtoStatus = "RUNNING"
+	AutomationRunResponseDtoStatusWaiting   AutomationRunResponseDtoStatus = "WAITING"
+	AutomationRunResponseDtoStatusCompleted AutomationRunResponseDtoStatus = "COMPLETED"
+	AutomationRunResponseDtoStatusFailed    AutomationRunResponseDtoStatus = "FAILED"
+)
+
+func NewAutomationRunResponseDtoStatusFromString(s string) (AutomationRunResponseDtoStatus, error) {
+	switch s {
+	case "RUNNING":
+		return AutomationRunResponseDtoStatusRunning, nil
+	case "WAITING":
+		return AutomationRunResponseDtoStatusWaiting, nil
+	case "COMPLETED":
+		return AutomationRunResponseDtoStatusCompleted, nil
+	case "FAILED":
+		return AutomationRunResponseDtoStatusFailed, nil
+	}
+	var t AutomationRunResponseDtoStatus
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (a AutomationRunResponseDtoStatus) Ptr() *AutomationRunResponseDtoStatus {
+	return &a
 }

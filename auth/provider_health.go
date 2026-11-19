@@ -3,9 +3,9 @@
 package auth
 
 type HistoryProviderHealthRequest struct {
-	Days *float64 `json:"-" url:"days,omitempty"`
+	Days *int `json:"-" url:"days,omitempty"`
 }
 
 type TimelinesProviderHealthRequest struct {
-	Days *float64 `json:"-" url:"days,omitempty"`
+	Days *int `json:"-" url:"days,omitempty"`
 }

@@ -290,7 +290,7 @@ func (c *Client) FindOne(
 	projectID string,
 	id string,
 	opts ...option.RequestOption,
-) (*mailmusgo.ContactResponseDto, error) {
+) (*mailmusgo.ContactDetailResponseDto, error) {
 	options := core.NewRequestOptions(opts...)
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
@@ -307,7 +307,7 @@ func (c *Client) FindOne(
 		options.ToHeader(),
 	)
 
-	var response *mailmusgo.ContactResponseDto
+	var response *mailmusgo.ContactDetailResponseDto
 	if err := c.caller.Call(
 		ctx,
 		&internal.CallParams{

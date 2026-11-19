@@ -10,11 +10,17 @@ import (
 )
 
 type MauHistoryAuthAnalyticsRequest struct {
-	Year float64 `json:"-" url:"year"`
+	// A calendar year to cover instead of the latest period.
+	Year *int `json:"-" url:"year,omitempty"`
+	// Number of months covered, up to this month.
+	Months *int `json:"-" url:"months,omitempty"`
 }
 
 type TimeSeriesAuthAnalyticsRequest struct {
-	Year float64 `json:"-" url:"year"`
+	// A calendar year to cover instead of the latest period.
+	Year *int `json:"-" url:"year,omitempty"`
+	// Number of days covered, up to today.
+	Days *int `json:"-" url:"days,omitempty"`
 }
 
 type AuthAnalyticsResponseDto struct {

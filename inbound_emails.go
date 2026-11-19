@@ -9,6 +9,13 @@ import (
 	time "time"
 )
 
+type ListInboundEmailsRequest struct {
+	// Items per page.
+	Limit *int `json:"-" url:"limit,omitempty"`
+	// Page number, from 1.
+	Page *int `json:"-" url:"page,omitempty"`
+}
+
 type InboundEmailListResponseDto struct {
 	Data  []*InboundEmailResponseDto `json:"data,omitempty" url:"data,omitempty"`
 	Total float64                    `json:"total" url:"total"`

@@ -327,6 +327,7 @@ func (c *Client) GetContacts(
 	ctx context.Context,
 	projectID string,
 	id string,
+	request *mailmusgo.GetContactsAudiencesRequest,
 	opts ...option.RequestOption,
 ) (*mailmusgo.AudienceContactListResponseDto, error) {
 	options := core.NewRequestOptions(opts...)
@@ -340,6 +341,13 @@ func (c *Client) GetContacts(
 		projectID,
 		id,
 	)
+	queryParams, err := internal.QueryValues(request)
+	if err != nil {
+		return nil, err
+	}
+	if len(queryParams) > 0 {
+		endpointURL += "?" + queryParams.Encode()
+	}
 	headers := internal.MergeHeaders(
 		c.header.Clone(),
 		options.ToHeader(),

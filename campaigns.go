@@ -30,7 +30,11 @@ type CreateCampaignDto struct {
 }
 
 type GetSendsCampaignsRequest struct {
-	Status string `json:"-" url:"status"`
+	Status *GetSendsCampaignsRequestStatus `json:"-" url:"status,omitempty"`
+	// Items per page.
+	Limit *int `json:"-" url:"limit,omitempty"`
+	// Page number, from 1.
+	Page *int `json:"-" url:"page,omitempty"`
 }
 
 type SelectAbTestWinnerDto struct {
@@ -424,11 +428,14 @@ func (c CampaignDetailResponseDtoAbTestMetric) Ptr() *CampaignDetailResponseDtoA
 type CampaignDetailResponseDtoStatus string
 
 const (
-	CampaignDetailResponseDtoStatusDraft     CampaignDetailResponseDtoStatus = "DRAFT"
-	CampaignDetailResponseDtoStatusScheduled CampaignDetailResponseDtoStatus = "SCHEDULED"
-	CampaignDetailResponseDtoStatusSending   CampaignDetailResponseDtoStatus = "SENDING"
-	CampaignDetailResponseDtoStatusSent      CampaignDetailResponseDtoStatus = "SENT"
-	CampaignDetailResponseDtoStatusCancelled CampaignDetailResponseDtoStatus = "CANCELLED"
+	CampaignDetailResponseDtoStatusDraft         CampaignDetailResponseDtoStatus = "DRAFT"
+	CampaignDetailResponseDtoStatusScheduled     CampaignDetailResponseDtoStatus = "SCHEDULED"
+	CampaignDetailResponseDtoStatusSending       CampaignDetailResponseDtoStatus = "SENDING"
+	CampaignDetailResponseDtoStatusTesting       CampaignDetailResponseDtoStatus = "TESTING"
+	CampaignDetailResponseDtoStatusSent          CampaignDetailResponseDtoStatus = "SENT"
+	CampaignDetailResponseDtoStatusPartiallySent CampaignDetailResponseDtoStatus = "PARTIALLY_SENT"
+	CampaignDetailResponseDtoStatusFailed        CampaignDetailResponseDtoStatus = "FAILED"
+	CampaignDetailResponseDtoStatusCancelled     CampaignDetailResponseDtoStatus = "CANCELLED"
 )
 
 func NewCampaignDetailResponseDtoStatusFromString(s string) (CampaignDetailResponseDtoStatus, error) {
@@ -439,8 +446,14 @@ func NewCampaignDetailResponseDtoStatusFromString(s string) (CampaignDetailRespo
 		return CampaignDetailResponseDtoStatusScheduled, nil
 	case "SENDING":
 		return CampaignDetailResponseDtoStatusSending, nil
+	case "TESTING":
+		return CampaignDetailResponseDtoStatusTesting, nil
 	case "SENT":
 		return CampaignDetailResponseDtoStatusSent, nil
+	case "PARTIALLY_SENT":
+		return CampaignDetailResponseDtoStatusPartiallySent, nil
+	case "FAILED":
+		return CampaignDetailResponseDtoStatusFailed, nil
 	case "CANCELLED":
 		return CampaignDetailResponseDtoStatusCancelled, nil
 	}
@@ -735,11 +748,14 @@ func (c CampaignListItemResponseDtoAbTestMetric) Ptr() *CampaignListItemResponse
 type CampaignListItemResponseDtoStatus string
 
 const (
-	CampaignListItemResponseDtoStatusDraft     CampaignListItemResponseDtoStatus = "DRAFT"
-	CampaignListItemResponseDtoStatusScheduled CampaignListItemResponseDtoStatus = "SCHEDULED"
-	CampaignListItemResponseDtoStatusSending   CampaignListItemResponseDtoStatus = "SENDING"
-	CampaignListItemResponseDtoStatusSent      CampaignListItemResponseDtoStatus = "SENT"
-	CampaignListItemResponseDtoStatusCancelled CampaignListItemResponseDtoStatus = "CANCELLED"
+	CampaignListItemResponseDtoStatusDraft         CampaignListItemResponseDtoStatus = "DRAFT"
+	CampaignListItemResponseDtoStatusScheduled     CampaignListItemResponseDtoStatus = "SCHEDULED"
+	CampaignListItemResponseDtoStatusSending       CampaignListItemResponseDtoStatus = "SENDING"
+	CampaignListItemResponseDtoStatusTesting       CampaignListItemResponseDtoStatus = "TESTING"
+	CampaignListItemResponseDtoStatusSent          CampaignListItemResponseDtoStatus = "SENT"
+	CampaignListItemResponseDtoStatusPartiallySent CampaignListItemResponseDtoStatus = "PARTIALLY_SENT"
+	CampaignListItemResponseDtoStatusFailed        CampaignListItemResponseDtoStatus = "FAILED"
+	CampaignListItemResponseDtoStatusCancelled     CampaignListItemResponseDtoStatus = "CANCELLED"
 )
 
 func NewCampaignListItemResponseDtoStatusFromString(s string) (CampaignListItemResponseDtoStatus, error) {
@@ -750,8 +766,14 @@ func NewCampaignListItemResponseDtoStatusFromString(s string) (CampaignListItemR
 		return CampaignListItemResponseDtoStatusScheduled, nil
 	case "SENDING":
 		return CampaignListItemResponseDtoStatusSending, nil
+	case "TESTING":
+		return CampaignListItemResponseDtoStatusTesting, nil
 	case "SENT":
 		return CampaignListItemResponseDtoStatusSent, nil
+	case "PARTIALLY_SENT":
+		return CampaignListItemResponseDtoStatusPartiallySent, nil
+	case "FAILED":
+		return CampaignListItemResponseDtoStatusFailed, nil
 	case "CANCELLED":
 		return CampaignListItemResponseDtoStatusCancelled, nil
 	}
@@ -1101,11 +1123,14 @@ func (c CampaignResponseDtoAbTestMetric) Ptr() *CampaignResponseDtoAbTestMetric 
 type CampaignResponseDtoStatus string
 
 const (
-	CampaignResponseDtoStatusDraft     CampaignResponseDtoStatus = "DRAFT"
-	CampaignResponseDtoStatusScheduled CampaignResponseDtoStatus = "SCHEDULED"
-	CampaignResponseDtoStatusSending   CampaignResponseDtoStatus = "SENDING"
-	CampaignResponseDtoStatusSent      CampaignResponseDtoStatus = "SENT"
-	CampaignResponseDtoStatusCancelled CampaignResponseDtoStatus = "CANCELLED"
+	CampaignResponseDtoStatusDraft         CampaignResponseDtoStatus = "DRAFT"
+	CampaignResponseDtoStatusScheduled     CampaignResponseDtoStatus = "SCHEDULED"
+	CampaignResponseDtoStatusSending       CampaignResponseDtoStatus = "SENDING"
+	CampaignResponseDtoStatusTesting       CampaignResponseDtoStatus = "TESTING"
+	CampaignResponseDtoStatusSent          CampaignResponseDtoStatus = "SENT"
+	CampaignResponseDtoStatusPartiallySent CampaignResponseDtoStatus = "PARTIALLY_SENT"
+	CampaignResponseDtoStatusFailed        CampaignResponseDtoStatus = "FAILED"
+	CampaignResponseDtoStatusCancelled     CampaignResponseDtoStatus = "CANCELLED"
 )
 
 func NewCampaignResponseDtoStatusFromString(s string) (CampaignResponseDtoStatus, error) {
@@ -1116,8 +1141,14 @@ func NewCampaignResponseDtoStatusFromString(s string) (CampaignResponseDtoStatus
 		return CampaignResponseDtoStatusScheduled, nil
 	case "SENDING":
 		return CampaignResponseDtoStatusSending, nil
+	case "TESTING":
+		return CampaignResponseDtoStatusTesting, nil
 	case "SENT":
 		return CampaignResponseDtoStatusSent, nil
+	case "PARTIALLY_SENT":
+		return CampaignResponseDtoStatusPartiallySent, nil
+	case "FAILED":
+		return CampaignResponseDtoStatusFailed, nil
 	case "CANCELLED":
 		return CampaignResponseDtoStatusCancelled, nil
 	}
@@ -1847,6 +1878,46 @@ func NewCreateCampaignDtoAbTestMetricFromString(s string) (CreateCampaignDtoAbTe
 
 func (c CreateCampaignDtoAbTestMetric) Ptr() *CreateCampaignDtoAbTestMetric {
 	return &c
+}
+
+type GetSendsCampaignsRequestStatus string
+
+const (
+	GetSendsCampaignsRequestStatusQueued     GetSendsCampaignsRequestStatus = "QUEUED"
+	GetSendsCampaignsRequestStatusSent       GetSendsCampaignsRequestStatus = "SENT"
+	GetSendsCampaignsRequestStatusDelivered  GetSendsCampaignsRequestStatus = "DELIVERED"
+	GetSendsCampaignsRequestStatusOpened     GetSendsCampaignsRequestStatus = "OPENED"
+	GetSendsCampaignsRequestStatusClicked    GetSendsCampaignsRequestStatus = "CLICKED"
+	GetSendsCampaignsRequestStatusBounced    GetSendsCampaignsRequestStatus = "BOUNCED"
+	GetSendsCampaignsRequestStatusComplained GetSendsCampaignsRequestStatus = "COMPLAINED"
+	GetSendsCampaignsRequestStatusFailed     GetSendsCampaignsRequestStatus = "FAILED"
+)
+
+func NewGetSendsCampaignsRequestStatusFromString(s string) (GetSendsCampaignsRequestStatus, error) {
+	switch s {
+	case "QUEUED":
+		return GetSendsCampaignsRequestStatusQueued, nil
+	case "SENT":
+		return GetSendsCampaignsRequestStatusSent, nil
+	case "DELIVERED":
+		return GetSendsCampaignsRequestStatusDelivered, nil
+	case "OPENED":
+		return GetSendsCampaignsRequestStatusOpened, nil
+	case "CLICKED":
+		return GetSendsCampaignsRequestStatusClicked, nil
+	case "BOUNCED":
+		return GetSendsCampaignsRequestStatusBounced, nil
+	case "COMPLAINED":
+		return GetSendsCampaignsRequestStatusComplained, nil
+	case "FAILED":
+		return GetSendsCampaignsRequestStatusFailed, nil
+	}
+	var t GetSendsCampaignsRequestStatus
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (g GetSendsCampaignsRequestStatus) Ptr() *GetSendsCampaignsRequestStatus {
+	return &g
 }
 
 type UpdateCampaignDto struct {

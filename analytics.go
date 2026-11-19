@@ -9,7 +9,13 @@ import (
 )
 
 type GetAnalyticsRequest struct {
-	Days float64 `json:"-" url:"days"`
+	// Number of days covered, up to today.
+	Days *int `json:"-" url:"days,omitempty"`
+}
+
+type TimeSeriesAnalyticsRequest struct {
+	// Number of days covered, up to today.
+	Days *int `json:"-" url:"days,omitempty"`
 }
 
 type AutomationsAnalyticsDto struct {

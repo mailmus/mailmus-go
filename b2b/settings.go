@@ -7,6 +7,8 @@ type UpdateB2BSettingsDto struct {
 	OrganizationsEnabled *bool `json:"organizationsEnabled,omitempty" url:"-"`
 	// Send invitation links to your own application instead of the Mailmus invitation page. Must be an https address containing {token}; your server then accepts the invitation with POST /projects/{projectId}/b2b/invitations/accept. Null goes back to the Mailmus page.
 	InvitationURL *string `json:"invitationUrl,omitempty" url:"-"`
+	// Where the Mailmus invitation page sends people, signed in, once they have accepted. Must be one of the allowed return addresses of Mailmus Auth. Null removes it.
+	InvitationReturnURL *string `json:"invitationReturnUrl,omitempty" url:"-"`
 	// Replaces the addresses allowed to receive the one-time code of an enterprise sign-in, when you sign people in yourself. https only (http for localhost).
 	SSORedirectURLs []string `json:"ssoRedirectUrls,omitempty" url:"-"`
 }
